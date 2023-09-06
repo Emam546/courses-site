@@ -41,7 +41,7 @@ export interface DataBase {
             createdAt: Date;
             repeatable: boolean;
             questionIds: Array<string>;
-            
+            time: number;
         } & (
             | {
                   random: true;
@@ -69,13 +69,39 @@ export interface DataBase {
     };
     Results: {
         examId: string;
-        wrongQuestions: Array<{
+        questions: Array<{
             questionId: string;
-            wrongAnswers: number;
+            state: "visited" | "unvisited" | "marked";
+            answer?: string;
+            correctState: boolean;
         }>;
-        questionsIds: Array<string>;
-        startAt: number;
-        endAt: number;
+
+        startAt: Date;
+        endAt?: Date;
         userId: string;
     };
+    Users: {
+        phone?: string;
+        email?: string;
+        password: string;
+        userName: string;
+        name: string;
+        createdAt: Date;
+        blocked: boolean;
+        levelId: string;
+    };
+    Payment:
+        | {
+              activatedAt: Date;
+              userId: string;
+              courseId: string;
+          } & (
+              | {
+                    type: "admin";
+                }
+              | {
+                    type: "code";
+                    createdAT: Date;
+                }
+          );
 }

@@ -1,15 +1,18 @@
 import { createCollection, getDocRef } from "@/firebase";
-import { addDoc } from "firebase/firestore";
+import { addDoc, serverTimestamp } from "firebase/firestore";
 import router, { useRouter } from "next/router";
 import Page404 from "@/components/pages/404";
 import QuestGetDataForm from "@/components/pages/questions/form";
 import { CardTitle, MainCard } from "@/components/card";
 import { useDocumentOnce } from "react-firebase-hooks/firestore";
 import ErrorShower from "@/components/common/error";
+import { useMemo, useState } from "react";
 function SafeArea({ lessonId }: { lessonId: string }) {
     const [lessonData, loading, error] = useDocumentOnce(
         getDocRef("Lessons", lessonId as string)
     );
+    const [count, setCount] = useState(0);
+ 
     return (
         <MainCard>
             <ErrorShower
@@ -23,15 +26,16 @@ function SafeArea({ lessonId }: { lessonId: string }) {
                     <QuestGetDataForm
                         onData={async (data) => {
                             const col = createCollection("Questions");
-                            console.log(data);
                             await addDoc(col, {
                                 ...data,
-                                createdAt: new Date(),
+                                createdAt: serverTimestamp(),
                                 lessonId: lessonId,
                             });
-                            alert("question Added successfully");
+                            setCount(count + 1);
+                            alert("submit Question");
                         }}
                         buttonName="Submit"
+                        ResetAfterSubmit
                     />
                 </>
             )}

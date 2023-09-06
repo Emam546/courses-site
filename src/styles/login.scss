@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+.login-screen {
+    $p: hsl(213deg 85% 97%);
+    $s: hsl(233deg 36% 38%);
+    * {
+        font-family: "Poppins";
+    }
+    overflow-y: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: hsl(218deg 50% 91%);
+    height: 100vh;
+    flex: 1;
+    width: 100%;
+    .screen-1 {
+        background: $p;
+        padding: 2em;
+        border-radius: 30px;
+        box-shadow: 0 0 2em hsl(231deg 62% 94%);
+        @apply tw-space-y-2;
+        .logo {
+            // margin-top: -1em;
+        }
+        .password {
+            background: hsl(0deg 0% 100%);
+            box-shadow: 0 0 2em hsl(231deg 62% 94%);
+            padding: 1em;
+            border-radius: 20px;
+            color: hsl(0deg 0% 30%);
+
+            .sec-2 {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                margin-top: 0.4rem;
+                input {
+                    flex: 1;
+                    width: 100%;
+                    outline: none;
+                    border: none;
+                    &::placeholder {
+                        color: hsl(0deg 0% 0%);
+                        font-size: 0.9em;
+                    }
+                }
+                i {
+                    color: hsl(0deg 0% 30%);
+                }
+            }
+        }
+        .login {
+            display: block;
+            width: 100%;
+            padding: 1em;
+            background: hsl(233deg 36% 38%);
+            color: hsl(0 0 100);
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+    }
+
+    button {
+        cursor: pointer;
+    }
+}

@@ -32,40 +32,42 @@ const Elem = CreateElem<T>(({ index, props: { data }, ...props }, ref) => {
 });
 
 export default function LevelsInfoGetter() {
-    const col = createCollection("Levels");
     const [curDel, setCurDel] = useState<T>();
     const [levels, loading, error] = useCollection(
-        query(col, orderBy("order", "asc"))
+        query(createCollection("Levels"), orderBy("order"))
     );
 
-    if (!levels) return;
     return (
         <>
             <ErrorShower
                 loading={loading}
                 error={error}
             />
-            {levels.size > 0 && (
-                <InfoGetter
-                    Elem={Elem}
-                    data={levels.docs.map((doc) => ({
-                        id: doc.id,
-                        ...doc.data(),
-                    }))}
-                    onDeleteElem={(elem) => setCurDel(elem)}
-                    onResort={async (indexes) => {
-                        await Promise.all(
-                            indexes.map(async (newi, ci) =>
-                                updateDoc(levels.docs[ci].ref, {
-                                    order: newi,
-                                })
-                            )
-                        );
-                    }}
-                />
-            )}
-            {levels.size == 0 && (
-                <p>There is no levels so far please add some levels</p>
+            {levels && (
+                <>
+                    {levels.size > 0 && (
+                        <InfoGetter
+                            Elem={Elem}
+                            data={levels.docs.map((doc) => ({
+                                id: doc.id,
+                                ...doc.data(),
+                            }))}
+                            onDeleteElem={(elem) => setCurDel(elem)}
+                            onResort={async (indexes) => {
+                                await Promise.all(
+                                    indexes.map(async (newi, ci) =>
+                                        updateDoc(levels.docs[ci].ref, {
+                                            order: newi,
+                                        })
+                                    )
+                                );
+                            }}
+                        />
+                    )}
+                    {levels.size == 0 && (
+                        <p>There is no levels so far please add some levels</p>
+                    )}
+                </>
             )}
 
             <DeleteDialog

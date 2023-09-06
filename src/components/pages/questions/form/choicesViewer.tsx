@@ -18,10 +18,11 @@ const Elem = CreateElem<ChoiceType>(
                         name="answer"
                         id={inputId}
                         value={data.id}
+                        required
                     />
                     <label
                         htmlFor={inputId}
-                        className="tw-block tw-h-fit"
+                        className="tw-flex-1"
                     >
                         <div
                             dangerouslySetInnerHTML={{ __html: draftData }}

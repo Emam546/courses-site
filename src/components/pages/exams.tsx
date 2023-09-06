@@ -53,13 +53,13 @@ const Elem = CreateElem<T>(({ index, props: { data }, ...props }, ref) => {
 export interface Props {
     courseId: string;
 }
-export default function LessonsInfoGetter({ courseId: levelId }: Props) {
+export default function LessonsInfoGetter({ courseId: courseId }: Props) {
     const collectionCourses = createCollection("Lessons");
     const [curDel, setCurDel] = useState<T>();
     const [courses, loading, error] = useCollection(
         query(
             collectionCourses,
-            where("courseID", "==", levelId),
+            where("courseID", "==", courseId),
             orderBy("order")
         )
     );

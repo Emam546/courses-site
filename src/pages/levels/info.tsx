@@ -6,11 +6,15 @@ import CourseInfoGetter from "@/components/pages/courses/info";
 import LevelInfoForm from "@/components/pages/levels/form";
 import { DataBase } from "@/data";
 import { getDocRef } from "@/firebase";
-import { DocumentSnapshot, updateDoc } from "firebase/firestore";
+import {
+    DocumentSnapshot,
+    QueryDocumentSnapshot,
+    updateDoc,
+} from "firebase/firestore";
 import { useRouter } from "next/router";
 import { useDocument } from "react-firebase-hooks/firestore";
 interface UpdateForm {
-    doc: DocumentSnapshot<DataBase["Levels"]>;
+    doc: QueryDocumentSnapshot<DataBase["Levels"]>;
 }
 function UpdateForm({ doc }: UpdateForm) {
     return (
@@ -29,19 +33,21 @@ function UpdateForm({ doc }: UpdateForm) {
     );
 }
 function SafeArea({ id }: { id: string }) {
-    const [doc, loading, error] = useDocument(
-        getDocRef("Levels", id as string)
-    );
-
+    const [doc, loading, error] = useDocument(getDocRef("Levels", id));
+    if (doc && !doc.exists())
+        return <Page404 message="The Level id is not exist" />;
+    if (!doc)
+        return (
+            <ErrorShower
+                loading={loading}
+                error={error}
+            />
+        );
     return (
         <div className="tw-flex-1 tw-flex tw-flex-col tw-items-stretch">
             <div className="tw-flex-1">
-                <ErrorShower
-                    loading={loading}
-                    error={error}
-                />
                 <MainCard>
-                    {doc && <UpdateForm doc={doc} />}
+                    <UpdateForm doc={doc} />
                     <>
                         <CardTitle>Courses</CardTitle>
                         <MainCard>
@@ -59,9 +65,10 @@ function SafeArea({ id }: { id: string }) {
         </div>
     );
 }
-export default function LevelInfo() {
+export default function Page() {
     const id = useRouter().query.id;
-    if (typeof id != "string") return <Page404 />;
+    if (typeof id != "string")
+        return <Page404 message="You must provide the page id" />;
 
     return <SafeArea id={id} />;
 }

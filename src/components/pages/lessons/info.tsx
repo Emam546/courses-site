@@ -39,7 +39,7 @@ const Elem = CreateElem<T>(({ index, props: { data }, ...props }, ref) => {
                         title="Hide"
                         checked={data.hide}
                         onChange={async () => {
-                            await updateDoc(getDocRef("Courses", data.id), {
+                            await updateDoc(getDocRef("Lessons", data.id), {
                                 hide: !data.hide,
                             });
                         }}
@@ -54,11 +54,11 @@ export interface Props {
     courseId: string;
 }
 export default function LessonsInfoGetter({ courseId }: Props) {
-    const collectionCourses = createCollection("Lessons");
+    const collectionLesson = createCollection("Lessons");
     const [curDel, setCurDel] = useState<T>();
     const [courses, loading, error] = useCollection(
         query(
-            collectionCourses,
+            collectionLesson,
             where("courseId", "==", courseId),
             orderBy("order")
         )
@@ -97,7 +97,7 @@ export default function LessonsInfoGetter({ courseId }: Props) {
             <DeleteDialog
                 onAccept={async () => {
                     if (curDel)
-                        await deleteDoc(getDocRef("Courses", curDel.id));
+                        await deleteDoc(getDocRef("Lessons", curDel.id));
                     setCurDel(undefined);
                 }}
                 onClose={function () {
@@ -105,7 +105,7 @@ export default function LessonsInfoGetter({ courseId }: Props) {
                 }}
                 open={curDel != undefined}
                 data={{
-                    title: `Delete Course`,
+                    title: `Delete Lesson`,
                     desc: `Once you click delete, The Lesson and associated data will be permanently deleted and cannot be restored.`,
                     accept: `Delete ${curDel?.name} lesson`,
                     deny: "Keep",

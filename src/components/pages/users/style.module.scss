@@ -1,0 +1,9 @@
+.table {
+    @apply tw-w-full tw-mb-3 tw-break-all;
+    tr {
+        > th,
+        > td {
+            @apply tw-border-2 tw-border-solid tw-border-gray-700 tw-py-3 tw-px-2;
+        }
+    }
+}

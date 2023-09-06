@@ -33,8 +33,13 @@
 #__next {
     @apply tw-flex tw-min-h-screen tw-items-stretch tw-justify-stretch;
 }
+.question-text {
+    * {
+        margin: 0;
+    }
+}
 .question-choices {
-    label {
+    > * {
         * {
             margin: 0 !important;
         }

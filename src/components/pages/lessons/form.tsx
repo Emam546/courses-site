@@ -3,7 +3,6 @@ import { CardTitle, MainCard } from "@/components/card";
 import ErrorShower from "@/components/common/error";
 import CheckedInput from "@/components/common/inputs/checked";
 import MainInput from "@/components/common/inputs/main";
-import TextArea from "@/components/common/inputs/textArea";
 import { WrapElem } from "@/components/common/inputs/styles";
 import { Grid2 } from "@/components/grid";
 import { DataBase } from "@/data";
@@ -12,13 +11,23 @@ import DatePicker from "@/components/common/inputs/datePicker";
 import { useDocumentOnce } from "react-firebase-hooks/firestore";
 import { useForm } from "react-hook-form";
 import FinalEditor from "@/components/common/inputs/Editor";
-import UploadVideoYoutube from "@/components/common/uploadVideo";
-import { useState } from "react";
-import { LinearProgressWithLabel } from "@/components/common/progressBar";
 export type DataType = Omit<
     DataBase["Lessons"],
     "courseId" | "order" | "createdAt"
 >;
+function extractVideoId(youtubeUrl: string) {
+    // Regular expression pattern to match YouTube video IDs
+    const pattern =
+        /(?:\/|v=|vi=|v%3D|u1l=|e\/|embed\/|v\/|watch\?v=|&v=|%2Fvideos%2F|%2Fv%2F|%2Fe%2F|embed\?video=|embed\?v=|embed\?vi=|%2Fembed%2F|www.youtube.com\/watch\?v=|www.youtube.com\/v\/|youtube.com\/watch\?v=|youtube.com\/v\/|youtu.be\/)([a-zA-Z0-9_-]{11})/;
+
+    const match = youtubeUrl.match(pattern);
+
+    if (match && match[1]) {
+        return match[1];
+    } else {
+        return null;
+    }
+}
 export interface Props {
     courseId: string;
     onData: (data: DataType) => Promise<any> | any;
@@ -39,15 +48,11 @@ export default function LessonGetDataForm({
                 ...defaultData,
             },
         });
-    const [videoDesc, setVideoDesc] = useState("");
-    const [uploadingState, setUploadingVideoState] = useState(false);
-    const [percent, setPercent] = useState(0);
+
     const [courseData, loading, error] = useDocumentOnce(
         getDocRef("Courses", courseId as string)
     );
-    const videoTitle = `Course:${courseData?.data()?.name} - Lesson:${watch(
-        "name"
-    )}`;
+    const video = watch("video");
     return (
         <>
             <ErrorShower
@@ -61,7 +66,6 @@ export default function LessonGetDataForm({
                         <form
                             onSubmit={handleSubmit(async (data) => {
                                 if (!data.video?.id) delete data.video;
-
                                 await onData(data);
                             })}
                         >
@@ -96,6 +100,10 @@ export default function LessonGetDataForm({
                             <div className="tw-my-3">
                                 <WrapElem label="Lesson Description">
                                     <FinalEditor
+                                        defaultValue={
+                                            defaultData &&
+                                            JSON.parse(defaultData.desc)
+                                        }
                                         onContentStateChange={(content) =>
                                             setValue(
                                                 "desc",
@@ -110,68 +118,49 @@ export default function LessonGetDataForm({
                                 Upload Video
                             </CardTitle>
                             <div className="tw-space-y-3">
-                                <MainInput
-                                    title={"Video Title"}
-                                    id={"video-title-input"}
-                                    disabled
-                                    value={videoTitle}
-                                />
-
-                                <TextArea
-                                    title="Video Description"
-                                    id={"video-desc-input"}
-                                    onChange={(e) =>
-                                        setVideoDesc(e.target.value)
-                                    }
-                                    value={videoDesc}
-                                />
                                 <CheckedInput
                                     title="Hide the video"
-                                    disabled={watch("video") != undefined}
+                                    disabled={video == undefined}
                                     {...register("video.hide", {
-                                        disabled: watch("video") != undefined,
+                                        disabled: video == undefined,
                                     })}
                                 />
-                                <div className="tw-w-fit tw-mx-auto">
-                                    <UploadVideoYoutube
-                                        videoTitle={videoTitle}
-                                        videoDesc={videoDesc}
-                                        onUploadStart={() => {
-                                            setUploadingVideoState(true);
-                                        }}
-                                        onUploading={(v) => {
-                                            setPercent(v);
-                                        }}
-                                        onUploadComplete={(res) => {
-                                            console.log(res);
-                                            alert("video uploaded sucessfully");
-                                            setUploadingVideoState(false);
-                                            setValue("video", {
-                                                type: "youtube",
-                                                hide: false,
-                                                id: res.id,
-                                            });
-                                        }}
-                                        onError={(e)=>{
-                                            alert("Error happened")
-                                            console.error(e);
-                                        }}
-                                    />
-                                </div>
-                                {uploadingState && (
-                                    <LinearProgressWithLabel value={percent} />
+                                <MainInput
+                                    title={"Video Url"}
+                                    id={"video-id"}
+                                    defaultValue={
+                                        video?.id &&
+                                        `https://www.youtube.com/watch?v=${video.id}`
+                                    }
+                                    onChange={(e) => {
+                                        const id = extractVideoId(
+                                            e.currentTarget.value
+                                        );
+                                        if (!id) return;
+                                        alert("Video Updated successfully");
+                                        setValue("video", {
+                                            type: "youtube",
+                                            hide: false,
+                                            id,
+                                        });
+                                    }}
+                                />
+                                {video?.id != undefined && <p>Id:{video.id}</p>}
+                                {video?.id != undefined && (
+                                    <a
+                                        href={`https://www.youtube.com/watch?v=${video.id}`}
+                                        target="_blank"
+                                    >
+                                        {`https://www.youtube.com/watch?v=${video.id}`}
+                                    </a>
                                 )}
                             </div>
                             <div className="tw-flex tw-justify-end">
                                 <PrimaryButton
                                     type="submit"
-                                    disabled={
-                                        formState.isSubmitting || uploadingState
-                                    }
+                                    disabled={formState.isSubmitting}
                                 >
-                                    {uploadingState
-                                        ? "Uploading Video ..."
-                                        : buttonName}
+                                    {buttonName}
                                 </PrimaryButton>
                             </div>
                         </form>

@@ -20,6 +20,7 @@ const SelectInput = React.forwardRef<HTMLSelectElement, Props>(function (
             <StyledSelect
                 id={id}
                 {...props}
+                ref={ref}
             />
         </div>
     );

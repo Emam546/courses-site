@@ -20,3 +20,11 @@ export function MakeItSerializable<T>(val: T): T {
 export function uuid() {
     return _uuid();
 }
+export function formateDate(date: Date) {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Month is zero-indexed, so we add 1
+    const day = date.getDate().toString().padStart(2, "0");
+
+    // Create the formatted date string
+    return `${year}-${month}-${day}`;
+}

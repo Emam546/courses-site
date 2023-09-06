@@ -77,12 +77,12 @@ export default function SideBar({ onClose: onToggle }: Props) {
                         <ul id="sidebarnav">
                             <HeaderNav title="Home" />
                             <LinkElem
-                                href="/"
-                                title="Dashboard"
-                            />
-                            <LinkElem
                                 href="/levels"
                                 title="Organize Data"
+                            />
+                            <LinkElem
+                                href="/users"
+                                title="Manage Users"
                             />
                         </ul>
                     </nav>

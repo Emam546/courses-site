@@ -1,17 +1,16 @@
 import { CardTitle, MainCard } from "@/components/card";
 import ErrorShower from "@/components/common/error";
-import AddButton from "@/components/common/inputs/addButton";
+import AddButton, { GoToButton } from "@/components/common/inputs/addButton";
 import Page404 from "@/components/pages/404";
-import CourseInfoForm from "@/components/pages/courses/form";
+import ExamsInfoGetter from "@/components/pages/exams/info";
 import LessonGetDataForm from "@/components/pages/lessons/form";
-import LessonsInfoGetter from "@/components/pages/lessons/info";
 import { DataBase } from "@/data";
 import { getDocRef } from "@/firebase";
-import { DocumentSnapshot, updateDoc } from "firebase/firestore";
+import { DocumentSnapshot, QueryDocumentSnapshot, updateDoc } from "firebase/firestore";
 import { useRouter } from "next/router";
 import { useDocument } from "react-firebase-hooks/firestore";
 interface UpdateForm {
-    doc: DocumentSnapshot<DataBase["Lessons"]>;
+    doc: QueryDocumentSnapshot<DataBase["Lessons"]>;
 }
 function UpdateForm({ doc }: UpdateForm) {
     return (
@@ -22,7 +21,7 @@ function UpdateForm({ doc }: UpdateForm) {
                 defaultData={
                     {
                         ...doc.data(),
-                        publishedAt: (doc.data()?.publishedAt as any).toDate(),
+                        publishedAt: (doc.data().publishedAt as any).toDate(),
                     } as any
                 }
                 onData={async (data) => {
@@ -40,6 +39,8 @@ function SafeArea({ id }: { id: string }) {
     const [doc, loading, error] = useDocument(
         getDocRef("Lessons", id as string)
     );
+    if (doc && !doc.exists())
+        return <Page404 message="The Course id is not exist" />;
     return (
         <div className="tw-flex-1 tw-flex tw-flex-col tw-items-stretch">
             <div className="tw-flex-1">
@@ -52,7 +53,7 @@ function SafeArea({ id }: { id: string }) {
                     <>
                         <CardTitle>Exams</CardTitle>
                         <MainCard>
-                            <LessonsInfoGetter courseId={id} />
+                            <ExamsInfoGetter lessonId={id} />
                         </MainCard>
                     </>
                 </MainCard>
@@ -66,6 +67,10 @@ function SafeArea({ id }: { id: string }) {
                     label="Add questions"
                     href={`/questions/add?lessonId=${id}`}
                 />
+                <GoToButton
+                    label="Go To questions"
+                    href={`/lessons/questions?id=${id}`}
+                />
             </div>
         </div>
     );
@@ -73,6 +78,6 @@ function SafeArea({ id }: { id: string }) {
 export default function Page() {
     const router = useRouter();
     const id = router.query.id;
-    if (typeof id != "string") return <Page404 />;
+    if (typeof id != "string") return <Page404 message="You must provide The page id with url" />;
     return <SafeArea id={id} />;
 }

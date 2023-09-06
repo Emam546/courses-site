@@ -10,6 +10,7 @@ import {
     RawDraftContentState,
     ContentState,
     convertToRaw,
+    convertFromRaw,
 } from "draft-js";
 import { uuid } from "@/utils";
 import ChoicesViewer from "./choicesViewer";
@@ -19,6 +20,7 @@ export interface Props {
     onData: (data: DataType) => Promise<any> | any;
     defaultData?: DataType;
     buttonName: React.ReactNode;
+    ResetAfterSubmit?: boolean;
 }
 export interface ChoiceProps {
     onSubmitQuestion: (quest: RawDraftContentState) => any;
@@ -40,10 +42,9 @@ function ChoiceArea({ onSubmitQuestion }: ChoiceProps) {
                         onSubmitQuestion(
                             convertToRaw(editorState.getCurrentContent())
                         );
-                        const newContentState = ContentState.createFromText("");
                         const newEditorState = EditorState.push(
                             editorState,
-                            newContentState,
+                            ContentState.createFromText(""),
                             "remove-range"
                         );
                         SetEditorState(newEditorState);
@@ -55,16 +56,41 @@ function ChoiceArea({ onSubmitQuestion }: ChoiceProps) {
         </div>
     );
 }
-export default function LessonGetDataForm({
+export default function QuestionGetDataForm({
     defaultData,
     onData,
     buttonName,
+    ResetAfterSubmit,
 }: Props) {
-    const { register, handleSubmit, formState, getValues, watch, setValue } =
-        useForm<DataType>({
-            defaultValues: { ...defaultData, choices: [] },
-        });
+    const {
+        register,
+        handleSubmit,
+        formState,
+        getValues,
+        watch,
+        setValue,
+        reset,
+    } = useForm<DataType>({
+        defaultValues: { choices: [], ...defaultData },
+    });
     const choices = watch("choices");
+    const [questState, setQuestState] = useState(
+        !defaultData
+            ? EditorState.createEmpty()
+            : EditorState.createWithContent(
+                  convertFromRaw(JSON.parse(defaultData?.quest))
+              )
+    );
+    function resetForm() {
+        const newContentState = ContentState.createFromText("");
+        const newEditorState = EditorState.push(
+            questState,
+            newContentState,
+            "remove-range"
+        );
+        setQuestState(newEditorState);
+        reset();
+    }
     return (
         <>
             <MainCard>
@@ -73,13 +99,18 @@ export default function LessonGetDataForm({
                         const formData = new FormData(e!.target);
                         const answer = formData.get("answer") as string;
                         await onData({ ...data, answer });
+                        if (ResetAfterSubmit) resetForm();
                     })}
                 >
                     <WrapElem label="Question Area">
                         <FinalEditor
-                            onEditorStateChange={(content) =>
+                            onContentStateChange={(content) =>
                                 setValue("quest", JSON.stringify(content))
                             }
+                            editorState={questState}
+                            onEditorStateChange={(state) => {
+                                setQuestState(state);
+                            }}
                         />
                     </WrapElem>
                     <div className="tw-mt-3">

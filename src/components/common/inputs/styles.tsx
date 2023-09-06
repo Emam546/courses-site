@@ -8,7 +8,10 @@ export const StyledInput = React.forwardRef<HTMLInputElement, InputProps>(
     ({ className, ...props }, ref) => {
         return (
             <input
-                className={classNames("form-control placeholder:tw-text-gray-300", className)}
+                className={classNames(
+                    "form-control placeholder:tw-text-gray-300",
+                    className
+                )}
                 {...props}
                 ref={ref}
             />

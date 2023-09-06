@@ -1,5 +1,5 @@
 import { createCollection, getDocRef } from "@/firebase";
-import { addDoc } from "firebase/firestore";
+import { addDoc, serverTimestamp } from "firebase/firestore";
 import router, { useRouter } from "next/router";
 import Page404 from "@/components/pages/404";
 import CourseInfoForm from "@/components/pages/courses/form";
@@ -27,12 +27,13 @@ export function SaveArea({ levelId }: { levelId: string }) {
 
                             await addDoc(col, {
                                 ...data,
-                                createdAt: new Date(),
+                                createdAt: serverTimestamp(),
                                 levelId: levelId,
                                 order: Date.now(),
                             });
                             router.push(`/levels/info?id=${levelId}`);
                         }}
+                        buttonName="Submit"
                     />
                 </MainCard>
             )}

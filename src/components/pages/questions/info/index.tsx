@@ -1,33 +1,13 @@
 import { useState } from "react";
-import InfoGetter, { CreateElem } from "@/components/InsertCommonData";
-import { Elem as OrgElem } from "@/components/InsertCommonData/Elem";
 import { DataBase, WithIdType } from "@/data";
-import Link from "next/link";
 import { useCollection } from "react-firebase-hooks/firestore";
 import { createCollection, getDocRef } from "@/firebase";
-import {
-    deleteDoc,
-    orderBy,
-    query,
-    updateDoc,
-    where,
-} from "firebase/firestore";
+import { deleteDoc, orderBy, query, where } from "firebase/firestore";
 import DeleteDialog from "@/components/common/AlertDialog";
 import ErrorShower from "@/components/common/error";
+import QuestionInfoViewer from "./questionInfoViewer";
 export type T = WithIdType<DataBase["Questions"]>;
 
-export const Elem = CreateElem<T>(({ index, props: { data }, ...props }, ref) => {
-    return (
-        <OrgElem
-            {...props}
-            ref={ref}
-        >
-            <div className="tw-flex tw-justify-between tw-items-center">
-                <Link href={`/questions?id=${data.id}`}></Link>
-            </div>
-        </OrgElem>
-    );
-});
 export interface Props {
     lessonId: string;
 }
@@ -50,22 +30,16 @@ export default function QuestionsInfoGetter({ lessonId }: Props) {
             />
             {questions && questions.size > 0 && (
                 <>
-                    <InfoGetter
-                        Elem={Elem}
-                        data={questions.docs.map((doc) => ({
-                            id: doc.id,
-                            ...doc.data(),
+                    <QuestionInfoViewer
+                        data={questions.docs.map((v) => ({
+                            id: v.id,
+                            ...v.data(),
+                            createdAt: (v.data().createdAt as any).toDate(),
                         }))}
-                        onDeleteElem={(elem) => setCurDel(elem)}
-                        onResort={async (indexes) => {
-                            await Promise.all(
-                                indexes.map(async (newi, ci) =>
-                                    updateDoc(questions.docs[ci].ref, {
-                                        order: newi,
-                                    })
-                                )
-                            );
+                        onDeleteElem={async (v) => {
+                            await deleteDoc(getDocRef("Questions", v.id));
                         }}
+                        noDragging
                     />
                 </>
             )}

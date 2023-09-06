@@ -1,6 +1,5 @@
 import PrimaryButton from "@/components/button";
-import { CardTitle, MainCard } from "@/components/card";
-import ErrorShower from "@/components/common/error";
+import { MainCard } from "@/components/card";
 import BudgetInput from "@/components/common/inputs/budget";
 import CheckedInput from "@/components/common/inputs/checked";
 import MainInput from "@/components/common/inputs/main";
@@ -8,12 +7,9 @@ import TextArea from "@/components/common/inputs/textArea";
 import { WrapElem } from "@/components/common/inputs/styles";
 import { Grid2 } from "@/components/grid";
 import { DataBase } from "@/data";
-import { createCollection, getDocRef } from "@/firebase";
 import DatePicker from "@/components/common/inputs/datePicker";
-import { addDoc } from "firebase/firestore";
-import { useRouter } from "next/router";
-import { useDocumentOnce } from "react-firebase-hooks/firestore";
 import { useForm } from "react-hook-form";
+import React from "react";
 export type DataType = Omit<
     DataBase["Courses"],
     "levelId" | "order" | "createdAt"
@@ -21,8 +17,13 @@ export type DataType = Omit<
 export interface Props {
     defaultData?: DataType;
     onData: (data: DataType) => Promise<any> | any;
+    buttonName: React.ReactNode;
 }
-export default function CourseInfoForm({ defaultData, onData }: Props) {
+export default function CourseInfoForm({
+    defaultData,
+    onData,
+    buttonName,
+}: Props) {
     const { register, handleSubmit, formState, getValues, setValue } =
         useForm<DataType>({
             defaultValues: {
@@ -87,12 +88,14 @@ export default function CourseInfoForm({ defaultData, onData }: Props) {
                         {...register("desc")}
                     />
                 </div>
-                <PrimaryButton
-                    type="submit"
-                    disabled={formState.isSubmitting}
-                >
-                    Add
-                </PrimaryButton>
+                <div className="tw-flex tw-justify-end">
+                    <PrimaryButton
+                        type="submit"
+                        disabled={formState.isSubmitting}
+                    >
+                        {buttonName}
+                    </PrimaryButton>
+                </div>
             </form>
         </MainCard>
     );

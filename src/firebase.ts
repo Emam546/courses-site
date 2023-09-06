@@ -1,22 +1,16 @@
 // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { FirebaseOptions, initializeApp } from "firebase/app";
 import {
     CollectionReference,
     DocumentReference,
-    Firestore,
     collection,
     doc,
     getFirestore,
+    connectFirestoreEmulator,
 } from "firebase/firestore";
-import { getAnalytics } from "firebase/analytics";
+import { getAuth, connectAuthEmulator } from "firebase/auth";
 import { DataBase } from "./data";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
+let firebaseConfig: FirebaseOptions = {
     apiKey: "AIzaSyDuI2roFqIlzYsbqvU8EiYrGTWzK4pym7Y",
     authDomain: "coursessite-d6e57.firebaseapp.com",
     projectId: "coursessite-d6e57",
@@ -25,10 +19,13 @@ const firebaseConfig = {
     appId: "1:971737680842:web:42f8a81795649733d01d33",
     measurementId: "G-6VBEPJFKY6",
 };
-
-// Initialize Firebase
 export const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
 export const fireStore = getFirestore(app);
+if (process.env.NODE_ENV == "development") {
+    connectFirestoreEmulator(fireStore, "127.0.0.1", 8080);
+    connectAuthEmulator(auth, "http://127.0.0.1:9099");
+}
 // export const analytics = getAnalytics(app);
 export function createCollection<T extends keyof DataBase>(path: T) {
     return collection(fireStore, path) as CollectionReference<DataBase[T]>;
@@ -37,7 +34,6 @@ export function getDocRef<T extends keyof DataBase>(
     path: T,
     ...pathFragments: string[]
 ) {
-    
     return doc(fireStore, path, ...pathFragments) as DocumentReference<
         DataBase[T]
     >;

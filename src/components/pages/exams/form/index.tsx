@@ -4,10 +4,13 @@ import CheckedInput from "@/components/common/inputs/checked";
 import MainInput from "@/components/common/inputs/main";
 import TextArea from "@/components/common/inputs/textArea";
 import { Grid2 } from "@/components/grid";
-import { DataBase, WithIdType, WithOrder } from "@/data";
+import { DataBase } from "@/data";
 import { useForm } from "react-hook-form";
-import QuestionViewer, { QuestionType } from "./addQuestions";
+import QuestionAdder, { QuestionType } from "./addQuestions";
 import { useEffect, useState } from "react";
+import QuestionInfoViewer from "../../questions/info/questionInfoViewer";
+import { getDoc } from "firebase/firestore";
+import { getDocRef } from "@/firebase";
 export type DataType = Omit<
     DataBase["Exams"],
     "lessonId" | "order" | "createdAt"
@@ -26,20 +29,36 @@ export interface Props {
     defaultData?: DataType;
     onData: (data: DataType) => Promise<any> | any;
     buttonName: string;
+    lessonId: string;
 }
 export default function ExamInfoForm({
     defaultData,
     onData,
     buttonName,
+    lessonId,
 }: Props) {
-    const { register, handleSubmit, formState, watch, setValue } =
+    const { register, handleSubmit, formState, watch, setValue, getValues } =
         useForm<DataType>({
             defaultValues: {
+                num: 20,
                 ...defaultData,
-            },
+            } as any,
         });
     const [questionData, setQuestionData] = useState<QuestionType[]>([]);
     const randomVal = watch("random");
+    useEffect(() => {
+        const cvalue = getValues("questionIds");
+        if (!cvalue) return;
+        Promise.all(
+            cvalue.map(async (v) => {
+                const res = await getDoc(getDocRef("Questions", v));
+                if (!res.exists()) throw new Error("undefined Question Id");
+                return res;
+            })
+        ).then((res) => {
+            setQuestionData(res.map((v) => ({ ...v.data(), id: v.id })));
+        });
+    }, []);
     useEffect(() => {
         setValue(
             "questionIds",
@@ -51,6 +70,7 @@ export default function ExamInfoForm({
             <form
                 action=""
                 onSubmit={handleSubmit(async (data) => {
+                    data.time = data.time * 1000 * 60;
                     await onData(data);
                 })}
             >
@@ -66,8 +86,19 @@ export default function ExamInfoForm({
                         {...register("num", { valueAsNumber: true })}
                         id={"num-input"}
                         type="number"
-                        defaultValue={20}
                         disabled={!randomVal}
+                    />
+                    <MainInput
+                        title={"Exam Time"}
+                        {...register("time", {
+                            valueAsNumber: true,
+                            required: true,
+                        })}
+                        id={"num-input"}
+                        type="number"
+                        placeholder="Time in minute"
+                        defaultValue={30}
+                        required
                     />
                 </Grid2>
                 <Grid2 className="tw-my-3 tw-gap-y-0">
@@ -105,9 +136,46 @@ export default function ExamInfoForm({
                     />
                 </div>
                 <div>
-                    <QuestionViewer
-                        levelId={""}
-                        onAdd={(questions) => setQuestionData(questions)}
+                    <QuestionAdder
+                        lessonId={lessonId}
+                        onAdd={(questions) => {
+                            const g = [...questions, ...questionData].reduce(
+                                (acc, cu) => {
+                                    const state = acc.some(
+                                        (v) => v.id == cu.id
+                                    );
+                                    if (state) return acc;
+                                    return [...acc, cu];
+                                },
+                                [] as QuestionType[]
+                            );
+                            setQuestionData(g);
+                        }}
+                    />
+                </div>
+                <div>
+                    <QuestionInfoViewer
+                        data={questionData.map((v) => ({
+                            ...v,
+                            createdAt: (v.createdAt as any).toDate(),
+                        }))}
+                        onDeleteElem={(v) => {
+                            setQuestionData(
+                                questionData
+                                    .filter((cv) => cv.id != v.id)
+                                    .map((cv, i) => ({
+                                        ...cv,
+                                        order: i,
+                                    }))
+                            );
+                        }}
+                        onResort={(indexes) => {
+                            setQuestionData(
+                                indexes.map((ci, i) => ({
+                                    ...questionData[ci],
+                                }))
+                            );
+                        }}
                     />
                 </div>
                 <div className="tw-flex tw-justify-end">

@@ -1,5 +1,5 @@
 import { createCollection, getDocRef } from "@/firebase";
-import { addDoc } from "firebase/firestore";
+import { addDoc, serverTimestamp } from "firebase/firestore";
 import router, { useRouter } from "next/router";
 import Page404 from "@/components/pages/404";
 import ExamInfoForm from "@/components/pages/exams/form";
@@ -23,16 +23,17 @@ function SafeArea({ lessonId }: { lessonId: string }) {
                     <ExamInfoForm
                         onData={async (data) => {
                             const col = createCollection("Exams");
-                            
+
                             await addDoc(col, {
                                 ...data,
-                                createdAt: new Date(),
+                                createdAt: serverTimestamp(),
                                 lessonId: lessonId,
                                 order: Date.now(),
                             });
                             router.push(`/lessons?id=${lessonId}`);
                         }}
                         buttonName="Submit"
+                        lessonId={lessonId}
                     />
                 </>
             )}
@@ -42,6 +43,7 @@ function SafeArea({ lessonId }: { lessonId: string }) {
 export default function AddExams() {
     const router = useRouter();
     const { lessonId } = router.query;
-    if (typeof lessonId != "string") return <Page404 />;
+    if (typeof lessonId != "string")
+        return <Page404 message="You must provide The page id with url" />;
     return <SafeArea lessonId={lessonId} />;
 }

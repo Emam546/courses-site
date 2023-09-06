@@ -6,11 +6,15 @@ import CourseInfoForm from "@/components/pages/courses/form";
 import LessonsInfoGetter from "@/components/pages/lessons/info";
 import { DataBase } from "@/data";
 import { getDocRef } from "@/firebase";
-import { DocumentSnapshot, updateDoc } from "firebase/firestore";
+import {
+    DocumentSnapshot,
+    QueryDocumentSnapshot,
+    updateDoc,
+} from "firebase/firestore";
 import { useRouter } from "next/router";
 import { useDocument } from "react-firebase-hooks/firestore";
 interface UpdateForm {
-    doc: DocumentSnapshot<DataBase["Courses"]>;
+    doc: QueryDocumentSnapshot<DataBase["Courses"]>;
 }
 function UpdateForm({ doc }: UpdateForm) {
     return (
@@ -29,6 +33,7 @@ function UpdateForm({ doc }: UpdateForm) {
                     });
                     alert("the document updated successfully");
                 }}
+                buttonName="Update"
             />
         </>
     );
@@ -37,6 +42,8 @@ function SafeArea({ id }: { id: string }) {
     const [doc, loading, error] = useDocument(
         getDocRef("Courses", id as string)
     );
+    if (doc && !doc.exists())
+        return <Page404 message="The Course id is not exist" />;
     return (
         <div className="tw-flex-1 tw-flex tw-flex-col tw-items-stretch">
             <div className="tw-flex-1">
@@ -64,6 +71,7 @@ function SafeArea({ id }: { id: string }) {
 export default function Page() {
     const router = useRouter();
     const id = router.query.id;
-    if (typeof id != "string") return <Page404 />;
+    if (typeof id != "string")
+        return <Page404 message="You must provide The page id with url" />;
     return <SafeArea id={id} />;
 }
