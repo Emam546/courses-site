@@ -38,9 +38,14 @@ function SelectLevel({ courseId }: { courseId: string }) {
 export interface Props {
     lessonId: string;
     onAdd: (data: QuestionType[]) => any;
+    currentQuestions: QuestionType[];
 }
 
-export default function QuestionAdder({ lessonId, onAdd }: Props) {
+export default function QuestionAdder({
+    lessonId,
+    onAdd,
+    currentQuestions,
+}: Props) {
     const [courseId, setCourseId] = useState<string>("");
     const [chosenLessonId, setLessonId] = useState("");
     const [courses, loading, error] = useCourseLevelData(lessonId);
@@ -115,8 +120,16 @@ export default function QuestionAdder({ lessonId, onAdd }: Props) {
                                 disabled={queryQuestions.isLoading}
                             >
                                 Add Questions{" "}
-                                {queryQuestions.data?.size != undefined &&
-                                    `(${queryQuestions.data?.size})`}
+                                {queryQuestions.data != undefined &&
+                                    `(${
+                                        queryQuestions.data.docs.filter(
+                                            (cur) => {
+                                                return !currentQuestions.some(
+                                                    (doc) => doc.id == cur.id
+                                                );
+                                            }
+                                        ).length
+                                    })`}
                             </PrimaryButton>
                         </div>
                     </>

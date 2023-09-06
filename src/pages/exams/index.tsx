@@ -7,6 +7,7 @@ import ExamResultGenerator from "@/components/pages/exams/results";
 import { DataBase } from "@/data";
 import { getDocRef } from "@/firebase";
 import { QueryDocumentSnapshot, updateDoc } from "firebase/firestore";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { useDocument } from "react-firebase-hooks/firestore";
 interface UpdateForm {
@@ -46,6 +47,9 @@ function SafeArea({ id }: { id: string }) {
                     loading={loading}
                     error={error}
                 />
+                <Head>
+                    <title>{doc?.data().name}</title>
+                </Head>
                 {doc && (
                     <MainCard>
                         <UpdateForm doc={doc} />

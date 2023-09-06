@@ -39,10 +39,10 @@ export default function ExamInfoForm({
 }: Props) {
     const { register, handleSubmit, formState, watch, setValue, getValues } =
         useForm<DataType>({
-            defaultValues: {
-                num: 20,
+            defaultValues: defaultData && {
                 ...defaultData,
-            } as any,
+                time: defaultData.time / (1000 * 60),
+            },
         });
     const [questionData, setQuestionData] = useState<QuestionType[]>([]);
     const randomVal = watch("random");
@@ -68,7 +68,6 @@ export default function ExamInfoForm({
     return (
         <MainCard>
             <form
-                action=""
                 onSubmit={handleSubmit(async (data) => {
                     data.time = data.time * 1000 * 60;
                     await onData(data);
@@ -85,6 +84,7 @@ export default function ExamInfoForm({
                         title={"Question Number"}
                         {...register("num", { valueAsNumber: true })}
                         id={"num-input"}
+                        defaultValue={20}
                         type="number"
                         disabled={!randomVal}
                     />
@@ -97,7 +97,6 @@ export default function ExamInfoForm({
                         id={"num-input"}
                         type="number"
                         placeholder="Time in minute"
-                        defaultValue={30}
                         required
                     />
                 </Grid2>
@@ -151,6 +150,7 @@ export default function ExamInfoForm({
                             );
                             setQuestionData(g);
                         }}
+                        currentQuestions={questionData}
                     />
                 </div>
                 <div>

@@ -39,8 +39,7 @@ function ChoiceArea({ onSubmitQuestion }: ChoiceProps) {
                 <PrimaryButton
                     type="button"
                     onClick={() => {
-                        const cond = editorState.getCurrentContent().hasText();
-                        if (!cond)
+                        if (!editorState.getCurrentContent().hasText())
                             return alert("please fill the choice area first");
                         onSubmitQuestion(
                             convertToRaw(editorState.getCurrentContent())
@@ -101,7 +100,7 @@ export default function QuestionGetDataForm({
                     onSubmit={handleSubmit(async (data, e) => {
                         const formData = new FormData(e!.target);
                         const answer = formData.get("answer") as string;
-                        if (questState.getCurrentContent().hasText())
+                        if (!questState.getCurrentContent().hasText())
                             return alert("please fill the question area first");
                         if (data.choices.length <= 1)
                             return alert("please add some choices first");
@@ -153,6 +152,7 @@ export default function QuestionGetDataForm({
                             className="tw-my-3"
                         >
                             <ChoicesViewer
+                                answer={defaultData?.answer}
                                 data={choices}
                                 onChange={(data) => setValue("choices", data)}
                             />

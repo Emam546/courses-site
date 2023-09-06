@@ -7,6 +7,7 @@ import { CardTitle, MainCard } from "@/components/card";
 import { useDocumentOnce } from "react-firebase-hooks/firestore";
 import ErrorShower from "@/components/common/error";
 import { useGetDoc } from "@/utils/hooks/fireStore";
+import Head from "next/head";
 function SafeArea({ lessonId }: { lessonId: string }) {
     const {data:lessonData, isLoading, error} = useGetDoc(
         "Lessons",lessonId
@@ -18,6 +19,9 @@ function SafeArea({ lessonId }: { lessonId: string }) {
                 loading={isLoading}
                 error={error as any}
             />
+            <Head>
+                <title>Add Exam</title>
+            </Head>
             {lessonData && (
                 <>
                     <CardTitle>Adding Exam</CardTitle>

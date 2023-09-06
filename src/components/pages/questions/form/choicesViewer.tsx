@@ -3,8 +3,17 @@ import { Elem as OrgElem } from "../../../InsertCommonData/Elem";
 import { DataBase } from "@/data";
 export type ChoiceType = DataBase["Questions"]["choices"][0];
 import draftToHtml from "draftjs-to-html";
-const Elem = CreateElem<ChoiceType>(
-    ({ index, props: { data }, ...props }, ref) => {
+const Elem = CreateElem<{ choice: ChoiceType; answer?: string; id: string }>(
+    (
+        {
+            index,
+            props: {
+                data: { choice: data, answer },
+            },
+            ...props
+        },
+        ref
+    ) => {
         const draftData = draftToHtml(JSON.parse(data.textContext));
         const inputId = `answer${data.id}-input`;
         return (
@@ -18,7 +27,7 @@ const Elem = CreateElem<ChoiceType>(
                         name="answer"
                         id={inputId}
                         value={data.id}
-                        required
+                        defaultChecked={answer == data.id}
                     />
                     <label
                         htmlFor={inputId}
@@ -35,14 +44,21 @@ const Elem = CreateElem<ChoiceType>(
 );
 export interface Props {
     data: ChoiceType[];
+    answer?: string;
     onChange: (data: ChoiceType[]) => any;
 }
-export default function ChoicesViewer({ data, onChange }: Props) {
+export default function ChoicesViewer({ data, onChange, answer }: Props) {
     return (
         <>
             <InfoGetter
                 Elem={Elem}
-                data={data.sort((a, b) => a.order - b.order)}
+                data={data
+                    .sort((a, b) => a.order - b.order)
+                    .map((doc) => ({
+                        id: doc.id,
+                        choice: doc,
+                        answer,
+                    }))}
                 onDeleteElem={(v) => {
                     onChange(
                         data
