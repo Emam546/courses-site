@@ -8,6 +8,8 @@ import Page404 from "@/components/pages/404";
 import ErrorShower from "@/components/common/error";
 import PaymentForm from "@/components/pages/users/payment/form";
 import PaymentInfoGenerator from "@/components/pages/users/payment/info";
+import UserResultGenerator from "@/components/pages/users/results";
+import Head from "next/head";
 
 function SafeArea({ id }: { id: string }) {
     const [doc, loading, error] = useDocument(getDocRef("Users", id));
@@ -22,41 +24,58 @@ function SafeArea({ id }: { id: string }) {
         );
     return (
         <>
+            <Head>
+                <title>User:{doc.data().name}</title>
+            </Head>
             <MainCard>
-                <div>
+                <>
                     <CardTitle>Update User</CardTitle>
-                    <UserInfoForm
-                        onData={async (data) => {
-                            await updateDoc(doc.ref, {
-                                ...data,
-                            });
-                            alert("Document updated successfully");
-                        }}
-                        defaultData={{
-                            ...doc.data(),
-                            createdAt: (doc.data().createdAt as any).toDate(),
-                        }}
-                    />
-                </div>
-                <div>
+                    <MainCard>
+                        <UserInfoForm
+                            onData={async (data) => {
+                                await updateDoc(doc.ref, {
+                                    ...data,
+                                });
+                                alert("Document updated successfully");
+                            }}
+                            defaultData={{
+                                ...doc.data(),
+                                createdAt: (
+                                    doc.data().createdAt as any
+                                ).toDate(),
+                            }}
+                        />
+                    </MainCard>
+                </>
+                <>
                     <CardTitle>Activate Course</CardTitle>
-                    <PaymentForm
-                        onData={async (id) => {
-                            await addDoc(createCollection("Payment"), {
-                                activatedAt: serverTimestamp(),
-                                type: "admin",
-                                courseId: id,
-                                userId: doc.id,
-                            });
-                        }}
-                        userId={doc.id}
-                        levelId={doc.data().levelId}
-                    />
-                </div>
-                <div>
+                    <MainCard>
+                        <PaymentForm
+                            onData={async (id) => {
+                                await addDoc(createCollection("Payment"), {
+                                    activatedAt: serverTimestamp(),
+                                    type: "admin",
+                                    courseId: id,
+                                    userId: doc.id,
+                                });
+                            }}
+                            userId={doc.id}
+                            levelId={doc.data().levelId}
+                        />
+                    </MainCard>
+                </>
+                <>
                     <CardTitle>Payments</CardTitle>
-                    <PaymentInfoGenerator userId={doc.id} />
-                </div>
+                    <MainCard>
+                        <PaymentInfoGenerator userId={doc.id} />
+                    </MainCard>
+                </>
+                <>
+                    <CardTitle>Results</CardTitle>
+                    <MainCard>
+                        <UserResultGenerator userId={doc.id} />
+                    </MainCard>
+                </>
             </MainCard>
         </>
     );

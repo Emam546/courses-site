@@ -3,6 +3,7 @@ import ErrorShower from "@/components/common/error";
 import { GoToButton } from "@/components/common/inputs/addButton";
 import Page404 from "@/components/pages/404";
 import ExamInfoForm from "@/components/pages/exams/form";
+import ExamResultGenerator from "@/components/pages/exams/results";
 import { DataBase } from "@/data";
 import { getDocRef } from "@/firebase";
 import { QueryDocumentSnapshot, updateDoc } from "firebase/firestore";
@@ -48,6 +49,8 @@ function SafeArea({ id }: { id: string }) {
                 {doc && (
                     <MainCard>
                         <UpdateForm doc={doc} />
+                        <CardTitle>Results</CardTitle>
+                        <ExamResultGenerator examId={doc.id} />
                     </MainCard>
                 )}
             </div>

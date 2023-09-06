@@ -5,12 +5,18 @@ import MainInput from "@/components/common/inputs/main";
 import TextArea from "@/components/common/inputs/textArea";
 import { useForm } from "react-hook-form";
 import { DataBase } from "@/data";
+import React from "react";
 export type DataType = Omit<DataBase["Levels"], "order">;
 export interface Props {
     defaultData?: DataType;
     onData: (data: DataType) => Promise<any> | any;
+    buttonName: React.ReactNode;
 }
-export default function LevelInfoForm({ defaultData, onData }: Props) {
+export default function LevelInfoForm({
+    defaultData,
+    buttonName,
+    onData,
+}: Props) {
     const { register, handleSubmit, formState } = useForm<DataType>({
         defaultValues: defaultData,
     });
@@ -20,7 +26,6 @@ export default function LevelInfoForm({ defaultData, onData }: Props) {
                 action=""
                 onSubmit={handleSubmit(onData)}
                 autoComplete="false"
-                aria-autocomplete="none"
             >
                 <Grid2>
                     <MainInput
@@ -38,12 +43,12 @@ export default function LevelInfoForm({ defaultData, onData }: Props) {
                         className="tw-min-h-[10rem]"
                     />
                 </div>
-                <div className="tw-mt-4">
+                <div className="tw-mt-4 tw-flex tw-justify-end">
                     <PrimaryButton
                         type="submit"
                         disabled={formState.isSubmitting}
                     >
-                        Add
+                        {buttonName}
                     </PrimaryButton>
                 </div>
             </form>

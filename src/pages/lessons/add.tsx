@@ -5,12 +5,25 @@ import Page404 from "@/components/pages/404";
 import LessonGetDataForm from "@/components/pages/lessons/form";
 import { CardTitle, MainCard } from "@/components/card";
 import { useDocumentOnce } from "react-firebase-hooks/firestore";
+import ErrorShower from "@/components/common/error";
+import Head from "next/head";
+import { useGetDoc } from "@/utils/hooks/fireStore";
 function SafeArea({ courseId }: { courseId: string }) {
-    const [courseData, loading, error] = useDocumentOnce(
-        getDocRef("Courses", courseId as string)
-    );
+    const {
+        data: courseData,
+        isLoading,
+        error,
+    } = useGetDoc("Courses", courseId);
+
     return (
         <MainCard>
+            <ErrorShower
+                loading={isLoading}
+                error={error as any}
+            />
+            <Head>
+                <title>Add lesson</title>
+            </Head>
             {courseData && (
                 <>
                     <CardTitle>Adding Lesson</CardTitle>
@@ -38,6 +51,7 @@ function SafeArea({ courseId }: { courseId: string }) {
 export default function AddCourses() {
     const router = useRouter();
     const { courseId } = router.query;
-    if (typeof courseId != "string") return <Page404 message="You must provide The page id with url" />;
+    if (typeof courseId != "string")
+        return <Page404 message="You must provide The page id with url" />;
     return <SafeArea courseId={courseId} />;
 }

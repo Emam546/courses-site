@@ -19,6 +19,7 @@ export default function Page() {
                     });
                     await router.push("/levels");
                 }}
+                buttonName="Submit"
             />
         </MainCard>
     );

@@ -21,7 +21,7 @@ export function useUnAddedCourses({
     userId: string;
 }) {
     return useQuery({
-        queryKey: ["courses", "unpaid", userId],
+        queryKey: ["Courses", "unpaid", userId],
         enabled: typeof levelId == "string",
 
         queryFn: async () => {
@@ -49,7 +49,7 @@ export default function PaymentForm({ levelId, userId, onData }: Props) {
     const { data: courses } = useUnAddedCourses({ levelId, userId });
     const { handleSubmit, register, reset } = useForm<{ id: string }>();
     return (
-        <MainCard>
+        <>
             <form
                 onSubmit={handleSubmit(async (data) => {
                     await onData(data.id);
@@ -83,6 +83,6 @@ export default function PaymentForm({ levelId, userId, onData }: Props) {
                     </div>
                 </Grid2>
             </form>
-        </MainCard>
+        </>
     );
 }

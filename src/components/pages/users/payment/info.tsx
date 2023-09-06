@@ -8,7 +8,7 @@ import {
     where,
 } from "firebase/firestore";
 import { useState } from "react";
-import styles from "../style.module.scss";
+import styles from "../../style.module.scss";
 import { useCollection } from "react-firebase-hooks/firestore";
 import DeleteDialog from "@/components/common/AlertDialog";
 import { DataBase } from "@/data";
@@ -97,7 +97,7 @@ export default function PaymentInfoGenerator({ userId }: Props) {
         )
     );
     return (
-        <MainCard>
+        <>
             <ErrorShower
                 loading={loading}
                 error={errorShower}
@@ -134,6 +134,6 @@ export default function PaymentInfoGenerator({ userId }: Props) {
                     )}
                 </>
             )}
-        </MainCard>
+        </>
     );
 }

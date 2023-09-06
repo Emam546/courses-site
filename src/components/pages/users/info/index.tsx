@@ -1,19 +1,18 @@
 import { useEffect, useState } from "react";
-import { DataBase, WithIdType } from "@/data";
-import { getDocRef } from "@/firebase";
-import { getDoc, updateDoc } from "firebase/firestore";
+import { DataBase } from "@/data";
+import { updateDoc } from "firebase/firestore";
 import ErrorShower from "../../../common/error";
 import { QueryDocumentSnapshot } from "firebase/firestore";
 import Pagination from "@mui/material/Pagination";
-import { useQuery } from "@tanstack/react-query";
 import { SelectCourse } from "./selectLevel";
 import DeleteDialog from "@/components/common/AlertDialog";
 import { useGetUser as useGetUsers, useGetUsersCount } from "./hooks";
 import { formateDate } from "@/utils";
-import styles from "../style.module.scss";
+import styles from "../../style.module.scss";
 import Link from "next/link";
 import { useRouter } from "next/router";
-const perPage = 30;
+import { useGetDoc } from "@/utils/hooks/fireStore";
+import { perPage } from "../results/hooks";
 interface ElemProps {
     user: QueryDocumentSnapshot<DataBase["Users"]>;
 }
@@ -21,12 +20,7 @@ interface ElemProps {
 function UserShower({ user }: ElemProps) {
     const [blocked, setBlocked] = useState(user.data().blocked);
     const [open, setOpen] = useState(false);
-    const { data: level } = useQuery({
-        queryKey: ["level", user.data().levelId],
-        queryFn: async () => {
-            return await getDoc(getDocRef("Levels", user.data().levelId));
-        },
-    });
+    const { data: level } = useGetDoc("Levels", user.data().levelId);
     return (
         <>
             <tr>
@@ -137,7 +131,7 @@ export default function UserInfoGenerator() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {users.docs.map((doc) => {
+                                    {users.map((doc) => {
                                         return (
                                             <UserShower
                                                 user={doc}
@@ -153,7 +147,9 @@ export default function UserInfoGenerator() {
                                         setPage(value);
                                     }}
                                     page={page}
-                                    count={Math.ceil(queryCount.data / perPage)}
+                                    count={Math.floor(
+                                        queryCount.data / perPage
+                                    )}
                                 />
                             </div>
                         </>

@@ -6,7 +6,8 @@ import ExamsInfoGetter from "@/components/pages/exams/info";
 import LessonGetDataForm from "@/components/pages/lessons/form";
 import { DataBase } from "@/data";
 import { getDocRef } from "@/firebase";
-import { DocumentSnapshot, QueryDocumentSnapshot, updateDoc } from "firebase/firestore";
+import { QueryDocumentSnapshot, updateDoc } from "firebase/firestore";
+import Head  from "next/head";
 import { useRouter } from "next/router";
 import { useDocument } from "react-firebase-hooks/firestore";
 interface UpdateForm {
@@ -43,6 +44,9 @@ function SafeArea({ id }: { id: string }) {
         return <Page404 message="The Course id is not exist" />;
     return (
         <div className="tw-flex-1 tw-flex tw-flex-col tw-items-stretch">
+            <Head>
+                <title>{doc?.data().name}</title>
+            </Head>
             <div className="tw-flex-1">
                 <ErrorShower
                     loading={loading}
@@ -71,6 +75,10 @@ function SafeArea({ id }: { id: string }) {
                     label="Go To questions"
                     href={`/lessons/questions?id=${id}`}
                 />
+                <GoToButton
+                    label="Go To The Course"
+                    href={`/courses?id=${doc?.data().courseId}`}
+                />
             </div>
         </div>
     );
@@ -78,6 +86,7 @@ function SafeArea({ id }: { id: string }) {
 export default function Page() {
     const router = useRouter();
     const id = router.query.id;
-    if (typeof id != "string") return <Page404 message="You must provide The page id with url" />;
+    if (typeof id != "string")
+        return <Page404 message="You must provide The page id with url" />;
     return <SafeArea id={id} />;
 }

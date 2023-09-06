@@ -51,7 +51,7 @@ export default function SideBar({ onClose: onToggle }: Props) {
             {/* Sidebar scroll*/}
             <div>
                 <div className="brand-logo d-flex align-items-center justify-content-between">
-                    <a
+                    <Link
                         href="/"
                         className="text-nowrap logo-img"
                     >
@@ -60,7 +60,7 @@ export default function SideBar({ onClose: onToggle }: Props) {
                             width={180}
                             alt="logo"
                         />
-                    </a>
+                    </Link>
                     <div
                         className="close-btn d-xl-none d-block  cursor-pointer"
                         id="sidebarCollapse"

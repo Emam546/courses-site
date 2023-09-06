@@ -72,5 +72,5 @@ export default function MainWrapper({
 }) {
     const [login, setLogin] = useState(false);
     // if (!login) return <Login onLogin={(state) => setLogin(state)} />;
-    return <MainApp children={children} />;
+    return <MainApp>{children}</MainApp>;
 }

@@ -35,14 +35,14 @@ export function useCountDocs<T>(
 }
 export function useGetLevels() {
     return useQuery({
-        queryKey: ["level"],
+        queryKey: ["Levels"],
         queryFn: async () =>
             await getDocs(query(createCollection("Levels"), orderBy("order"))),
     });
 }
 export function useGetCourses(levelId?: string) {
     return useQuery({
-        queryKey: ["courses", levelId],
+        queryKey: ["Courses","levelId", levelId],
         enabled: typeof levelId == "string",
         queryFn: async () =>
             await getDocs(

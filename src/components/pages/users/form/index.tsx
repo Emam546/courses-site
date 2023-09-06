@@ -20,7 +20,7 @@ export default function LevelInfoForm({ defaultData, onData }: Props) {
     });
     const { data: levels } = useGetLevels();
     return (
-        <MainCard>
+        <>
             <form
                 action=""
                 onSubmit={handleSubmit((data) => {
@@ -30,7 +30,6 @@ export default function LevelInfoForm({ defaultData, onData }: Props) {
                     });
                 })}
                 autoComplete="false"
-                aria-autocomplete="none"
             >
                 <Grid2>
                     <MainInput
@@ -94,6 +93,6 @@ export default function LevelInfoForm({ defaultData, onData }: Props) {
                     </PrimaryButton>
                 </div>
             </form>
-        </MainCard>
+        </>
     );
 }

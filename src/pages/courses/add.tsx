@@ -6,16 +6,23 @@ import CourseInfoForm from "@/components/pages/courses/form";
 import { CardTitle, MainCard } from "@/components/card";
 import { useDocumentOnce } from "react-firebase-hooks/firestore";
 import ErrorShower from "@/components/common/error";
+import Head from "next/head";
+import { useGetDoc } from "@/utils/hooks/fireStore";
 
 export function SaveArea({ levelId }: { levelId: string }) {
-    const [levelData, loading, error] = useDocumentOnce(
-        getDocRef("Levels", levelId as string)
+    const{ data:levelData, isLoading, error }= useGetDoc(
+        "Levels",
+        levelId
     );
+
     return (
         <>
+            <Head>
+                <title>Add Course</title>
+            </Head>
             <ErrorShower
-                loading={loading}
-                error={error}
+                loading={isLoading}
+                error={error as any}
             />
             {levelData && (
                 <MainCard>

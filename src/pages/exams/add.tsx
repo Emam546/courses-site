@@ -6,15 +6,17 @@ import ExamInfoForm from "@/components/pages/exams/form";
 import { CardTitle, MainCard } from "@/components/card";
 import { useDocumentOnce } from "react-firebase-hooks/firestore";
 import ErrorShower from "@/components/common/error";
+import { useGetDoc } from "@/utils/hooks/fireStore";
 function SafeArea({ lessonId }: { lessonId: string }) {
-    const [lessonData, loading, error] = useDocumentOnce(
-        getDocRef("Lessons", lessonId as string)
-    );
+    const {data:lessonData, isLoading, error} = useGetDoc(
+        "Lessons",lessonId
+    )
+
     return (
         <MainCard>
             <ErrorShower
-                loading={loading}
-                error={error}
+                loading={isLoading}
+                error={error as any}
             />
             {lessonData && (
                 <>

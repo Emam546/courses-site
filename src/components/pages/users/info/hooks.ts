@@ -1,5 +1,6 @@
 import { DataBase } from "@/data";
 import { createCollection, getDocRef } from "@/firebase";
+import { QueryDocumentSnapshot } from "firebase/firestore";
 import { useQuery } from "@tanstack/react-query";
 import {
     QuerySnapshot,
@@ -9,7 +10,7 @@ import {
     limit,
     orderBy,
     query,
-    startAt,
+
     where,
 } from "firebase/firestore";
 const perPage = 30;
@@ -22,7 +23,7 @@ export function useGetUsersCount({
     levelId?: string;
 }) {
     return useQuery({
-        queryKey: ["users", "count", levelId, courseId],
+        queryKey: ["Users", "count", levelId, courseId],
         queryFn: async () => {
             if (courseId) {
                 return (
@@ -60,8 +61,10 @@ export function useGetUser({
     page: number;
 }) {
     return useQuery({
-        queryKey: ["users", "page", page, levelId, courseId],
-        queryFn: async (): Promise<QuerySnapshot<DataBase["Users"]>> => {
+        queryKey: ["Users", "page", page, levelId, courseId],
+        queryFn: async (): Promise<
+            QueryDocumentSnapshot<DataBase["Users"]>[]
+        > => {
             if (courseId) {
                 const users = await Promise.all(
                     (
@@ -69,44 +72,42 @@ export function useGetUser({
                             query(
                                 createCollection("Payment"),
                                 where("courseId", "==", courseId),
-                                orderBy("activatedAt"),
-                                startAt(page * perPage),
-                                limit(perPage)
+                                limit(perPage * page + perPage)
                             )
                         )
-                    ).docs.map(async (pay) => {
-                        return await getDoc(
-                            getDocRef("Users", pay.data().userId)
-                        );
-                    })
+                    ).docs
+                        .slice(perPage * page, perPage * page + perPage)
+                        .map(async (pay) => {
+                            return await getDoc(
+                                getDocRef("Users", pay.data().userId)
+                            );
+                        })
                 );
-                const docs = {
-                    docs: users,
-                    empty: users.length == 0,
-                    size: users.length,
-                    query: undefined,
-                } as unknown as QuerySnapshot<DataBase["Users"]>;
-                return docs;
+                return users.filter((doc) =>
+                    doc.exists()
+                ) as unknown as QueryDocumentSnapshot<DataBase["Users"]>[];
             }
             if (levelId) {
-                return await getDocs(
+                return (
+                    await getDocs(
+                        query(
+                            createCollection("Users"),
+                            where("levelId", "==", levelId),
+                            orderBy("createdAt"),
+                            limit(perPage * page + perPage)
+                        )
+                    )
+                ).docs.slice(perPage * page, perPage * page + perPage);
+            }
+            return (
+                await getDocs(
                     query(
                         createCollection("Users"),
-                        where("levelId", "==", levelId),
                         orderBy("createdAt"),
-                        startAt(page * perPage),
-                        limit(perPage)
+                        limit(perPage * page + perPage)
                     )
-                );
-            }
-            return await getDocs(
-                query(
-                    createCollection("Users"),
-                    orderBy("createdAt"),
-                    startAt(page * perPage),
-                    limit(perPage)
                 )
-            );
+            ).docs.slice(perPage * page, perPage * page + perPage);
         },
     });
 }

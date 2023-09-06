@@ -13,6 +13,7 @@ import {
 } from "firebase/firestore";
 import { useRouter } from "next/router";
 import { useDocument } from "react-firebase-hooks/firestore";
+import Head from "next/head";
 interface UpdateForm {
     doc: QueryDocumentSnapshot<DataBase["Questions"]>;
 }
@@ -41,6 +42,9 @@ function SafeArea({ id }: { id: string }) {
         return <Page404 message="The Question id is not exist" />;
     return (
         <div className="tw-flex-1 tw-flex tw-flex-col tw-items-stretch">
+            <Head>
+                <title>Question</title>
+            </Head>
             <div className="tw-flex-1">
                 <ErrorShower
                     loading={loading}
@@ -60,6 +64,7 @@ function SafeArea({ id }: { id: string }) {
 export default function Page() {
     const router = useRouter();
     const id = router.query.id;
-    if (typeof id != "string") return <Page404 message="You must provide The page id with url" />;
+    if (typeof id != "string")
+        return <Page404 message="You must provide The page id with url" />;
     return <SafeArea id={id} />;
 }

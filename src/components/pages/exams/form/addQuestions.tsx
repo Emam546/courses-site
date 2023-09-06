@@ -45,7 +45,7 @@ export default function QuestionAdder({ lessonId, onAdd }: Props) {
     const [chosenLessonId, setLessonId] = useState("");
     const [courses, loading, error] = useCourseLevelData(lessonId);
     const queryQuestions = useQuery({
-        queryKey: ["question", "lesson", chosenLessonId],
+        queryKey: ["Questions", "lessonId", chosenLessonId],
         queryFn: async () => {
             return await getDocs(
                 query(

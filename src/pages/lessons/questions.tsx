@@ -2,11 +2,15 @@ import { CardTitle, MainCard } from "@/components/card";
 import AddButton, { GoToButton } from "@/components/common/inputs/addButton";
 import Page404 from "@/components/pages/404";
 import QuestionInfoGetter from "@/components/pages/questions/info";
+import Head from "next/head";
 import { useRouter } from "next/router";
 
 function SafeArea({ id }: { id: string }) {
     return (
         <div className="tw-flex-1 tw-flex tw-flex-col tw-items-stretch">
+            <Head>
+                <title>Questions</title>
+            </Head>
             <div className="tw-flex-1">
                 <MainCard>
                     <>

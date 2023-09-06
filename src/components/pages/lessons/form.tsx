@@ -11,6 +11,7 @@ import DatePicker from "@/components/common/inputs/datePicker";
 import { useDocumentOnce } from "react-firebase-hooks/firestore";
 import { useForm } from "react-hook-form";
 import FinalEditor from "@/components/common/inputs/Editor";
+import { useGetDoc } from "@/utils/hooks/fireStore";
 export type DataType = Omit<
     DataBase["Lessons"],
     "courseId" | "order" | "createdAt"
@@ -49,15 +50,13 @@ export default function LessonGetDataForm({
             },
         });
 
-    const [courseData, loading, error] = useDocumentOnce(
-        getDocRef("Courses", courseId as string)
-    );
+    const {data:courseData, isLoading, error} = useGetDoc("Courses",courseId)
     const video = watch("video");
     return (
         <>
             <ErrorShower
-                loading={loading}
-                error={error}
+                loading={isLoading}
+                error={error as any}
             />
 
             {courseData && (

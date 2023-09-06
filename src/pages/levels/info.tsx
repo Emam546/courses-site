@@ -1,6 +1,6 @@
 import { CardTitle, MainCard } from "@/components/card";
 import ErrorShower from "@/components/common/error";
-import AddButton from "@/components/common/inputs/addButton";
+import AddButton, { GoToButton } from "@/components/common/inputs/addButton";
 import Page404 from "@/components/pages/404";
 import CourseInfoGetter from "@/components/pages/courses/info";
 import LevelInfoForm from "@/components/pages/levels/form";
@@ -11,6 +11,7 @@ import {
     QueryDocumentSnapshot,
     updateDoc,
 } from "firebase/firestore";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { useDocument } from "react-firebase-hooks/firestore";
 interface UpdateForm {
@@ -28,6 +29,7 @@ function UpdateForm({ doc }: UpdateForm) {
                     });
                     alert("the document updated successfully");
                 }}
+                buttonName="Update"
             />
         </>
     );
@@ -45,6 +47,9 @@ function SafeArea({ id }: { id: string }) {
         );
     return (
         <div className="tw-flex-1 tw-flex tw-flex-col tw-items-stretch">
+            <Head>
+                <title>{doc.data().name}</title>
+            </Head>
             <div className="tw-flex-1">
                 <MainCard>
                     <UpdateForm doc={doc} />
@@ -60,6 +65,10 @@ function SafeArea({ id }: { id: string }) {
                 <AddButton
                     label="Add Course"
                     href={`/courses/add?levelId=${id}`}
+                />
+                <GoToButton
+                    label="Go To Levels"
+                    href="/levels"
                 />
             </div>
         </div>
