@@ -24,6 +24,7 @@ export function useGetLessons(courseId: string) {
                 query(
                     createCollection("Lessons"),
                     where("courseId", "==", courseId),
+                    where("hide", "==", false),
                     orderBy("order")
                 )
             );

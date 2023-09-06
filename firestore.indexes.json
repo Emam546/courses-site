@@ -27,6 +27,10 @@
           "order": "ASCENDING"
         },
         {
+          "fieldPath": "hide",
+          "order": "ASCENDING"
+        },
+        {
           "fieldPath": "order",
           "order": "ASCENDING"
         }
