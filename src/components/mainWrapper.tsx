@@ -7,9 +7,11 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import Login from "./pages/login";
+import { useRouter } from "next/router";
 
 function MainApp({ children: children }: { children: React.ReactNode }) {
     const mainWrapper = useRef<HTMLDivElement>(null);
+    const router = useRouter();
     useEffect(() => {
         function setSideBar() {
             const wrapper = mainWrapper.current;
@@ -28,6 +30,18 @@ function MainApp({ children: children }: { children: React.ReactNode }) {
         setSideBar();
         window.addEventListener("resize", setSideBar);
     }, [mainWrapper]);
+    function onClose() {
+        const wrapper = mainWrapper.current;
+        if (!wrapper) return;
+        wrapper.classList.add("mini-sidebar");
+        wrapper.classList.remove("show-sidebar");
+    }
+    useEffect(() => {
+        router.events.on("routeChangeComplete", onClose);
+        return () => {
+            router.events.off("routeChangeComplete", onClose);
+        };
+    }, []);
     return (
         <div
             className="page-wrapper tw-flex tw-flex-1 tw-items-stretch tw-justify-stretch"
@@ -39,15 +53,7 @@ function MainApp({ children: children }: { children: React.ReactNode }) {
             data-header-position="fixed"
             ref={mainWrapper}
         >
-            <SideBar
-                onClose={function () {
-                    const wrapper = mainWrapper.current;
-                    if (!wrapper) return;
-                    wrapper.classList.add("mini-sidebar");
-                    wrapper.classList.remove("show-sidebar");
-                    wrapper.setAttribute("data-sidebartype", "mini-sidebar");
-                }}
-            />
+            <SideBar onClose={onClose} />
             <div className="body-wrapper tw-flex tw-flex-col tw-w-full">
                 <Header
                     OnOpen={() => {

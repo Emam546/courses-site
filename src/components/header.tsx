@@ -3,6 +3,7 @@ export interface Props {
     OnOpen?: () => any;
 }
 export default function Header({ OnOpen }: Props) {
+    
     return (
         <header className="app-header">
             <nav className="navbar navbar-expand-lg navbar-light">
