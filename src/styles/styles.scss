@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+
 @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap");
 
 @import "./variables/variables";
@@ -30,18 +28,4 @@
 // Pages style (Required file)
 @import "./pages/dashboard1";
 
-#__next {
-    @apply tw-flex tw-min-h-screen tw-items-stretch tw-justify-stretch;
-}
-.question-text {
-    * {
-        margin: 0;
-    }
-}
-.question-choices {
-    > * {
-        * {
-            margin: 0 !important;
-        }
-    }
-}
+

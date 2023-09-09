@@ -18,7 +18,7 @@ function UpdateForm({ doc }: UpdateForm) {
         <>
             <CardTitle>Update Exam Data</CardTitle>
             <ExamInfoForm
-                defaultData={doc.data()}
+                defaultData={doc.data() as any}
                 onData={async (data) => {
                     await updateDoc(doc.ref, {
                         ...data,

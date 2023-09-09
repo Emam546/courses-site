@@ -15,45 +15,49 @@ const Elem = CreateElem<QuestionType>(
                 {...props}
                 ref={ref}
             >
-                <span className="tw-absolute tw-right-0 tw-top-0 tw-text-sm">
-                    {data.createdAt.toDate().getTime()}
-                </span>
                 <Link
                     className="tw-text-inherit hover:tw-text-inherit hover:tw-opacity-70"
                     href={`/questions?id=${data.id}`}
                 >
-                    <div
-                        className="question-text"
-                        dangerouslySetInnerHTML={{
-                            __html: draftToHtml(JSON.parse(data.quest)),
-                        }}
-                    ></div>
-                    <div>
-                        {data.choices
-                            .sort((a, b) => a.order - b.order)
-                            .map(({ id, textContext }) => {
-                                return (
-                                    <div
-                                        key={id}
-                                        className="question-choices tw-flex tw-items-center tw-gap-x-2"
-                                    >
-                                        <input
-                                            type="radio"
-                                            name={`quest-${data.id}`}
-                                            value={id}
-                                            disabled
-                                            checked={data.answer == id}
-                                        />
+                    <div className="tw-px-3">
+                        <div>
+                            <p className="tw-text-sm tw-text-end tw-m-0 tw-leading-3">
+                                {data.createdAt.toDate().getTime()}
+                            </p>
+                        </div>
+                        <div
+                            className="question-text tw-mb-2"
+                            dangerouslySetInnerHTML={{
+                                __html: draftToHtml(JSON.parse(data.quest)),
+                            }}
+                        ></div>
+                        <div>
+                            {data.choices
+                                .sort((a, b) => a.order - b.order)
+                                .map(({ id, textContext }) => {
+                                    return (
                                         <div
-                                            dangerouslySetInnerHTML={{
-                                                __html: draftToHtml(
-                                                    JSON.parse(textContext)
-                                                ),
-                                            }}
-                                        ></div>
-                                    </div>
-                                );
-                            })}
+                                            key={id}
+                                            className="question-choices tw-flex tw-items-center tw-gap-x-2 tw-mb-1"
+                                        >
+                                            <input
+                                                type="radio"
+                                                name={`quest-${data.id}`}
+                                                value={id}
+                                                disabled
+                                                checked={data.answer == id}
+                                            />
+                                            <div
+                                                dangerouslySetInnerHTML={{
+                                                    __html: draftToHtml(
+                                                        JSON.parse(textContext)
+                                                    ),
+                                                }}
+                                            ></div>
+                                        </div>
+                                    );
+                                })}
+                        </div>
                     </div>
                 </Link>
             </OrgElem>

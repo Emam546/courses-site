@@ -20,7 +20,12 @@ interface UpdateForm {
 function UpdateForm({ doc }: UpdateForm) {
     return (
         <>
-            <CardTitle>Update Question Data</CardTitle>
+            <div className="tw-flex tw-justify-between">
+                <CardTitle>Update Question Data</CardTitle>
+                <p className="tw-text-sm tw-text-gray-400 tw-pr-3">
+                    {doc.data().createdAt.toDate().getTime()}
+                </p>
+            </div>
             <QuestionInfoForm
                 defaultData={doc.data()}
                 onData={async (data) => {
