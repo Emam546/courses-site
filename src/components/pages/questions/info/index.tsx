@@ -34,7 +34,6 @@ export default function QuestionsInfoGetter({ lessonId }: Props) {
                         data={questions.docs.map((v) => ({
                             id: v.id,
                             ...v.data(),
-                            createdAt: (v.data().createdAt as any).toDate(),
                         }))}
                         onDeleteElem={async (v) => {
                             await deleteDoc(getDocRef("Questions", v.id));

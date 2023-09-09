@@ -34,8 +34,7 @@ function PaymentShower({ payment }: ElemProps) {
                 <td>{course?.data()?.name}</td>
                 <td>
                     {formateDate(
-                        (payment.data().activatedAt as any)?.toDate?.() ||
-                            new Date()
+                        payment.data().activatedAt?.toDate() || new Date()
                     )}
                 </td>
                 <td className="first-letter:tw-uppercase">

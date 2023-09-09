@@ -7,7 +7,7 @@ import LessonGetDataForm from "@/components/pages/lessons/form";
 import { DataBase } from "@/data";
 import { getDocRef } from "@/firebase";
 import { QueryDocumentSnapshot, updateDoc } from "firebase/firestore";
-import Head  from "next/head";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { useDocument } from "react-firebase-hooks/firestore";
 interface UpdateForm {
@@ -19,12 +19,7 @@ function UpdateForm({ doc }: UpdateForm) {
             <CardTitle>Update Lesson Data</CardTitle>
             <LessonGetDataForm
                 courseId={doc.data()!.courseId}
-                defaultData={
-                    {
-                        ...doc.data(),
-                        publishedAt: (doc.data().publishedAt as any).toDate(),
-                    } as any
-                }
+                defaultData={doc.data()}
                 onData={async (data) => {
                     await updateDoc(doc.ref, {
                         ...data,

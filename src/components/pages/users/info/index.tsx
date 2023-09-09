@@ -34,7 +34,7 @@ function UserShower({ user }: ElemProps) {
                 </td>
                 <td>{user.data().userName}</td>
                 <td>{level?.data()?.name}</td>
-                <td>{formateDate((user.data().createdAt as any).toDate())}</td>
+                <td>{formateDate(user.data().createdAt.toDate())}</td>
 
                 <td>
                     <div className="tw-flex tw-items-center">

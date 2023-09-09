@@ -22,12 +22,7 @@ function UpdateForm({ doc }: UpdateForm) {
         <>
             <CardTitle>Update Course Data</CardTitle>
             <CourseInfoForm
-                defaultData={
-                    {
-                        ...doc.data(),
-                        publishedAt: (doc.data()?.publishedAt as any).toDate(),
-                    } as any
-                }
+                defaultData={doc.data()}
                 onData={async (data) => {
                     await updateDoc(doc.ref, {
                         ...data,

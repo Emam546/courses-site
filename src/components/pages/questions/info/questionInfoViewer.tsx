@@ -16,7 +16,7 @@ const Elem = CreateElem<QuestionType>(
                 ref={ref}
             >
                 <span className="tw-absolute tw-right-0 tw-top-0 tw-text-sm">
-                    {data.createdAt.getTime()}
+                    {data.createdAt.toDate().getTime()}
                 </span>
                 <Link
                     className="tw-text-inherit hover:tw-text-inherit hover:tw-opacity-70"

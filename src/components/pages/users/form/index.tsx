@@ -59,7 +59,7 @@ export default function LevelInfoForm({ defaultData, onData }: Props) {
                     <WrapElem label="Created At">
                         <DatePicker
                             disabled
-                            value={getValues("createdAt")}
+                            value={getValues("createdAt").toDate()}
                         />
                     </WrapElem>
                     <SelectInput

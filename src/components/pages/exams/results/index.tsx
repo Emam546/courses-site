@@ -51,10 +51,10 @@ function ResultShower({ result: result }: ElemProps) {
                     }
                 </td>
                 <td>{data.questions.length}</td>
-                <td>{formateDate((data.startAt as any).toDate())}</td>
+                <td>{formateDate(data.startAt.toDate())}</td>
                 <td>
                     {data.endAt
-                        ? formateDate((data.endAt as any).toDate())
+                        ? formateDate(data.endAt.toDate())
                         : "Auto Closed"}
                 </td>
                 <td>

@@ -10,6 +10,7 @@ import { DataBase } from "@/data";
 import DatePicker from "@/components/common/inputs/datePicker";
 import { useForm } from "react-hook-form";
 import React from "react";
+import { Timestamp } from "firebase/firestore";
 export type DataType = Omit<
     DataBase["Courses"],
     "levelId" | "order" | "createdAt"
@@ -67,9 +68,13 @@ export default function CourseInfoForm({
                     />
                     <WrapElem label="Publish Date">
                         <DatePicker
-                            value={getValues("publishedAt")}
+                            value={getValues("publishedAt").toDate()}
                             onChange={(val) => {
-                                setValue("publishedAt", val as Date);
+                                if (!val) return;
+                                setValue(
+                                    "publishedAt",
+                                    Timestamp.fromDate(val)
+                                );
                             }}
                         />
                     </WrapElem>
@@ -81,6 +86,14 @@ export default function CourseInfoForm({
                         id={"Hide-input"}
                     />
                 </div>
+                <div className="tw-my-2">
+                    <CheckedInput
+                        title={"Featured Course"}
+                        {...register("featured")}
+                        id={"featured-input"}
+                    />
+                </div>
+
                 <div className="tw-mb-3">
                     <TextArea
                         title="Description"

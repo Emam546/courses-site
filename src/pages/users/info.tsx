@@ -38,12 +38,7 @@ function SafeArea({ id }: { id: string }) {
                                 });
                                 alert("Document updated successfully");
                             }}
-                            defaultData={{
-                                ...doc.data(),
-                                createdAt: (
-                                    doc.data().createdAt as any
-                                ).toDate(),
-                            }}
+                            defaultData={doc.data()}
                         />
                     </MainCard>
                 </>

@@ -12,6 +12,8 @@ import { useDocumentOnce } from "react-firebase-hooks/firestore";
 import { useForm } from "react-hook-form";
 import FinalEditor from "@/components/common/inputs/Editor";
 import { useGetDoc } from "@/utils/hooks/fireStore";
+import { Timestamp } from "firebase/firestore";
+import TextArea from "@/components/common/inputs/textArea";
 export type DataType = Omit<
     DataBase["Lessons"],
     "courseId" | "order" | "createdAt"
@@ -50,7 +52,11 @@ export default function LessonGetDataForm({
             },
         });
 
-    const {data:courseData, isLoading, error} = useGetDoc("Courses",courseId)
+    const {
+        data: courseData,
+        isLoading,
+        error,
+    } = useGetDoc("Courses", courseId);
     const video = watch("video");
     return (
         <>
@@ -79,11 +85,14 @@ export default function LessonGetDataForm({
                                 />
                                 <WrapElem label="Publish Date">
                                     <DatePicker
-                                        value={getValues("publishedAt")}
+                                        value={getValues(
+                                            "publishedAt"
+                                        ).toDate()}
                                         onChange={(val) => {
+                                            if (!val) return;
                                             setValue(
                                                 "publishedAt",
-                                                val as Date
+                                                Timestamp.fromDate(val)
                                             );
                                         }}
                                     />
@@ -94,6 +103,13 @@ export default function LessonGetDataForm({
                                     title={"Hide Course"}
                                     {...register("hide")}
                                     id={"Hide-input"}
+                                />
+                            </div>
+                            <div className="tw-my-3">
+                                <TextArea
+                                    id={"brief-desc-input"}
+                                    title="Brief Description"
+                                    {...register("briefDesc")}
                                 />
                             </div>
                             <div className="tw-my-3">

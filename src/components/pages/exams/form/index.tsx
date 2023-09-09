@@ -155,10 +155,7 @@ export default function ExamInfoForm({
                 </div>
                 <div>
                     <QuestionInfoViewer
-                        data={questionData.map((v) => ({
-                            ...v,
-                            createdAt: (v.createdAt as any).toDate(),
-                        }))}
+                        data={questionData.map((v) => v)}
                         onDeleteElem={(v) => {
                             setQuestionData(
                                 questionData
