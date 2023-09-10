@@ -9,7 +9,7 @@ import { DataBase } from "@/data";
 import DatePicker from "@/components/common/inputs/datePicker";
 import { useForm } from "react-hook-form";
 import FinalEditor from "@/components/common/inputs/Editor";
-import { useGetDoc } from "@/utils/hooks/fireStore";
+import { useGetDoc } from "@/hooks/fireStore";
 import { Timestamp } from "firebase/firestore";
 import TextArea from "@/components/common/inputs/textArea";
 import { isRawDraftContentStateEmpty } from "@/utils/draftjs";
@@ -77,7 +77,7 @@ export default function LessonGetDataForm({
 
             {courseData && (
                 <>
-                    <MainCard>
+                    <>
                         <form
                             onSubmit={handleSubmit(async (data) => {
                                 if (!data.video?.id) delete data.video;
@@ -195,7 +195,7 @@ export default function LessonGetDataForm({
                                 </PrimaryButton>
                             </div>
                         </form>
-                    </MainCard>
+                    </>
                 </>
             )}
         </>

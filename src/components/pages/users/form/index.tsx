@@ -7,7 +7,7 @@ import { DataBase } from "@/data";
 import DatePicker from "@/components/common/inputs/datePicker";
 import { WrapElem } from "@/components/common/inputs/styles";
 import SelectInput from "@/components/common/inputs/select";
-import { useGetLevels } from "@/utils/hooks/fireStore";
+import { useGetLevels } from "@/hooks/fireStore";
 import CheckedInput from "@/components/common/inputs/checked";
 export type DataType = Omit<DataBase["Users"], "password">;
 export interface Props {

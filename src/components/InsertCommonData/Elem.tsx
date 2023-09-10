@@ -1,6 +1,6 @@
 import { faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useSyncRefs } from "@/utils/hooks";
+import { useSyncRefs } from "@/hooks";
 import classNames from "classnames";
 import { useState } from "react";
 import DraggableComp from "@/components/common/drag";

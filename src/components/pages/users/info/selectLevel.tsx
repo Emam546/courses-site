@@ -2,7 +2,7 @@ import SelectInput from "@/components/common/inputs/select";
 import { Grid2 } from "@/components/grid";
 import { DataBase } from "@/data";
 import { createCollection } from "@/firebase";
-import { useGetCourses, useGetLevels } from "@/utils/hooks/fireStore";
+import { useGetCourses, useGetLevels } from "@/hooks/fireStore";
 import { useQuery } from "@tanstack/react-query";
 import {
     QueryDocumentSnapshot,
@@ -12,7 +12,7 @@ import {
     where,
 } from "firebase/firestore";
 import { useCollection } from "react-firebase-hooks/firestore";
-export type Props ={
+export type Props = {
     onCourse: (
         course?: QueryDocumentSnapshot<DataBase["Courses"]> | undefined
     ) => any;
@@ -21,7 +21,7 @@ export type Props ={
     ) => any;
     levelId?: string;
     courseId?: string;
-}
+};
 export function SelectCourse({ onCourse, onLevel, levelId, courseId }: Props) {
     const { data: levels } = useGetLevels();
     const { data: courses } = useGetCourses(levelId);

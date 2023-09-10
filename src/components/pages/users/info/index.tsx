@@ -11,7 +11,7 @@ import { formateDate } from "@/utils";
 import styles from "../../style.module.scss";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useGetDoc } from "@/utils/hooks/fireStore";
+import { useGetDoc } from "@/hooks/fireStore";
 import { perPage } from "../results/hooks";
 interface ElemProps {
     user: QueryDocumentSnapshot<DataBase["Users"]>;
@@ -35,7 +35,7 @@ function UserShower({ user }: ElemProps) {
                 <td>{user.data().userName}</td>
                 <td>{level?.data()?.name}</td>
                 <td>{formateDate(user.data().createdAt.toDate())}</td>
-
+          
                 <td>
                     <div className="tw-flex tw-items-center">
                         <input

@@ -8,6 +8,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import Login from "./pages/login";
 import { useRouter } from "next/router";
+import LoadingBar from "./loadingBar";
 
 function MainApp({ children: children }: { children: React.ReactNode }) {
     const mainWrapper = useRef<HTMLDivElement>(null);
@@ -43,32 +44,35 @@ function MainApp({ children: children }: { children: React.ReactNode }) {
         };
     }, []);
     return (
-        <div
-            className="page-wrapper tw-flex tw-flex-1 tw-items-stretch tw-justify-stretch"
-            id="main-wrapper"
-            data-layout="vertical"
-            data-navbarbg="skin6"
-            data-sidebartype="full"
-            data-sidebar-position="fixed"
-            data-header-position="fixed"
-            ref={mainWrapper}
-        >
-            <SideBar onClose={onClose} />
-            <div className="body-wrapper tw-flex tw-flex-col tw-w-full">
-                <Header
-                    OnOpen={() => {
-                        const wrapper = mainWrapper.current;
-                        if (!wrapper) return;
-                        wrapper.classList.remove("mini-sidebar");
-                        wrapper.classList.add("show-sidebar");
-                        wrapper.setAttribute("data-sidebartype", "full");
-                    }}
-                />
-                <div className="container-fluid tw-flex-1 tw-w-full tw-flex tw-flex-col tw-justify-stretch tw-items-stretch px-4">
-                    {children}
+        <>
+            <LoadingBar />
+            <div
+                className="page-wrapper tw-flex tw-flex-1 tw-items-stretch tw-justify-stretch"
+                id="main-wrapper"
+                data-layout="vertical"
+                data-navbarbg="skin6"
+                data-sidebartype="full"
+                data-sidebar-position="fixed"
+                data-header-position="fixed"
+                ref={mainWrapper}
+            >
+                <SideBar onClose={onClose} />
+                <div className="body-wrapper tw-flex tw-flex-col tw-w-full">
+                    <Header
+                        OnOpen={() => {
+                            const wrapper = mainWrapper.current;
+                            if (!wrapper) return;
+                            wrapper.classList.remove("mini-sidebar");
+                            wrapper.classList.add("show-sidebar");
+                            wrapper.setAttribute("data-sidebartype", "full");
+                        }}
+                    />
+                    <div className="container-fluid tw-flex-1 tw-w-full tw-flex tw-flex-col tw-justify-stretch tw-items-stretch px-4">
+                        {children}
+                    </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 }
 export default function MainWrapper({

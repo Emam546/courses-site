@@ -1,6 +1,6 @@
 import { useState } from "react";
-import InfoGetter, { CreateElem } from "../../InsertCommonData";
-import { Elem as OrgElem } from "../../InsertCommonData/Elem";
+import InfoGetter, { CreateElem } from "../../../InsertCommonData";
+import { Elem as OrgElem } from "../../../InsertCommonData/Elem";
 import { DataBase, WithIdType } from "@/data";
 import Link from "next/link";
 import { useCollection } from "react-firebase-hooks/firestore";
@@ -12,10 +12,10 @@ import {
     updateDoc,
     where,
 } from "firebase/firestore";
-import DeleteDialog from "../../common/AlertDialog";
-import ErrorShower from "../../common/error";
+import DeleteDialog from "../../../common/AlertDialog";
+import ErrorShower from "../../../common/error";
 import classNames from "classnames";
-import CheckedInput from "../../common/inputs/checked";
+import CheckedInput from "../../../common/inputs/checked";
 export type T = WithIdType<DataBase["Exams"]>;
 
 const Elem = CreateElem<T>(({ index, props: { data }, ...props }, ref) => {

@@ -7,7 +7,7 @@ import { CardTitle, MainCard } from "@/components/card";
 import { useDocumentOnce } from "react-firebase-hooks/firestore";
 import ErrorShower from "@/components/common/error";
 import Head from "next/head";
-import { useGetDoc } from "@/utils/hooks/fireStore";
+import { useGetDoc } from "@/hooks/fireStore";
 function SafeArea({ courseId }: { courseId: string }) {
     const {
         data: courseData,
@@ -28,21 +28,23 @@ function SafeArea({ courseId }: { courseId: string }) {
                 <>
                     <CardTitle>Adding Lesson</CardTitle>
                     <CardTitle>Course:{courseData.data()?.name}</CardTitle>
-                    <LessonGetDataForm
-                        onData={async (data) => {
-                            const col = createCollection("Lessons");
-                            console.log(data);
-                            await addDoc(col, {
-                                ...data,
-                                createdAt: serverTimestamp(),
-                                courseId: courseId,
-                                order: Date.now(),
-                            });
-                            router.push(`/courses?id=${courseId}`);
-                        }}
-                        courseId={courseId}
-                        buttonName="Submit"
-                    />
+                    <MainCard>
+                        <LessonGetDataForm
+                            onData={async (data) => {
+                                const col = createCollection("Lessons");
+                                console.log(data);
+                                await addDoc(col, {
+                                    ...data,
+                                    createdAt: serverTimestamp(),
+                                    courseId: courseId,
+                                    order: Date.now(),
+                                });
+                                router.push(`/courses?id=${courseId}`);
+                            }}
+                            courseId={courseId}
+                            buttonName="Submit"
+                        />
+                    </MainCard>
                 </>
             )}
         </MainCard>

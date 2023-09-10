@@ -124,78 +124,74 @@ export default function QuestionGetDataForm({
         },
     });
     return (
-        <>
-            <MainCard>
-                <form
-                    onSubmit={handleSubmit(async (data, e) => {
-                        await onData({ ...data });
-                        if (ResetAfterSubmit) resetForm();
-                    })}
+        <form
+            onSubmit={handleSubmit(async (data, e) => {
+                await onData({ ...data });
+                if (ResetAfterSubmit) resetForm();
+            })}
+        >
+            <WrapElem label="Question Area">
+                <FinalEditor
+                    onContentStateChange={(content) =>
+                        setValue("quest", JSON.stringify(content))
+                    }
+                    editorState={questState}
+                    onEditorStateChange={(state) => {
+                        setQuestState(state);
+                    }}
+                />
+                <ErrorInputShower err={formState.errors.quest} />
+            </WrapElem>
+            <div className="tw-mt-3">
+                <CheckedInput
+                    defaultChecked
+                    title="Shuffle Choices"
+                    id="shuffle-input"
+                    {...register("shuffle")}
+                />
+            </div>
+            <WrapElem
+                label="Choices Area"
+                className="tw-my-3"
+            >
+                <ChoiceArea
+                    onSubmitQuestion={(state) => {
+                        setValue("choices", [
+                            ...getValues("choices"),
+                            {
+                                id: uuid(),
+                                textContext: JSON.stringify(state),
+                                order: getValues("choices").length,
+                            },
+                        ]);
+                    }}
+                />
+            </WrapElem>
+            {choices.length > 0 && (
+                <WrapElem
+                    label="Choose The Answer"
+                    className="tw-my-3"
                 >
-                    <WrapElem label="Question Area">
-                        <FinalEditor
-                            onContentStateChange={(content) =>
-                                setValue("quest", JSON.stringify(content))
-                            }
-                            editorState={questState}
-                            onEditorStateChange={(state) => {
-                                setQuestState(state);
-                            }}
-                        />
-                        <ErrorInputShower err={formState.errors.quest} />
-                    </WrapElem>
-                    <div className="tw-mt-3">
-                        <CheckedInput
-                            defaultChecked
-                            title="Shuffle Choices"
-                            id="shuffle-input"
-                            {...register("shuffle")}
-                        />
-                    </div>
-                    <WrapElem
-                        label="Choices Area"
-                        className="tw-my-3"
-                    >
-                        <ChoiceArea
-                            onSubmitQuestion={(state) => {
-                                setValue("choices", [
-                                    ...getValues("choices"),
-                                    {
-                                        id: uuid(),
-                                        textContext: JSON.stringify(state),
-                                        order: getValues("choices").length,
-                                    },
-                                ]);
-                            }}
-                        />
-                    </WrapElem>
-                    {choices.length > 0 && (
-                        <WrapElem
-                            label="Choose The Answer"
-                            className="tw-my-3"
-                        >
-                            <ChoicesViewer
-                                data={choices}
-                                inputRef={register("answer", {
-                                    required: "Please provide an answer",
-                                })}
-                                onChange={(data) => setValue("choices", data)}
-                            />
-                        </WrapElem>
-                    )}
+                    <ChoicesViewer
+                        data={choices}
+                        inputRef={register("answer", {
+                            required: "Please provide an answer",
+                        })}
+                        onChange={(data) => setValue("choices", data)}
+                    />
+                </WrapElem>
+            )}
 
-                    <ErrorInputShower err={formState.errors.answer} />
-                    <ErrorInputShower err={formState.errors.choices as any} />
-                    <div className="tw-flex tw-justify-end">
-                        <PrimaryButton
-                            type="submit"
-                            disabled={formState.isSubmitting}
-                        >
-                            {buttonName}
-                        </PrimaryButton>
-                    </div>
-                </form>
-            </MainCard>
-        </>
+            <ErrorInputShower err={formState.errors.answer} />
+            <ErrorInputShower err={formState.errors.choices as any} />
+            <div className="tw-flex tw-justify-end">
+                <PrimaryButton
+                    type="submit"
+                    disabled={formState.isSubmitting}
+                >
+                    {buttonName}
+                </PrimaryButton>
+            </div>
+        </form>
     );
 }

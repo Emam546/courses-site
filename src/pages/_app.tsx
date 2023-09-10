@@ -1,5 +1,6 @@
 import "@/styles/login.scss";
 import "@/styles/styles.scss";
+import "@/styles/exam.scss";
 import "@/styles/global.scss";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
@@ -24,9 +25,9 @@ export default function App({ Component, pageProps }: AppProps) {
     return (
         <QueryClientProvider client={queryClient}>
             {/* <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_CLIENT_ID!}> */}
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <MainWrapper>{<Component {...pageProps} />}</MainWrapper>
-                </LocalizationProvider>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <MainWrapper>{<Component {...pageProps} />}</MainWrapper>
+            </LocalizationProvider>
             {/* </GoogleOAuthProvider> */}
         </QueryClientProvider>
     );

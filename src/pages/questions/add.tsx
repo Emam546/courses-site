@@ -9,9 +9,13 @@ import ErrorShower from "@/components/common/error";
 import { useMemo, useState } from "react";
 import Head from "next/head";
 import { GoToButton } from "@/components/common/inputs/addButton";
-import { useGetDoc } from "@/utils/hooks/fireStore";
+import { useGetDoc } from "@/hooks/fireStore";
 function SafeArea({ lessonId }: { lessonId: string }) {
-    const {data:lessonData,isLoading,error}= useGetDoc("Lessons",lessonId);
+    const {
+        data: lessonData,
+        isLoading,
+        error,
+    } = useGetDoc("Lessons", lessonId);
     const [count, setCount] = useState(0);
 
     return (
@@ -28,20 +32,22 @@ function SafeArea({ lessonId }: { lessonId: string }) {
                     <>
                         <CardTitle>Adding Question</CardTitle>
                         <CardTitle>Lesson :{lessonData.data()?.name}</CardTitle>
-                        <QuestGetDataForm
-                            onData={async (data) => {
-                                const col = createCollection("Questions");
-                                await addDoc(col, {
-                                    ...data,
-                                    createdAt: serverTimestamp(),
-                                    lessonId: lessonId,
-                                });
-                                setCount(count + 1);
-                                alert("submit Question");
-                            }}
-                            buttonName="Submit"
-                            ResetAfterSubmit
-                        />
+                        <MainCard>
+                            <QuestGetDataForm
+                                onData={async (data) => {
+                                    const col = createCollection("Questions");
+                                    await addDoc(col, {
+                                        ...data,
+                                        createdAt: serverTimestamp(),
+                                        lessonId: lessonId,
+                                    });
+                                    setCount(count + 1);
+                                    alert("submit Question");
+                                }}
+                                buttonName="Submit"
+                                ResetAfterSubmit
+                            />
+                        </MainCard>
                     </>
                 )}
             </MainCard>

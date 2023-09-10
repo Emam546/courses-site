@@ -6,12 +6,14 @@ import ExamInfoForm from "@/components/pages/exams/form";
 import { CardTitle, MainCard } from "@/components/card";
 import { useDocumentOnce } from "react-firebase-hooks/firestore";
 import ErrorShower from "@/components/common/error";
-import { useGetDoc } from "@/utils/hooks/fireStore";
+import { useGetDoc } from "@/hooks/fireStore";
 import Head from "next/head";
 function SafeArea({ lessonId }: { lessonId: string }) {
-    const {data:lessonData, isLoading, error} = useGetDoc(
-        "Lessons",lessonId
-    )
+    const {
+        data: lessonData,
+        isLoading,
+        error,
+    } = useGetDoc("Lessons", lessonId);
 
     return (
         <MainCard>
@@ -26,21 +28,23 @@ function SafeArea({ lessonId }: { lessonId: string }) {
                 <>
                     <CardTitle>Adding Exam</CardTitle>
                     <CardTitle>Lesson:{lessonData.data()?.name}</CardTitle>
-                    <ExamInfoForm
-                        onData={async (data) => {
-                            const col = createCollection("Exams");
+                    <MainCard>
+                        <ExamInfoForm
+                            onData={async (data) => {
+                                const col = createCollection("Exams");
 
-                            await addDoc(col, {
-                                ...data,
-                                createdAt: serverTimestamp(),
-                                lessonId: lessonId,
-                                order: Date.now(),
-                            });
-                            router.push(`/lessons?id=${lessonId}`);
-                        }}
-                        buttonName="Submit"
-                        lessonId={lessonId}
-                    />
+                                await addDoc(col, {
+                                    ...data,
+                                    createdAt: serverTimestamp(),
+                                    lessonId: lessonId,
+                                    order: Date.now(),
+                                });
+                                router.push(`/lessons?id=${lessonId}`);
+                            }}
+                            buttonName="Submit"
+                            lessonId={lessonId}
+                        />
+                    </MainCard>
                 </>
             )}
         </MainCard>

@@ -7,7 +7,7 @@ import SelectInput from "@/components/common/inputs/select";
 import { useEffect, useState } from "react";
 import { Grid2 } from "@/components/grid";
 import PrimaryButton from "@/components/button";
-import { useCountDocs } from "@/utils/hooks/fireStore";
+import { useCountDocs } from "@/hooks/fireStore";
 import { useCourseLevelData } from "./hooks";
 import { useQuery } from "@tanstack/react-query";
 export type QuestionType = WithIdType<DataBase["Questions"]>;

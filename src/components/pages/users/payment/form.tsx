@@ -4,7 +4,7 @@ import SelectInput from "@/components/common/inputs/select";
 import { Grid2 } from "@/components/grid";
 import { createCollection } from "@/firebase";
 import queryClient from "@/queryClient";
-import { useGetCourses } from "@/utils/hooks/fireStore";
+import { useGetCourses } from "@/hooks/fireStore";
 import { useQuery } from "@tanstack/react-query";
 import { getDocs, query, where, orderBy } from "firebase/firestore";
 import { useForm } from "react-hook-form";

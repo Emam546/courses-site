@@ -17,17 +17,19 @@ function UpdateForm({ doc }: UpdateForm) {
     return (
         <>
             <CardTitle>Update Lesson Data</CardTitle>
-            <LessonGetDataForm
-                courseId={doc.data()!.courseId}
-                defaultData={doc.data()}
-                onData={async (data) => {
-                    await updateDoc(doc.ref, {
-                        ...data,
-                    });
-                    alert("the document updated successfully");
-                }}
-                buttonName={"Update"}
-            />
+            <MainCard>
+                <LessonGetDataForm
+                    courseId={doc.data()!.courseId}
+                    defaultData={doc.data()}
+                    onData={async (data) => {
+                        await updateDoc(doc.ref, {
+                            ...data,
+                        });
+                        alert("the document updated successfully");
+                    }}
+                    buttonName={"Update"}
+                />
+            </MainCard>
         </>
     );
 }

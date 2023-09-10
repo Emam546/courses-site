@@ -2,7 +2,7 @@ import { CardTitle, MainCard } from "@/components/card";
 import ErrorShower from "@/components/common/error";
 import AddButton, { GoToButton } from "@/components/common/inputs/addButton";
 import Page404 from "@/components/pages/404";
-import CourseInfoGetter from "@/components/pages/courses/info";
+import LevelInfoFormGetter from "@/components/pages/courses/info";
 import LevelInfoForm from "@/components/pages/levels/form";
 import { DataBase } from "@/data";
 import { getDocRef } from "@/firebase";
@@ -56,7 +56,7 @@ function SafeArea({ id }: { id: string }) {
                     <>
                         <CardTitle>Courses</CardTitle>
                         <MainCard>
-                            <CourseInfoGetter levelId={id} />
+                            <LevelInfoFormGetter levelId={id} />
                         </MainCard>
                     </>
                 </MainCard>

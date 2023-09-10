@@ -28,3 +28,11 @@ export function formateDate(date: Date, sep: string = "-") {
     // Create the formatted date string
     return `${year}${sep}${month}${sep}${day}`;
 }
+export function formateDateClock(date: Date) {
+    // Month is zero-indexed, so we add 1
+    const hours = date.getHours().toString().padStart(2, "0");
+    const seconds = date.getMinutes().toString().padStart(2, "0");
+
+    // Create the formatted date string
+    return `${hours}:${seconds}`;
+}

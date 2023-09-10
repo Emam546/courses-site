@@ -15,7 +15,7 @@ import { DataBase } from "@/data";
 import { formateDate } from "@/utils";
 import { faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useGetDoc } from "@/utils/hooks/fireStore";
+import { useGetDoc } from "@/hooks/fireStore";
 import ErrorShower from "@/components/common/error";
 import { MainCard } from "@/components/card";
 import queryClient from "@/queryClient";

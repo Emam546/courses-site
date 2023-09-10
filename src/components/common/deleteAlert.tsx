@@ -1,6 +1,6 @@
 import { Snackbar, Button, CircularProgress } from "@mui/material";
 import { Alert } from "@mui/material";
-import { useDebounceEffect } from "@/utils/hooks";
+import { useDebounceEffect } from "@/hooks";
 import React, { useEffect } from "react";
 export interface Props {
     open: boolean;

@@ -3,7 +3,6 @@ import ErrorShower from "@/components/common/error";
 import AddButton, { GoToButton } from "@/components/common/inputs/addButton";
 import Page404 from "@/components/pages/404";
 import QuestionInfoForm from "@/components/pages/questions/form";
-import LessonsInfoGetter from "@/components/pages/exams";
 import { DataBase } from "@/data";
 import { getDocRef } from "@/firebase";
 import {
@@ -26,16 +25,18 @@ function UpdateForm({ doc }: UpdateForm) {
                     {doc.data().createdAt.toDate().getTime()}
                 </p>
             </div>
-            <QuestionInfoForm
-                defaultData={doc.data()}
-                onData={async (data) => {
-                    await updateDoc(doc.ref, {
-                        ...data,
-                    });
-                    alert("The document updated successfully");
-                }}
-                buttonName="Update"
-            />
+            <MainCard>
+                <QuestionInfoForm
+                    defaultData={doc.data()}
+                    onData={async (data) => {
+                        await updateDoc(doc.ref, {
+                            ...data,
+                        });
+                        alert("The document updated successfully");
+                    }}
+                    buttonName="Update"
+                />
+            </MainCard>
         </>
     );
 }

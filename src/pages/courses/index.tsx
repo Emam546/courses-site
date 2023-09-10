@@ -7,7 +7,6 @@ import LessonsInfoGetter from "@/components/pages/lessons/info";
 import { DataBase } from "@/data";
 import { getDocRef } from "@/firebase";
 import {
-    DocumentSnapshot,
     QueryDocumentSnapshot,
     updateDoc,
 } from "firebase/firestore";
@@ -21,16 +20,18 @@ function UpdateForm({ doc }: UpdateForm) {
     return (
         <>
             <CardTitle>Update Course Data</CardTitle>
-            <CourseInfoForm
-                defaultData={doc.data()}
-                onData={async (data) => {
-                    await updateDoc(doc.ref, {
-                        ...data,
-                    });
-                    alert("the document updated successfully");
-                }}
-                buttonName="Update"
-            />
+            <MainCard>
+                <CourseInfoForm
+                    defaultData={doc.data()}
+                    onData={async (data) => {
+                        await updateDoc(doc.ref, {
+                            ...data,
+                        });
+                        alert("the document updated successfully");
+                    }}
+                    buttonName="Update"
+                />
+            </MainCard>
         </>
     );
 }

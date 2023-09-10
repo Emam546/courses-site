@@ -1,0 +1,105 @@
+.quiz-app {
+    * {
+        font-family: Arial, sans-serif;
+        box-sizing: border-box;
+        margin: 0;
+    }
+    background-color: #fff;
+    border: 10px solid #f6f6f6;
+    margin: 20px auto;
+    max-width: 800px;
+    padding: 15px;
+    border-radius: 20px;
+
+    .quiz-info {
+        display: flex;
+        padding: 20px;
+        background-color: #f6f6f6;
+        border-radius: 20px;
+
+        .category {
+            flex: 1;
+        }
+
+        .count {
+            flex: 1;
+            text-align: right;
+        }
+    }
+
+    .quiz-area {
+        background-color: #fff;
+        padding: 20px;
+        margin-top: 15px;
+        margin-bottom: 10px;
+        border-radius: 20px;
+
+        h2 {
+            margin: 0;
+        }
+    }
+
+    .options-area {
+        background-color: #fff;
+        &:not(.endState) {
+            .option:hover {
+                background-color: #f0f0f0;
+            }
+        }
+        .option {
+            background-color: #f6f6f6;
+            padding: 15px;
+            margin: 10px;
+            border-radius: 20px;
+            > * {
+                color: #444;
+            }
+
+            input[type="radio"]:checked + * {
+                color: #0055ff;
+            }
+            &.correct {
+                @apply tw-bg-green-500;
+                * {
+                    @apply tw-text-gray-100;
+                }
+            }
+            &.notCorrect {
+                @apply tw-bg-red-500;
+                * {
+                    @apply tw-text-gray-100;
+                }
+            }
+        }
+    }
+
+    .submit-button {
+        background-color: #0055ff;
+        display: block;
+
+        cursor: pointer;
+        padding: 15px;
+        border: none;
+        color: #fff;
+        font-weight: bold;
+        font-size: 18px;
+        border-radius: 20px;
+        margin: 20px 0;
+        margin-left: auto;
+        &:hover {
+            background-color: #003d80;
+        }
+
+        &:focus {
+            outline: none;
+        }
+    }
+
+    .bullets {
+        background-color: #f6f6f6;
+        display: flex;
+        padding: 20px;
+        margin-bottom: 10px;
+        border-radius: 20px;
+    }
+}

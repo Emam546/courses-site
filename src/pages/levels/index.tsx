@@ -11,7 +11,7 @@ export default function Levels() {
             <div className="tw-flex-1">
                 <LevelsInfoGetter />
             </div>
-            <div className="py-3">
+            <div className="tw-py-3">
                 <AddButton
                     label="Add Level"
                     href="/levels/add"

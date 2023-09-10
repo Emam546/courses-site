@@ -79,6 +79,7 @@ export interface DataBase {
             state: "visited" | "unvisited" | "marked";
             answer?: string;
             correctState: boolean;
+            correctAnswer: string;
         }>;
 
         startAt: Timestamp;

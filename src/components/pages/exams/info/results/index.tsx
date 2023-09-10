@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { DataBase } from "@/data";
 import { deleteDoc } from "firebase/firestore";
-import ErrorShower from "../../../common/error";
+import ErrorShower from "../../../../common/error";
 import { QueryDocumentSnapshot } from "firebase/firestore";
 import Pagination from "@mui/material/Pagination";
 import DeleteDialog from "@/components/common/AlertDialog";
 import { useGetResults, useGetResultsCount } from "./hooks";
-import { formateDate } from "@/utils";
-import styles from "../../style.module.scss";
+import { formateDate, formateDateClock } from "@/utils";
+import styles from "../../../style.module.scss";
 import Link from "next/link";
-import { useGetDoc } from "@/utils/hooks/fireStore";
+import { useGetDoc } from "@/hooks/fireStore";
 import { faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 const perPage = 30;
@@ -51,11 +51,18 @@ function ResultShower({ result: result }: ElemProps) {
                     }
                 </td>
                 <td>{data.questions.length}</td>
-                <td>{formateDate(data.startAt.toDate())}</td>
+                <td>
+                    {formateDate(data.startAt.toDate())}
+                    {"_"}
+                    {formateDateClock(data.startAt.toDate())}
+                </td>
                 <td>
                     {data.endAt
-                        ? formateDate(data.endAt.toDate())
+                        ? formateDateClock(data.endAt.toDate())
                         : "Auto Closed"}
+                </td>
+                <td>
+                    <Link href={`/exams/take?id=${result.id}`}>Show</Link>
                 </td>
                 <td>
                     <button
@@ -129,6 +136,7 @@ export default function ExamResultGenerator({ examId }: Props) {
                                         <th>Total Questions</th>
                                         <th>Start At</th>
                                         <th>End At</th>
+                                        <th>Show</th>
                                         <th>Delete</th>
                                     </tr>
                                 </thead>
