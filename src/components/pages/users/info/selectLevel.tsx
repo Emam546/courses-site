@@ -12,7 +12,7 @@ import {
     where,
 } from "firebase/firestore";
 import { useCollection } from "react-firebase-hooks/firestore";
-export interface Props {
+export type Props ={
     onCourse: (
         course?: QueryDocumentSnapshot<DataBase["Courses"]> | undefined
     ) => any;

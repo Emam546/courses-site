@@ -37,24 +37,28 @@ export default function LevelInfoForm({ defaultData, onData }: Props) {
                         title={"Name"}
                         {...register("name", { disabled: true })}
                         autoComplete="false"
+                        err={formState.errors.name}
                     />
                     <MainInput
                         id={"username-input"}
                         title={"User Name"}
                         {...register("userName", { disabled: true })}
                         autoComplete="false"
+                        err={formState.errors.userName}
                     />
                     <MainInput
                         id={"phone-input"}
                         title={"Phone"}
                         {...register("phone", { disabled: true })}
                         autoComplete="false"
+                        err={formState.errors.phone}
                     />
                     <MainInput
                         id={"email-input"}
                         title={"Email"}
                         {...register("email", { disabled: true })}
                         autoComplete="false"
+                        err={formState.errors.email}
                     />
                     <WrapElem label="Created At">
                         <DatePicker
@@ -65,7 +69,8 @@ export default function LevelInfoForm({ defaultData, onData }: Props) {
                     <SelectInput
                         id={"level-input"}
                         title={"Level"}
-                        {...register("levelId")}
+                        {...register("levelId", { required: "Select a level" })}
+                        err={formState.errors.levelId}
                     >
                         {levels?.docs.map((doc) => {
                             return (
