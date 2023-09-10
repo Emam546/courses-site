@@ -11,9 +11,9 @@ import Footer from "./footer";
 export function ProvideUser({ children }: { children: ReactNode }) {
     const dispatch = useAppDispatch();
     const [loading, setLoading] = useState(true);
-    useLayoutEffect(() => {
+    useEffect(() => {
         const id = localStorage.getItem("userId");
-        if (!id) return;
+        if (!id) return setLoading(false);
         setLoading(true);
         (async function () {
             const res = await getDoc(getDocRef("Users", id));
@@ -40,7 +40,6 @@ export default function MainComponentsProvider({
                 <Header />
                 {children}
                 <Footer />
-               
             </Protector>
         </ProvideUser>
     );
