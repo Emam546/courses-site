@@ -18,7 +18,7 @@ import Link from "next/link";
 import Head from "next/head";
 function useGetStudentsNum(courseId: string) {
     return useQuery({
-        queryKey: ["Payments", "count", "courseId"],
+        queryKey: ["Payments", "count", "courseId", courseId],
         queryFn: async () => {
             return (
                 await getCountFromServer(
@@ -88,7 +88,7 @@ export function Course({
 export function useGetCourses(levelId?: string) {
     return useQuery({
         enabled: typeof levelId == "string",
-        queryKey: ["Courses", "levelId"],
+        queryKey: ["Courses", "levelId", levelId],
         queryFn: async () => {
             return await getDocs(
                 query(
