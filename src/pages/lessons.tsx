@@ -33,7 +33,6 @@ export function useGetExams(lessonId: string) {
 }
 function ExamsViewer({ lessonId }: { lessonId: string }) {
     const { data: exams } = useGetExams(lessonId);
-    const router = useRouter();
     return (
         <div className="tw-mt-9">
             <div className="elements_title">Exams</div>
@@ -143,7 +142,6 @@ export default function Page() {
     return (
         <>
             <Head>
-                
                 <link
                     rel="stylesheet"
                     type="text/css"

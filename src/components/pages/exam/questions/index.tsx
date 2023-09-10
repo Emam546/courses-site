@@ -72,7 +72,7 @@ export default function QuestionsViewer({ resultId, exam }: Props) {
     const [curAnswer, setCurAnswer] = useState<string>();
     const endState = useMemo<boolean>(() => {
         if (!result || !result.exists()) return false;
-        const startAt: Date = (result.data().startAt as any).toDate();
+        const startAt: Date = result.data().startAt.toDate();
 
         if (Date.now() - startAt.getTime() > exam.data().time) return true;
         if (typeof result.data().endAt != "undefined") return true;
@@ -119,7 +119,7 @@ export default function QuestionsViewer({ resultId, exam }: Props) {
     if (!result || !result.exists()) return null;
     const questions = result.data().questions;
 
-    const startAt: Date = (result.data().startAt as any).toDate();
+    const startAt: Date = result.data().startAt.toDate();
     const submitState =
         !curAnswer || result.data().questions[curQuest].answer != curAnswer;
     return (

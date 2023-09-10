@@ -12,6 +12,7 @@ import { useRouter } from "next/router";
 import { NextPageWithLayout } from "../_app";
 import { ProvideUser } from "@/components/wrapper";
 import Protector from "@/components/protector";
+import { useGetExamCourse } from ".";
 function SafeArea({
     doc,
 }: {
@@ -33,27 +34,12 @@ function SafeArea({
         </>
     );
 }
-function useGetExamCourse(resultId: string) {
-    return useQuery({
-        enabled: typeof resultId == "string",
-        queryKey: ["Courses", "lessonId", "examId", "resultId", resultId],
-        queryFn: async () => {
-            const result = await getDoc(getDocRef("Results", resultId));
-            const exam = await getDoc(
-                getDocRef("Exams", result.data()!.examId)
-            );
-            const lesson = await getDoc(
-                getDocRef("Lessons", exam.data()!.lessonId)
-            );
-            return await getDoc(getDocRef("Courses", lesson.data()!.courseId));
-        },
-    });
-}
+
 function Main() {
     const router = useRouter();
     const { id } = router.query;
     const queryResult = useGetDoc("Results", id as string);
-    const queryCourse = useGetExamCourse(id as string);
+    const queryCourse = useGetExamCourse(queryResult.data?.data()?.examId);
 
     if (typeof id != "string")
         return <Page404 message="The Lesson id is not exist" />;

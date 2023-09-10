@@ -115,10 +115,7 @@ export function ResultsViewer({
     const curExam = results?.docs.find((result) => {
         const res = result.data();
         if (res.endAt) return false;
-        return (
-            Date.now() - (res.startAt as any).toDate().getTime() <
-            exam.data().time
-        );
+        return Date.now() - res.startAt.toDate().getTime() < exam.data().time;
     });
     const startState =
         curExam == undefined && (results?.empty || exam.data().repeatable);
@@ -143,8 +140,7 @@ export function ResultsViewer({
                     const questions = doc.data().questions;
                     const state =
                         !doc.data().endAt &&
-                        Date.now() -
-                            (doc.data().startAt as any).toDate().getTime() <
+                        Date.now() - doc.data().startAt.toDate().getTime() <
                             exam.data().time;
                     if (state) return null;
                     return (
@@ -195,7 +191,7 @@ export function ResultsViewer({
                         </span>
                     </button>
                 )}
-                {!startState && results && (
+                {!startState && results && !exam.data().repeatable && (
                     <p className="tw-text-2xl tw-mt-10 tw-font-bold tw-text-black">
                         You can{"'"}t retake the exam
                     </p>

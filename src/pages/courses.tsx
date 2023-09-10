@@ -61,7 +61,7 @@ function SafeArea({
                 {/* Popular */}
                 <div className="popular page_section">
                     <div className="container">
-                        <div className="row course_boxes">
+                        <div className="row course-items-area">
                             {lessons?.docs.map((doc, i) => {
                                 return (
                                     <div

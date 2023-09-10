@@ -50,12 +50,12 @@ function SafeArea({ doc }: { doc: QueryDocumentSnapshot<DataBase["Exams"]> }) {
         </>
     );
 }
-function useGetExamCourse(examId: string) {
+export function useGetExamCourse(examId?: string) {
     return useQuery({
         enabled: typeof examId == "string",
         queryKey: ["Courses", "lessonId", "examId", examId],
         queryFn: async () => {
-            const exam = await getDoc(getDocRef("Exams", examId));
+            const exam = await getDoc(getDocRef("Exams", examId!));
             const lesson = await getDoc(
                 getDocRef("Lessons", exam.data()!.lessonId)
             );
@@ -89,7 +89,6 @@ export default function Page() {
     return (
         <>
             <Head>
-                
                 <link
                     rel="stylesheet"
                     type="text/css"

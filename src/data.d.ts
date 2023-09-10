@@ -1,3 +1,4 @@
+import { Timestamp } from "firebase/firestore";
 export type WithIdType<T> = { id: string } & T;
 export type WithOrder<T> = { order: number } & T;
 export interface DataBase {
@@ -15,16 +16,17 @@ export interface DataBase {
             num: string;
             currency: string;
         };
-        createdAt: Date;
-        publishedAt: Date;
+        createdAt: Timestamp;
+        publishedAt: Timestamp;
     }>;
     Lessons: WithOrder<{
         name: string;
+        briefDesc: string;
         desc: string;
         hide: boolean;
         courseId: string;
-        createdAt: Date;
-        publishedAt: Date;
+        createdAt: Timestamp;
+        publishedAt: Timestamp;
         video?: {
             type: "youtube";
             id: string;
@@ -38,7 +40,7 @@ export interface DataBase {
             desc: string;
             hide: boolean;
             lessonId: string;
-            createdAt: Date;
+            createdAt: Timestamp;
             repeatable: boolean;
             questionIds: Array<string>;
             time: number;
@@ -62,10 +64,11 @@ export interface DataBase {
                 }>
             >
         >;
+
         answer: string;
         shuffle: boolean;
         lessonId: string;
-        createdAt: Date;
+        createdAt: Timestamp;
     };
     Results: {
         examId: string;
@@ -76,8 +79,8 @@ export interface DataBase {
             correctState: boolean;
         }>;
 
-        startAt: Date;
-        endAt?: Date;
+        startAt: Timestamp;
+        endAt?: Timestamp;
         userId: string;
     };
     Users: {
@@ -86,13 +89,13 @@ export interface DataBase {
         password: string;
         userName: string;
         name: string;
-        createdAt: Date;
+        createdAt: Timestamp;
         blocked: boolean;
         levelId: string;
     };
     Payment:
         | {
-              activatedAt: Date;
+              activatedAt: Timestamp;
               userId: string;
               courseId: string;
           } & (
@@ -101,7 +104,7 @@ export interface DataBase {
                 }
               | {
                     type: "code";
-                    createdAT: Date;
+                    createdAT: Timestamp;
                 }
           );
 }
