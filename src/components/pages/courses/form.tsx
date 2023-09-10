@@ -2,7 +2,7 @@ import PrimaryButton from "@/components/button";
 import { MainCard } from "@/components/card";
 import BudgetInput from "@/components/common/inputs/budget";
 import CheckedInput from "@/components/common/inputs/checked";
-import MainInput from "@/components/common/inputs/main";
+import MainInput, { ErrorInputShower } from "@/components/common/inputs/main";
 import TextArea from "@/components/common/inputs/textArea";
 import { WrapElem } from "@/components/common/inputs/styles";
 import { Grid2 } from "@/components/grid";
@@ -28,11 +28,11 @@ export default function CourseInfoForm({
     const { register, handleSubmit, formState, getValues, setValue } =
         useForm<DataType>({
             defaultValues: {
-                publishedAt: new Date(),
+                publishedAt: Timestamp.fromDate(new Date()),
                 ...defaultData,
             },
         });
-
+    register("publishedAt", { required: true });
     return (
         <MainCard>
             <form
@@ -54,6 +54,7 @@ export default function CourseInfoForm({
                             ...register("price.num", {
                                 required: true,
                                 valueAsNumber: true,
+                                min: 0,
                             }),
                             required: true,
                             placeholder: "eg.120",
@@ -65,17 +66,24 @@ export default function CourseInfoForm({
                             }),
                             required: true,
                         }}
+                        err={
+                            formState.errors.price?.num ||
+                            formState.errors.price?.currency
+                        }
                     />
                     <WrapElem label="Publish Date">
                         <DatePicker
                             value={getValues("publishedAt").toDate()}
                             onChange={(val) => {
-                                if (!val) return;
+                                if (!val) return formState;
                                 setValue(
                                     "publishedAt",
                                     Timestamp.fromDate(val)
                                 );
                             }}
+                        />
+                        <ErrorInputShower
+                            err={formState.errors.publishedAt?.root}
                         />
                     </WrapElem>
                 </Grid2>
@@ -98,7 +106,10 @@ export default function CourseInfoForm({
                     <TextArea
                         title="Description"
                         id="desc-input"
-                        {...register("desc")}
+                        {...register("desc", {
+                            required: true,
+                        })}
+                        err={formState.errors.desc}
                     />
                 </div>
                 <div className="tw-flex tw-justify-end">

@@ -18,12 +18,13 @@ export const StyledInput = React.forwardRef<HTMLInputElement, InputProps>(
         );
     }
 );
+export type SelectedInputProps = React.DetailedHTMLProps<
+    React.SelectHTMLAttributes<HTMLSelectElement>,
+    HTMLSelectElement
+>;
 export const StyledSelect = React.forwardRef<
     HTMLSelectElement,
-    React.DetailedHTMLProps<
-        React.SelectHTMLAttributes<HTMLSelectElement>,
-        HTMLSelectElement
-    >
+    SelectedInputProps
 >(({ className, ...props }, ref) => {
     return (
         <select
@@ -34,14 +35,14 @@ export const StyledSelect = React.forwardRef<
     );
 });
 
-export interface Props
+export interface WrapProps
     extends React.DetailedHTMLProps<
         React.HTMLAttributes<HTMLDivElement>,
         HTMLDivElement
     > {
     label?: string | React.ReactNode;
 }
-export const WrapElem = React.forwardRef<HTMLDivElement, Props>(
+export const WrapElem = React.forwardRef<HTMLDivElement, WrapProps>(
     ({ label, children, ...props }, ref) => {
         if (!label) return <>{children}</>;
         return (
@@ -49,7 +50,7 @@ export const WrapElem = React.forwardRef<HTMLDivElement, Props>(
                 ref={ref}
                 {...props}
             >
-                <span className="form-label tw-mb-1 tw-block">{label}</span>
+                <span className="form-label tw-block">{label}</span>
                 {children}
             </div>
         );

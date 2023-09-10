@@ -1,14 +1,19 @@
+import { UseFormRegister, UseFormRegisterReturn } from "react-hook-form";
 import InfoGetter, { CreateElem } from "../../../InsertCommonData";
 import { Elem as OrgElem } from "../../../InsertCommonData/Elem";
 import { DataBase } from "@/data";
 export type ChoiceType = DataBase["Questions"]["choices"][0];
 import draftToHtml from "draftjs-to-html";
-const Elem = CreateElem<{ choice: ChoiceType; answer?: string; id: string }>(
+const Elem = CreateElem<{
+    choice: ChoiceType;
+    id: string;
+    props: UseFormRegisterReturn<"answer">;
+}>(
     (
         {
             index,
             props: {
-                data: { choice: data, answer },
+                data: { choice: data, props: inputProps },
             },
             ...props
         },
@@ -24,10 +29,9 @@ const Elem = CreateElem<{ choice: ChoiceType; answer?: string; id: string }>(
                 <div className="question-choices tw-flex tw-items-center tw-gap-x-2">
                     <input
                         type="radio"
-                        name="answer"
                         id={inputId}
                         value={data.id}
-                        defaultChecked={answer == data.id}
+                        {...inputProps}
                     />
                     <label
                         htmlFor={inputId}
@@ -44,10 +48,14 @@ const Elem = CreateElem<{ choice: ChoiceType; answer?: string; id: string }>(
 );
 export interface Props {
     data: ChoiceType[];
-    answer?: string;
     onChange: (data: ChoiceType[]) => any;
+    inputRef: UseFormRegisterReturn<"answer">;
 }
-export default function ChoicesViewer({ data, onChange, answer }: Props) {
+export default function ChoicesViewer({
+    data,
+    onChange,
+    inputRef,
+}: Props) {
     return (
         <>
             <InfoGetter
@@ -57,7 +65,7 @@ export default function ChoicesViewer({ data, onChange, answer }: Props) {
                     .map((doc) => ({
                         id: doc.id,
                         choice: doc,
-                        answer,
+                        props: inputRef,
                     }))}
                 onDeleteElem={(v) => {
                     onChange(

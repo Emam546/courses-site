@@ -15,6 +15,9 @@ import {
 import { uuid } from "@/utils";
 import ChoicesViewer from "./choicesViewer";
 import CheckedInput from "@/components/common/inputs/checked";
+import { validateDesc } from "../../lessons/form";
+import { ErrorInputShower } from "@/components/common/inputs/main";
+import { isRawDraftContentStateEmpty } from "@/utils/draftjs";
 export type DataType = Omit<DataBase["Questions"], "lessonId" | "createdAt">;
 export interface Props {
     onData: (data: DataType) => Promise<any> | any;
@@ -26,21 +29,35 @@ export interface ChoiceProps {
     onSubmitQuestion: (quest: RawDraftContentState) => any;
 }
 function ChoiceArea({ onSubmitQuestion }: ChoiceProps) {
+    const { register, formState, handleSubmit, setValue, reset } = useForm<{
+        area: RawDraftContentState;
+    }>({});
     const [editorState, SetEditorState] = useState<EditorState>(
         EditorState.createEmpty()
     );
+    register("area", {
+        validate(val) {
+            if (isRawDraftContentStateEmpty(val))
+                return "You must fill the input first";
+            return true;
+        },
+        required: "Please provide some content",
+    });
     return (
         <div>
             <FinalEditor
                 editorState={editorState}
                 onEditorStateChange={SetEditorState}
+                onContentStateChange={(val) => {
+                    setValue("area", val);
+                }}
             />
+            <ErrorInputShower err={formState.errors.area as any} />
             <div className="tw-flex tw-justify-end tw-mt-3">
                 <PrimaryButton
                     type="button"
-                    onClick={() => {
-                        if (!editorState.getCurrentContent().hasText())
-                            return alert("please fill the choice area first");
+                    disabled={formState.isSubmitting}
+                    onClick={handleSubmit((data) => {
                         onSubmitQuestion(
                             convertToRaw(editorState.getCurrentContent())
                         );
@@ -50,7 +67,8 @@ function ChoiceArea({ onSubmitQuestion }: ChoiceProps) {
                             "remove-range"
                         );
                         SetEditorState(newEditorState);
-                    }}
+                        reset();
+                    })}
                 >
                     Add Choice
                 </PrimaryButton>
@@ -80,7 +98,7 @@ export default function QuestionGetDataForm({
         !defaultData
             ? EditorState.createEmpty()
             : EditorState.createWithContent(
-                  convertFromRaw(JSON.parse(defaultData?.quest))
+                  convertFromRaw(JSON.parse(defaultData.quest))
               )
     );
     function resetForm() {
@@ -93,18 +111,24 @@ export default function QuestionGetDataForm({
         setQuestState(newEditorState);
         reset();
     }
+    register("quest", {
+        validate: validateDesc,
+        required: "Please provide some content",
+    });
+    register("choices", {
+        required: "Please add some choices",
+        validate(val) {
+            if (val.length <= 1)
+                return "The number of choices must be larger than one";
+            return true;
+        },
+    });
     return (
         <>
             <MainCard>
                 <form
                     onSubmit={handleSubmit(async (data, e) => {
-                        const formData = new FormData(e!.target);
-                        const answer = formData.get("answer") as string;
-                        if (!questState.getCurrentContent().hasText())
-                            return alert("please fill the question area first");
-                        if (data.choices.length <= 1)
-                            return alert("please add some choices first");
-                        await onData({ ...data, answer });
+                        await onData({ ...data });
                         if (ResetAfterSubmit) resetForm();
                     })}
                 >
@@ -118,6 +142,7 @@ export default function QuestionGetDataForm({
                                 setQuestState(state);
                             }}
                         />
+                        <ErrorInputShower err={formState.errors.quest} />
                     </WrapElem>
                     <div className="tw-mt-3">
                         <CheckedInput
@@ -144,21 +169,23 @@ export default function QuestionGetDataForm({
                             }}
                         />
                     </WrapElem>
-                    {choices.length == 0 ? (
-                        <p>Please Add Some choices</p>
-                    ) : (
+                    {choices.length > 0 && (
                         <WrapElem
                             label="Choose The Answer"
                             className="tw-my-3"
                         >
                             <ChoicesViewer
-                                answer={defaultData?.answer}
                                 data={choices}
+                                inputRef={register("answer", {
+                                    required: "Please provide an answer",
+                                })}
                                 onChange={(data) => setValue("choices", data)}
                             />
                         </WrapElem>
                     )}
 
+                    <ErrorInputShower err={formState.errors.answer} />
+                    <ErrorInputShower err={formState.errors.choices as any} />
                     <div className="tw-flex tw-justify-end">
                         <PrimaryButton
                             type="submit"

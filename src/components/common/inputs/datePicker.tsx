@@ -37,7 +37,7 @@ function CustomField(props: ButtonFieldProps) {
             ref={props.InputProps?.ref}
             className="form-control tw-py-0 tw-flex tw-items-center hover:tw-border-gray-900 focus-within:tw-border-gray-900"
         >
-            <p className="tw-py-3 tw-text-gray-900 tw-m-0 tw-flex-1">
+            <p className="tw-py-2 tw-text-gray-900 tw-m-0 tw-flex-1">
                 {formateDate(props.value!.toDate(), "/")}
             </p>
             <button

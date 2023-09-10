@@ -1,7 +1,7 @@
 import PrimaryButton from "@/components/button";
 import { MainCard } from "@/components/card";
 import CheckedInput from "@/components/common/inputs/checked";
-import MainInput from "@/components/common/inputs/main";
+import MainInput, { ErrorInputShower } from "@/components/common/inputs/main";
 import TextArea from "@/components/common/inputs/textArea";
 import { Grid2 } from "@/components/grid";
 import { DataBase } from "@/data";
@@ -65,6 +65,17 @@ export default function ExamInfoForm({
             questionData.map((v) => v.id)
         );
     }, [questionData]);
+    register("questionIds", {
+        required: true,
+        min: 1,
+        validate(val, data) {
+            if (data.random) {
+                if (val.length < data.num)
+                    return `The number of the questions must be larger than or equal ${data.num}`;
+            }
+            return true;
+        },
+    });
     return (
         <MainCard>
             <form
@@ -78,26 +89,28 @@ export default function ExamInfoForm({
                         id={"name-input"}
                         title={"Exam Name"}
                         required
-                        {...register("name", { required: true })}
+                        {...register("name", { required: true, minLength: 8 })}
+                        err={formState.errors.name}
                     />
                     <MainInput
                         title={"Question Number"}
-                        {...register("num", { valueAsNumber: true })}
+                        {...register("num", { valueAsNumber: true, min: 1 })}
                         id={"num-input"}
                         defaultValue={20}
                         type="number"
                         disabled={!randomVal}
+                        err={(formState.errors as any)?.num}
                     />
                     <MainInput
                         title={"Exam Time"}
                         {...register("time", {
                             valueAsNumber: true,
                             required: true,
+                            min: 1,
                         })}
                         id={"num-input"}
                         type="number"
                         placeholder="Time in minute"
-                        required
                     />
                 </Grid2>
                 <Grid2 className="tw-my-3 tw-gap-y-0">
@@ -131,7 +144,8 @@ export default function ExamInfoForm({
                     <TextArea
                         title="Description"
                         id="desc-input"
-                        {...register("desc")}
+                        {...register("desc", { required: true })}
+                        err={formState.errors.desc}
                     />
                 </div>
                 <div>
@@ -173,6 +187,10 @@ export default function ExamInfoForm({
                                 }))
                             );
                         }}
+                    />
+                    <ErrorInputShower
+                        className="tw-mb-3"
+                        err={formState.errors.questionIds as any}
                     />
                 </div>
                 <div className="tw-flex tw-justify-end">

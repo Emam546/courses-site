@@ -1,15 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import dynamic from "next/dynamic";
-import { ContentState, EditorProps } from "react-draft-wysiwyg";
-import {
-    BlockMap,
-    BlockMapBuilder,
-    ContentBlock,
-    EditorState,
-    Modifier,
-    RawDraftContentState,
-    convertFromRaw,
-} from "draft-js";
+import { EditorProps } from "react-draft-wysiwyg";
+import { EditorState, RawDraftContentState, convertFromRaw } from "draft-js";
 const Editor = dynamic<EditorProps>(
     () => import("react-draft-wysiwyg").then((mod) => mod.Editor),
     { ssr: false }

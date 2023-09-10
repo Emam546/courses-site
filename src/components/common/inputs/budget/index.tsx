@@ -1,29 +1,37 @@
 import {
     StyledInput,
+    InputProps,
+    SelectedInputProps,
     StyledSelect,
     WrapElem,
 } from "@/components/common/inputs/styles";
 import currencies from "./options.json";
+import { ErrorInputShower } from "../main";
+import { FieldError } from "react-hook-form";
 
-type Props = {
+export type Props = {
     label: string;
-    priceProps?: React.InputHTMLAttributes<HTMLInputElement>;
-    unitProps?: React.SelectHTMLAttributes<HTMLSelectElement>;
+    priceProps?: InputProps;
+    unitProps?: SelectedInputProps;
+    err?: FieldError;
 };
 
 export default function BudgetInput({
     label,
     priceProps,
     unitProps: unit,
+    err,
 }: Props) {
     return (
         <WrapElem label={label}>
             <div className="tw-flex tw-justify-stretch">
                 <div>
-                    <StyledInput {...priceProps} />
+                    <StyledInput {...(priceProps as any)} />
                 </div>
                 <div>
-                    <StyledSelect {...unit}>
+                    <StyledSelect
+                        {...({ defaultValue: "EGP", ...unit } as any)}
+                    >
                         {currencies.map(({ code, name }) => {
                             return (
                                 <option
@@ -37,6 +45,7 @@ export default function BudgetInput({
                     </StyledSelect>
                 </div>
             </div>
+            <ErrorInputShower err={err} />
         </WrapElem>
     );
 }

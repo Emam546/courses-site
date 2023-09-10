@@ -11,16 +11,18 @@ export default function Page() {
     return (
         <MainCard>
             <CardTitle>ADD Level</CardTitle>
-            <LevelInfoForm
-                onData={async (data) => {
-                    await addDoc(colRef, {
-                        ...data,
-                        order: Date.now(),
-                    });
-                    await router.push("/levels");
-                }}
-                buttonName="Submit"
-            />
+            <MainCard>
+                <LevelInfoForm
+                    onData={async (data) => {
+                        await addDoc(colRef, {
+                            ...data,
+                            order: Date.now(),
+                        });
+                        await router.push("/levels");
+                    }}
+                    buttonName="Submit"
+                />
+            </MainCard>
         </MainCard>
     );
 }

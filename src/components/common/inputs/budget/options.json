@@ -38,5 +38,9 @@
     {
         "name": "Indian Rupee",
         "code": "INR"
+    },
+    {
+        "name": "Egyptian Pound",
+        "code": "EGP"
     }
 ]

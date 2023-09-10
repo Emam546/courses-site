@@ -21,37 +21,42 @@ export default function LevelInfoForm({
         defaultValues: defaultData,
     });
     return (
-        <MainCard>
-            <form
-                action=""
-                onSubmit={handleSubmit(onData)}
-                autoComplete="false"
-            >
-                <Grid2>
-                    <MainInput
-                        id={"name-input"}
-                        title={"Level Name"}
-                        {...register("name")}
-                        autoComplete="false"
-                    />
-                </Grid2>
-                <div className="tw-mt-4">
-                    <TextArea
-                        id={"name"}
-                        title={"Course description"}
-                        {...register("desc")}
-                        className="tw-min-h-[10rem]"
-                    />
-                </div>
-                <div className="tw-mt-4 tw-flex tw-justify-end">
-                    <PrimaryButton
-                        type="submit"
-                        disabled={formState.isSubmitting}
-                    >
-                        {buttonName}
-                    </PrimaryButton>
-                </div>
-            </form>
-        </MainCard>
+        <form
+            action=""
+            onSubmit={handleSubmit(onData)}
+            autoComplete="false"
+        >
+            <Grid2>
+                <MainInput
+                    id={"name-input"}
+                    title={"Level Name"}
+                    {...register("name", {
+                        required: true,
+                        min: 5,
+                    })}
+                    autoComplete="false"
+                    err={formState.errors.name}
+                />
+            </Grid2>
+            <div className="tw-mt-4">
+                <TextArea
+                    id={"desc-input"}
+                    title={"Course description"}
+                    {...register("desc", {
+                        required: true,
+                    })}
+                    className="tw-min-h-[10rem]"
+                    err={formState.errors.desc}
+                />
+            </div>
+            <div className="tw-mt-4 tw-flex tw-justify-end">
+                <PrimaryButton
+                    type="submit"
+                    disabled={formState.isSubmitting}
+                >
+                    {buttonName}
+                </PrimaryButton>
+            </div>
+        </form>
     );
 }

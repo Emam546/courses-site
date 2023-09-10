@@ -2,18 +2,17 @@ import PrimaryButton from "@/components/button";
 import { CardTitle, MainCard } from "@/components/card";
 import ErrorShower from "@/components/common/error";
 import CheckedInput from "@/components/common/inputs/checked";
-import MainInput from "@/components/common/inputs/main";
+import MainInput, { ErrorInputShower } from "@/components/common/inputs/main";
 import { WrapElem } from "@/components/common/inputs/styles";
 import { Grid2 } from "@/components/grid";
 import { DataBase } from "@/data";
-import { getDocRef } from "@/firebase";
 import DatePicker from "@/components/common/inputs/datePicker";
-import { useDocumentOnce } from "react-firebase-hooks/firestore";
 import { useForm } from "react-hook-form";
 import FinalEditor from "@/components/common/inputs/Editor";
 import { useGetDoc } from "@/utils/hooks/fireStore";
 import { Timestamp } from "firebase/firestore";
 import TextArea from "@/components/common/inputs/textArea";
+import { isRawDraftContentStateEmpty } from "@/utils/draftjs";
 export type DataType = Omit<
     DataBase["Lessons"],
     "courseId" | "order" | "createdAt"
@@ -31,11 +30,18 @@ function extractVideoId(youtubeUrl: string) {
         return null;
     }
 }
+
 export interface Props {
     courseId: string;
     onData: (data: DataType) => Promise<any> | any;
     defaultData?: DataType;
     buttonName: string;
+}
+export function validateDesc(val: string) {
+    if (!val) return "The Field is required";
+    if (isRawDraftContentStateEmpty(JSON.parse(val)))
+        return "The Field is required";
+    return true;
 }
 export default function LessonGetDataForm({
     courseId,
@@ -46,7 +52,7 @@ export default function LessonGetDataForm({
     const { register, handleSubmit, formState, getValues, watch, setValue } =
         useForm<DataType>({
             defaultValues: {
-                publishedAt: new Date(),
+                publishedAt: Timestamp.fromDate(new Date()),
                 hide: true,
                 ...defaultData,
             },
@@ -58,6 +64,10 @@ export default function LessonGetDataForm({
         error,
     } = useGetDoc("Courses", courseId);
     const video = watch("video");
+    register("desc", {
+        required: true,
+        validate: validateDesc,
+    });
     return (
         <>
             <ErrorShower
@@ -78,9 +88,9 @@ export default function LessonGetDataForm({
                                 <MainInput
                                     id={"name-input"}
                                     title={"Lesson Name"}
-                                    required
                                     {...register("name", {
                                         required: true,
+                                        minLength: 8,
                                     })}
                                 />
                                 <WrapElem label="Publish Date">
@@ -109,7 +119,10 @@ export default function LessonGetDataForm({
                                 <TextArea
                                     id={"brief-desc-input"}
                                     title="Brief Description"
-                                    {...register("briefDesc")}
+                                    {...register("briefDesc", {
+                                        required: true,
+                                    })}
+                                    err={formState.errors.briefDesc}
                                 />
                             </div>
                             <div className="tw-my-3">
@@ -125,6 +138,9 @@ export default function LessonGetDataForm({
                                                 JSON.stringify(content)
                                             )
                                         }
+                                    />
+                                    <ErrorInputShower
+                                        err={formState.errors.desc}
                                     />
                                 </WrapElem>
                             </div>
