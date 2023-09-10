@@ -7,17 +7,17 @@ import Header from "./common/header";
 import Protector from "./protector";
 export function ProvideUser({ children }: { children: ReactNode }) {
     const dispatch = useAppDispatch();
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     useLayoutEffect(() => {
         const id = localStorage.getItem("userId");
-        if (!id) return;
-        setLoading(true);
+        if (!id) return setLoading(false);
         (async function () {
             const res = await getDoc(getDocRef("Users", id));
-            setLoading(false);
             if (!res.exists()) return localStorage.removeItem("user");
             dispatch(AuthActions.setUser(res));
-        })();
+        })().finally(() => {
+            setLoading(false);
+        });
     }, []);
     if (loading) return null;
     return <>{children}</>;
