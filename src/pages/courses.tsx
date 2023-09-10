@@ -26,8 +26,8 @@ function Lesson({
 }) {
     const data = doc.data();
     return (
-        <Link href={`/lessons?id=${doc.id}`}>
-            <div className="mix col-lg-3 col-md-4 col-sm-6 finance">
+        <div className="mix col-lg-3 col-md-4 col-sm-6 finance">
+            <Link href={`/lessons?id=${doc.id}`}>
                 <div className="course-item">
                     <div
                         className="course-thumb"
@@ -44,8 +44,8 @@ function Lesson({
                         </div>
                     </div>
                 </div>
-            </div>
-        </Link>
+            </Link>
+        </div>
     );
 }
 export function useGetLessons(courseId: string) {
@@ -109,7 +109,7 @@ function SafeArea({
             {/* categories section */}
             <section className="course-section spad tw-pb-20">
                 <div className="course-warp">
-                    <div className="featured-courses">
+                    <div className="row course-items-area">
                         {lessons?.docs.map((doc, i) => {
                             return (
                                 <Lesson
