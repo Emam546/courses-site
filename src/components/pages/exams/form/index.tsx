@@ -66,7 +66,7 @@ export default function ExamInfoForm({
         );
     }, [questionData]);
     register("questionIds", {
-        required: true,
+        required: "You Must provide some questions",
         min: 1,
         validate(val, data) {
             if (data.random) {
@@ -80,6 +80,7 @@ export default function ExamInfoForm({
         <form
             onSubmit={handleSubmit(async (data) => {
                 data.time = data.time * 1000 * 60;
+                if (!(data as any).num) (data as any).num = 20;
                 await onData(data);
             })}
         >
@@ -87,17 +88,24 @@ export default function ExamInfoForm({
                 <MainInput
                     id={"name-input"}
                     title={"Exam Name"}
-                    required
-                    {...register("name", { required: true, minLength: 8 })}
+                    {...register("name", {
+                        required: "Please fill the input",
+                        minLength: 8,
+                    })}
                     err={formState.errors.name}
                 />
                 <MainInput
                     title={"Question Number"}
-                    {...register("num", { valueAsNumber: true, min: 1 })}
+                    {...register("num", {
+                        valueAsNumber: true,
+                        required: "You must provide a number",
+                        min: 1,
+
+                        disabled: !randomVal,
+                    })}
                     id={"num-input"}
                     defaultValue={20}
                     type="number"
-                    disabled={!randomVal}
                     err={(formState.errors as any)?.num}
                 />
                 <MainInput
@@ -110,6 +118,7 @@ export default function ExamInfoForm({
                     id={"num-input"}
                     type="number"
                     placeholder="Time in minute"
+                    err={formState.errors.time}
                 />
             </Grid2>
             <Grid2 className="tw-my-3 tw-gap-y-0">

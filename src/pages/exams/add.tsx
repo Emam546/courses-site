@@ -1,10 +1,9 @@
-import { createCollection, getDocRef } from "@/firebase";
+import { createCollection } from "@/firebase";
 import { addDoc, serverTimestamp } from "firebase/firestore";
 import router, { useRouter } from "next/router";
 import Page404 from "@/components/pages/404";
 import ExamInfoForm from "@/components/pages/exams/form";
 import { CardTitle, MainCard } from "@/components/card";
-import { useDocumentOnce } from "react-firebase-hooks/firestore";
 import ErrorShower from "@/components/common/error";
 import { useGetDoc } from "@/hooks/fireStore";
 import Head from "next/head";
