@@ -64,6 +64,9 @@ export default function LessonGetDataForm({
         error,
     } = useGetDoc("Courses", courseId);
     const video = watch("video");
+    register("publishedAt", {
+        required: "You must provide a date",
+    });
     register("desc", {
         required: true,
         validate: validateDesc,
@@ -92,6 +95,7 @@ export default function LessonGetDataForm({
                                         required: true,
                                         minLength: 8,
                                     })}
+                                    err={formState.errors.name}
                                 />
                                 <WrapElem label="Publish Date">
                                     <DatePicker
@@ -105,6 +109,11 @@ export default function LessonGetDataForm({
                                                 Timestamp.fromDate(val)
                                             );
                                         }}
+                                    />
+                                    <ErrorInputShower
+                                        err={
+                                            formState.errors.publishedAt as any
+                                        }
                                     />
                                 </WrapElem>
                             </Grid2>
@@ -186,7 +195,7 @@ export default function LessonGetDataForm({
                                     </a>
                                 )}
                             </div>
-                            <div className="tw-flex tw-justify-end">
+                            <div className="tw-flex tw-justify-end tw-mt-3">
                                 <PrimaryButton
                                     type="submit"
                                     disabled={formState.isSubmitting}

@@ -32,7 +32,7 @@ export default function CourseInfoForm({
                 ...defaultData,
             },
         });
-    register("publishedAt", { required: true });
+    register("publishedAt", { required: "You must Provide" });
     return (
         <form
             action=""
@@ -44,26 +44,27 @@ export default function CourseInfoForm({
                 <MainInput
                     id={"name-input"}
                     title={"Course Name"}
-                    required
-                    {...register("name", { required: true })}
+                    {...register("name", {
+                        required: "You must fill the input",
+                    })}
+                    err={formState.errors.name}
                 />
                 <BudgetInput
                     label={"Course Price"}
                     priceProps={{
                         ...register("price.num", {
-                            required: true,
+                            required:
+                                "Please set the course price or set it to 0",
                             valueAsNumber: true,
                             min: 0,
                         }),
-                        required: true,
                         placeholder: "eg.120",
                         type: "number",
                     }}
                     unitProps={{
                         ...register("price.currency", {
-                            required: true,
+                            required: "Please select a currency",
                         }),
-                        required: true,
                     }}
                     err={
                         formState.errors.price?.num ||

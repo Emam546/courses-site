@@ -41,7 +41,7 @@ export default function LevelInfoForm({
             <div className="tw-mt-4">
                 <TextArea
                     id={"desc-input"}
-                    title={"Course description"}
+                    title={"Level description"}
                     {...register("desc", {
                         required: true,
                     })}
