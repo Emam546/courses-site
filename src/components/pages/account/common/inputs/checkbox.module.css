@@ -1,0 +1,4 @@
+
+.input_checkbox:checked + *{
+    @apply tw-bg-blue-600  hover:tw-bg-blue-700 after:tw-translate-x-[calc(2.8rem-100%)]
+}
