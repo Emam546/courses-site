@@ -1,12 +1,20 @@
-import { faEye, faEyeSlash, faLock } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+import { FieldError, useForm } from "react-hook-form";
+import { ErrorInputShower } from "../common/inputs/main";
+import { auth } from "@/firebase";
+import { UserCredential, signInWithEmailAndPassword } from "firebase/auth";
+import Link from "next/link";
+import {
+    getErrorMessage,
+    isFireBaseError,
+    setRememberMeState,
+} from "@/utils/firebase";
 export interface FormValues {
+    email: string;
     password: string;
+    rememberMe: boolean;
 }
 export interface Props {
-    onLogin: (state: boolean) => any;
+    onLogin?: (state: UserCredential) => any;
 }
 
 export default function Login({ onLogin }: Props) {
@@ -15,187 +23,162 @@ export default function Login({ onLogin }: Props) {
             criteriaMode: "firstError",
         }
     );
-    const [passwordState, setPasswordState] = useState<"text" | "password">(
-        "password"
-    );
+
     return (
-        <div className="login-screen">
-            <form
-                className=" screen-1"
-                onSubmit={handleSubmit((data) => {
-                    const password = process.env.NEXT_PUBLIC_PASSWORD;
-                    const state = password == data.password;
-                    if (!state)
-                        return setError("password", {
-                            message: "Wrong Password Please Try again",
-                            type: "validate",
-                        });
-                    onLogin(true);
-                })}
-            >
-                <svg
-                    className="logo"
-                    xmlns="http://www.w3.org/2000/svg"
-                    xmlnsXlink="http://www.w3.org/1999/xlink"
-                    version="1.1"
-                    viewBox="0 0 640 480"
-                    xmlSpace="preserve"
-                >
-                    <g transform="matrix(3.31 0 0 3.31 320.4 240.4)">
-                        <circle
-                            style={{
-                                stroke: "rgb(0,0,0)",
-                                strokeWidth: 0,
-                                strokeDasharray: "none",
-                                strokeLinecap: "butt",
-                                strokeDashoffset: 0,
-                                strokeLinejoin: "miter",
-                                strokeMiterlimit: 4,
-                                fill: "rgb(61,71,133)",
-                                fillRule: "nonzero",
-                                opacity: 1,
-                            }}
-                            cx={0}
-                            cy={0}
-                            r={40}
-                        />
-                    </g>
-                    <g transform="matrix(0.98 0 0 0.98 268.7 213.7)">
-                        <circle
-                            style={{
-                                stroke: "rgb(0,0,0)",
-                                strokeWidth: 0,
-                                strokeDasharray: "none",
-                                strokeLinecap: "butt",
-                                strokeDashoffset: 0,
-                                strokeLinejoin: "miter",
-                                strokeMiterlimit: 4,
-                                fill: "rgb(255,255,255)",
-                                fillRule: "nonzero",
-                                opacity: 1,
-                            }}
-                            cx={0}
-                            cy={0}
-                            r={40}
-                        />
-                    </g>
-                    <g transform="matrix(1.01 0 0 1.01 362.9 210.9)">
-                        <circle
-                            style={{
-                                stroke: "rgb(0,0,0)",
-                                strokeWidth: 0,
-                                strokeDasharray: "none",
-                                strokeLinecap: "butt",
-                                strokeDashoffset: 0,
-                                strokeLinejoin: "miter",
-                                strokeMiterlimit: 4,
-                                fill: "rgb(255,255,255)",
-                                fillRule: "nonzero",
-                                opacity: 1,
-                            }}
-                            cx={0}
-                            cy={0}
-                            r={40}
-                        />
-                    </g>
-                    <g transform="matrix(0.92 0 0 0.92 318.5 286.5)">
-                        <circle
-                            style={{
-                                stroke: "rgb(0,0,0)",
-                                strokeWidth: 0,
-                                strokeDasharray: "none",
-                                strokeLinecap: "butt",
-                                strokeDashoffset: 0,
-                                strokeLinejoin: "miter",
-                                strokeMiterlimit: 4,
-                                fill: "rgb(255,255,255)",
-                                fillRule: "nonzero",
-                                opacity: 1,
-                            }}
-                            cx={0}
-                            cy={0}
-                            r={40}
-                        />
-                    </g>
-                    <g transform="matrix(0.16 -0.12 0.49 0.66 290.57 243.57)">
-                        <polygon
-                            style={{
-                                stroke: "rgb(0,0,0)",
-                                strokeWidth: 0,
-                                strokeDasharray: "none",
-                                strokeLinecap: "butt",
-                                strokeDashoffset: 0,
-                                strokeLinejoin: "miter",
-                                strokeMiterlimit: 4,
-                                fill: "rgb(255,255,255)",
-                                fillRule: "nonzero",
-                                opacity: 1,
-                            }}
-                            points="-50,-50 -50,50 50,50 50,-50 "
-                        />
-                    </g>
-                    <g transform="matrix(0.16 0.1 -0.44 0.69 342.03 248.34)">
-                        <polygon
-                            style={{
-                                stroke: "rgb(0,0,0)",
-                                strokeWidth: 0,
-                                strokeDasharray: "none",
-                                strokeLinecap: "butt",
-                                strokeDashoffset: 0,
-                                strokeLinejoin: "miter",
-                                strokeMiterlimit: 4,
-                                fill: "rgb(255,255,255)",
-                                fillRule: "nonzero",
-                                opacity: 1,
-                            }}
-                            vectorEffect="non-scaling-stroke"
-                            points="-50,-50 -50,50 50,50 50,-50 "
-                        />
-                    </g>
-                </svg>
-                {formState.errors.password?.message && (
-                    <p className="tw-text-red-300 tw-text-center">
-                        {formState.errors.password?.message}
-                    </p>
-                )}
-                <div className="password">
-                    <label htmlFor="password">Password</label>
-                    <div className="sec-2">
-                        <FontAwesomeIcon icon={faLock} />
-                        <input
-                            id="password"
-                            type={passwordState}
-                            placeholder="············"
-                            required
-                            {...register("password", { required: true })}
-                        />
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setPasswordState(
-                                    passwordState == "text"
-                                        ? "password"
-                                        : "text"
-                                );
-                            }}
-                            className="tw-border-none tw-p-0 tw-m-0 tw-bg-transparent"
-                        >
-                            {passwordState == "text" && (
-                                <FontAwesomeIcon icon={faEye} />
-                            )}
-                            {passwordState == "password" && (
-                                <FontAwesomeIcon icon={faEyeSlash} />
-                            )}
-                        </button>
+        <div
+            className="page-wrapper"
+            id="main-wrapper"
+            data-layout="vertical"
+            data-navbarbg="skin6"
+            data-sidebartype="full"
+            data-sidebar-position="fixed"
+            data-header-position="fixed"
+        >
+            <div className="position-relative overflow-hidden radial-gradient min-vh-100 d-flex align-items-center justify-content-center">
+                <div className="d-flex align-items-center justify-content-center w-100">
+                    <div className="row justify-content-center w-100">
+                        <div className="col-md-8 col-lg-6 col-xxl-3">
+                            <div className="card mb-0">
+                                <div className="card-body">
+                                    <div className="text-nowrap logo-img text-center d-block py-3 w-100">
+                                        <img
+                                            src="/images/logos/dark-logo.svg"
+                                            width={180}
+                                            alt="logo"
+                                        />
+                                    </div>
+                                    <p className="text-center">Login</p>
+                                    <form
+                                        autoComplete="off"
+                                        onSubmit={handleSubmit(async (data) => {
+                                            try {
+                                                await setRememberMeState(
+                                                    auth,
+                                                    data.rememberMe
+                                                );
+                                                const user =
+                                                    await signInWithEmailAndPassword(
+                                                        auth,
+                                                        data.email,
+                                                        data.password
+                                                    );
+                                                if (user) onLogin?.(user);
+                                            } catch (err) {
+                                                if (!isFireBaseError(err))
+                                                    return;
+                                                const message = getErrorMessage(
+                                                    err.code
+                                                );
+
+                                                if (!message)
+                                                    return setError("root", {
+                                                        message:
+                                                            err.message as string,
+                                                    });
+                                                setError(
+                                                    message.type as keyof FormValues,
+                                                    {
+                                                        message:
+                                                            message.message,
+                                                    }
+                                                );
+                                            }
+                                        })}
+                                    >
+                                        <ErrorInputShower
+                                            err={
+                                                formState.errors
+                                                    .root as FieldError
+                                            }
+                                        />
+                                        <div className="mb-3">
+                                            <label
+                                                htmlFor="email-input"
+                                                className="form-label"
+                                            >
+                                                Email
+                                            </label>
+                                            <input
+                                                type="email"
+                                                className="form-control"
+                                                id="email-input"
+                                                aria-describedby="emailHelp"
+                                                {...register("email", {
+                                                    required:
+                                                        "The Input is required",
+                                                })}
+                                            />
+                                            <ErrorInputShower
+                                                err={formState.errors.email}
+                                            />
+                                        </div>
+                                        <div className="mb-4">
+                                            <label
+                                                htmlFor="password-input"
+                                                className="form-label"
+                                            >
+                                                Password
+                                            </label>
+                                            <input
+                                                type="password"
+                                                className="form-control"
+                                                id="password-input"
+                                                {...register("password", {
+                                                    required:
+                                                        "The Input is required",
+                                                })}
+                                            />
+                                            <ErrorInputShower
+                                                err={formState.errors.password}
+                                            />
+                                        </div>
+                                        <div className="d-flex align-items-center justify-content-between mb-4">
+                                            <div className="form-check">
+                                                <input
+                                                    className="form-check-input primary"
+                                                    type="checkbox"
+                                                    id="flexCheckChecked"
+                                                    {...register("rememberMe")}
+                                                />
+                                                <label
+                                                    className="form-check-label text-dark"
+                                                    htmlFor="flexCheckChecked"
+                                                >
+                                                    Remember this Device
+                                                </label>
+                                            </div>
+                                            {/* <a
+                                                className="text-primary fw-bold"
+                                                href="./index.html"
+                                            >
+                                                Forgot Password ?
+                                            </a> */}
+                                        </div>
+                                        <button
+                                            type="submit"
+                                            disabled={formState.isSubmitting}
+                                            className="btn btn-primary w-100 py-8 fs-4 mb-4 rounded-2"
+                                        >
+                                            Sign In
+                                        </button>
+                                        <div className="d-flex align-items-center justify-content-center">
+                                            <p className="fs-4 mb-0 fw-bold">
+                                                New to Modernize?
+                                            </p>
+                                            <Link
+                                                className="text-primary fw-bold ms-2"
+                                                href="/signup"
+                                            >
+                                                Create an account
+                                            </Link>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <button
-                    type="submit"
-                    className="login"
-                >
-                    Login
-                </button>
-            </form>
+            </div>
         </div>
     );
 }

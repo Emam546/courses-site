@@ -2,7 +2,7 @@ import { DataBase, WithIdType } from "@/data";
 
 import { useCollection } from "react-firebase-hooks/firestore";
 import { Query, getDocs, orderBy, query, where } from "firebase/firestore";
-import { createCollection } from "@/firebase";
+import { auth, createCollection } from "@/firebase";
 import SelectInput from "@/components/common/inputs/select";
 import { useEffect, useState } from "react";
 import { Grid2 } from "@/components/grid";
@@ -10,9 +10,11 @@ import PrimaryButton from "@/components/button";
 import { useCountDocs } from "@/hooks/fireStore";
 import { useCourseLevelData } from "./hooks";
 import { useQuery } from "@tanstack/react-query";
+import { useAuthState } from "react-firebase-hooks/auth";
 export type QuestionType = WithIdType<DataBase["Questions"]>;
 
 function SelectLevel({ courseId }: { courseId: string }) {
+    const [teacher] = useAuthState(auth);
     const [lessons, loadingLesson, errorLesson] = useCollection(
         query(
             createCollection("Lessons"),
@@ -106,10 +108,10 @@ export default function QuestionAdder({
                             <PrimaryButton
                                 type="button"
                                 onClick={() => {
-                                    const lessonData = queryQuestions.data;
-                                    if (!lessonData) return;
+                                    const questionData = queryQuestions.data;
+                                    if (!questionData) return;
                                     onAdd(
-                                        lessonData.docs.map((val) => ({
+                                        questionData.docs.map((val) => ({
                                             ...val.data(),
                                             id: val.id,
                                         }))

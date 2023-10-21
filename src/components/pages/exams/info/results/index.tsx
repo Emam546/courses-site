@@ -19,14 +19,14 @@ interface ElemProps {
 
 function ResultShower({ result: result }: ElemProps) {
     const [open, setOpen] = useState(false);
-    const { data: user } = useGetDoc("Users", result.data().userId);
+    const { data: user } = useGetDoc("UsersTeachers", result.data().userId);
     const data = result.data();
     return (
         <>
             <tr>
                 <td>
                     <Link href={`users/info?id=${user?.id}`}>
-                        {user?.data()?.name}
+                        {user?.data()?.displayname}
                     </Link>
                 </td>
                 <td>{data.questions.filter((q) => q.correctState).length}</td>

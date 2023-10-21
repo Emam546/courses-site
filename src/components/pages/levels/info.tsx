@@ -7,7 +7,7 @@ import { Elem as OrgElem } from "../../InsertCommonData/Elem";
 import { DataBase, WithIdType } from "@/data";
 import Link from "next/link";
 import { useCollection } from "react-firebase-hooks/firestore";
-import { createCollection, fireStore, getDocRef } from "@/firebase";
+import { auth, createCollection, fireStore, getDocRef } from "@/firebase";
 import {
     deleteDoc,
     doc,
@@ -15,9 +15,11 @@ import {
     orderBy,
     query,
     updateDoc,
+    where,
 } from "firebase/firestore";
 import DeleteDialog from "../../common/AlertDialog";
 import ErrorShower from "../../common/error";
+import { useAuthState } from "react-firebase-hooks/auth";
 export type T = WithIdType<DataBase["Levels"]>;
 
 const Elem = CreateElem<T>(({ index, props: { data }, ...props }, ref) => {
@@ -32,9 +34,14 @@ const Elem = CreateElem<T>(({ index, props: { data }, ...props }, ref) => {
 });
 
 export default function LevelsInfoGetter() {
+    const [teacher] = useAuthState(auth);
     const [curDel, setCurDel] = useState<T>();
     const [levels, loading, error] = useCollection(
-        query(createCollection("Levels"), orderBy("order"))
+        query(
+            createCollection("Levels"),
+            where("teacherId", "==", teacher!.uid),
+            orderBy("order")
+        )
     );
 
     return (

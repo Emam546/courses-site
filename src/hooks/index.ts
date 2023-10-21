@@ -6,7 +6,30 @@ export function useForceUpdate() {
     const [i, setI] = useState(0);
     return () => setI(i + 1);
 }
+export function useConnected(): ReturnType<typeof useState<boolean>> {
+    const [isOnline, setIsOnline] = useState(
+        typeof navigator != "undefined" ? navigator.onLine : true
+    );
 
+    useEffect(() => {
+        function onlineHandler() {
+            setIsOnline(true);
+        }
+
+        function offlineHandler() {
+            setIsOnline(false);
+        }
+
+        window.addEventListener("online", onlineHandler);
+        window.addEventListener("offline", offlineHandler);
+
+        return () => {
+            window.removeEventListener("online", onlineHandler);
+            window.removeEventListener("offline", offlineHandler);
+        };
+    }, []);
+    return [isOnline, setIsOnline] as ReturnType<typeof useState<boolean>>;
+}
 export function useSyncRefs<TType>(
     ...refs: (
         | React.MutableRefObject<TType | null>
@@ -91,3 +114,25 @@ export const useDebounceInitialEffect = (
         };
     }, deps);
 };
+
+export function useDebounceState<T>(time: number, val?: T) {
+    const [curVal, setVal] = useState(val);
+    const [debounce, setdebounce] = useState(val);
+    const [state, setState] = useState(false);
+    useDebounceEffect(
+        () => {
+            setdebounce(curVal);
+            setState(false);
+        },
+        time,
+        [curVal]
+    );
+    useEffect(() => {
+        setState(true);
+    }, [curVal]);
+    return [debounce, setVal, state, setdebounce] as [
+        ...ReturnType<typeof useState<T>>,
+        boolean,
+        ReturnType<typeof useState<T>>[1]
+    ];
+}

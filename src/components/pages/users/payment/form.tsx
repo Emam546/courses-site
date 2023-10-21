@@ -8,6 +8,8 @@ import { useGetCourses } from "@/hooks/fireStore";
 import { useQuery } from "@tanstack/react-query";
 import { getDocs, query, where, orderBy } from "firebase/firestore";
 import { useForm } from "react-hook-form";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { auth } from "@/firebase";
 export interface Props {
     levelId: string;
     userId: string;
@@ -20,6 +22,7 @@ export function useUnAddedCourses({
     levelId: string;
     userId: string;
 }) {
+    const [teacher] = useAuthState(auth);
     return useQuery({
         queryKey: ["Courses", "unpaid", userId],
         enabled: typeof levelId == "string",
@@ -27,7 +30,7 @@ export function useUnAddedCourses({
         queryFn: async () => {
             const payments = await getDocs(
                 query(
-                    createCollection("Payment"),
+                    createCollection("Payments"),
                     where("userId", "==", userId)
                 )
             );
@@ -48,6 +51,7 @@ export function useUnAddedCourses({
 export default function PaymentForm({ levelId, userId, onData }: Props) {
     const { data: courses } = useUnAddedCourses({ levelId, userId });
     const { handleSubmit, register, reset } = useForm<{ id: string }>();
+    
     return (
         <>
             <form
@@ -59,6 +63,7 @@ export default function PaymentForm({ levelId, userId, onData }: Props) {
                         courses?.filter((doc) => doc.id != data.id)
                     );
                 })}
+                autoComplete="off"
             >
                 <Grid2>
                     <SelectInput

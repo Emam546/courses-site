@@ -19,7 +19,7 @@ interface UpdateForm {
 }
 function UpdateForm({ doc }: UpdateForm) {
     return (
-        <>
+        <MainCard>
             <CardTitle>Update Level Data</CardTitle>
             <LevelInfoForm
                 defaultData={doc.data()}
@@ -31,7 +31,7 @@ function UpdateForm({ doc }: UpdateForm) {
                 }}
                 buttonName="Update"
             />
-        </>
+        </MainCard>
     );
 }
 function SafeArea({ id }: { id: string }) {

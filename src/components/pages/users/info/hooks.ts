@@ -1,5 +1,5 @@
 import { DataBase } from "@/data";
-import { createCollection, getDocRef } from "@/firebase";
+import { auth, createCollection, getDocRef } from "@/firebase";
 import { QueryDocumentSnapshot } from "firebase/firestore";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -10,9 +10,9 @@ import {
     limit,
     orderBy,
     query,
-
     where,
 } from "firebase/firestore";
+import { useAuthState } from "react-firebase-hooks/auth";
 const perPage = 30;
 
 export function useGetUsersCount({
@@ -22,14 +22,15 @@ export function useGetUsersCount({
     courseId?: string;
     levelId?: string;
 }) {
+    const [teacher] = useAuthState(auth);
     return useQuery({
-        queryKey: ["Users", "count", levelId, courseId],
+        queryKey: ["UsersTeachers", "count", levelId, courseId],
         queryFn: async () => {
             if (courseId) {
                 return (
                     await getCountFromServer(
                         query(
-                            createCollection("Payment"),
+                            createCollection("Payments"),
                             where("courseId", "==", courseId)
                         )
                     )
@@ -39,14 +40,19 @@ export function useGetUsersCount({
                 return (
                     await getCountFromServer(
                         query(
-                            createCollection("Users"),
+                            createCollection("UsersTeachers"),
                             where("levelId", "==", levelId)
                         )
                     )
                 ).data().count;
             }
             return (
-                await getCountFromServer(query(createCollection("Users")))
+                await getCountFromServer(
+                    query(
+                        createCollection("UsersTeachers"),
+                        where("teacherId", "==", teacher!.uid)
+                    )
+                )
             ).data().count;
         },
     });
@@ -60,17 +66,19 @@ export function useGetUser({
     levelId?: string;
     page: number;
 }) {
+    const [teacher] = useAuthState(auth);
     return useQuery({
-        queryKey: ["Users", "page", page, levelId, courseId],
+        queryKey: ["UsersTeachers", "page", page, levelId, courseId],
+
         queryFn: async (): Promise<
-            QueryDocumentSnapshot<DataBase["Users"]>[]
+            QueryDocumentSnapshot<DataBase["UsersTeachers"]>[]
         > => {
             if (courseId) {
                 const users = await Promise.all(
                     (
                         await getDocs(
                             query(
-                                createCollection("Payment"),
+                                createCollection("Payments"),
                                 where("courseId", "==", courseId),
                                 limit(perPage * page + perPage)
                             )
@@ -79,19 +87,24 @@ export function useGetUser({
                         .slice(perPage * page, perPage * page + perPage)
                         .map(async (pay) => {
                             return await getDoc(
-                                getDocRef("Users", pay.data().userId)
+                                getDocRef(
+                                    "UsersTeachers",
+                                    teacher!.uid + pay.data().userId
+                                )
                             );
                         })
                 );
                 return users.filter((doc) =>
                     doc.exists()
-                ) as unknown as QueryDocumentSnapshot<DataBase["Users"]>[];
+                ) as unknown as QueryDocumentSnapshot<
+                    DataBase["UsersTeachers"]
+                >[];
             }
             if (levelId) {
                 return (
                     await getDocs(
                         query(
-                            createCollection("Users"),
+                            createCollection("UsersTeachers"),
                             where("levelId", "==", levelId),
                             orderBy("createdAt"),
                             limit(perPage * page + perPage)
@@ -102,7 +115,8 @@ export function useGetUser({
             return (
                 await getDocs(
                     query(
-                        createCollection("Users"),
+                        createCollection("UsersTeachers"),
+                        where("teacherId", "==", teacher!.uid),
                         orderBy("createdAt"),
                         limit(perPage * page + perPage)
                     )

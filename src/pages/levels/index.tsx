@@ -1,3 +1,4 @@
+import { MainCard } from "@/components/card";
 import AddButton, { GoToButton } from "@/components/common/inputs/addButton";
 import LevelsInfoGetter from "@/components/pages/levels/info";
 import Head from "next/head";
@@ -9,7 +10,9 @@ export default function Levels() {
                 <title>Levels</title>
             </Head>
             <div className="tw-flex-1">
-                <LevelsInfoGetter />
+                <MainCard>
+                    <LevelsInfoGetter />
+                </MainCard>
             </div>
             <div className="tw-py-3">
                 <AddButton

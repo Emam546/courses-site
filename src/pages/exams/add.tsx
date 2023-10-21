@@ -1,5 +1,9 @@
-import { createCollection } from "@/firebase";
-import { addDoc, serverTimestamp } from "firebase/firestore";
+import { auth, createCollection } from "@/firebase";
+import {
+    QueryDocumentSnapshot,
+    addDoc,
+    serverTimestamp,
+} from "firebase/firestore";
 import router, { useRouter } from "next/router";
 import Page404 from "@/components/pages/404";
 import ExamInfoForm from "@/components/pages/exams/form";
@@ -7,26 +11,23 @@ import { CardTitle, MainCard } from "@/components/card";
 import ErrorShower from "@/components/common/error";
 import { useGetDoc } from "@/hooks/fireStore";
 import Head from "next/head";
-function SafeArea({ lessonId }: { lessonId: string }) {
-    const {
-        data: lessonData,
-        isLoading,
-        error,
-    } = useGetDoc("Lessons", lessonId);
-
+import { useAuthState } from "react-firebase-hooks/auth";
+import { DataBase } from "@/data";
+function SafeArea({
+    lesson,
+}: {
+    lesson: QueryDocumentSnapshot<DataBase["Lessons"]>;
+}) {
+    const [teacher] = useAuthState(auth);
     return (
         <MainCard>
-            <ErrorShower
-                loading={isLoading}
-                error={error as any}
-            />
             <Head>
                 <title>Add Exam</title>
             </Head>
-            {lessonData && (
+            {lesson && (
                 <>
                     <CardTitle>Adding Exam</CardTitle>
-                    <CardTitle>Lesson:{lessonData.data()?.name}</CardTitle>
+                    <CardTitle>Lesson:{lesson.data()?.name}</CardTitle>
                     <MainCard>
                         <ExamInfoForm
                             onData={async (data) => {
@@ -35,13 +36,15 @@ function SafeArea({ lessonId }: { lessonId: string }) {
                                 await addDoc(col, {
                                     ...data,
                                     createdAt: serverTimestamp(),
-                                    lessonId: lessonId,
+                                    lessonId: lesson.id,
+                                    teacherId: teacher!.uid,
                                     order: Date.now(),
+                                    courseId: lesson.data()?.courseId,
                                 });
-                                router.push(`/lessons?id=${lessonId}`);
+                                router.push(`/lessons?id=${lesson.id}`);
                             }}
                             buttonName="Submit"
-                            lessonId={lessonId}
+                            lessonId={lesson.id}
                         />
                     </MainCard>
                 </>
@@ -52,7 +55,21 @@ function SafeArea({ lessonId }: { lessonId: string }) {
 export default function AddExams() {
     const router = useRouter();
     const { lessonId } = router.query;
+    const {
+        data: lesson,
+        isLoading,
+        isError,
+        error,
+    } = useGetDoc("Lessons", lessonId as string);
     if (typeof lessonId != "string")
         return <Page404 message="You must provide The page id with url" />;
-    return <SafeArea lessonId={lessonId} />;
+    if (isLoading || isError)
+        return (
+            <ErrorShower
+                loading={isLoading}
+                error={error as any}
+            />
+        );
+    if (!lesson.exists()) return <Page404 message="The lesson is not exist" />;
+    return <SafeArea lesson={lesson} />;
 }

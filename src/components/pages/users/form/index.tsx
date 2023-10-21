@@ -1,63 +1,56 @@
 import PrimaryButton from "@/components/button";
-import { MainCard } from "@/components/card";
 import { Grid2 } from "@/components/grid";
 import MainInput from "@/components/common/inputs/main";
 import { useForm } from "react-hook-form";
-import { DataBase } from "@/data";
 import DatePicker from "@/components/common/inputs/datePicker";
 import { WrapElem } from "@/components/common/inputs/styles";
 import SelectInput from "@/components/common/inputs/select";
 import { useGetLevels } from "@/hooks/fireStore";
 import CheckedInput from "@/components/common/inputs/checked";
-export type DataType = Omit<DataBase["Users"], "password">;
+import { DataBase } from "@/data";
+export type DataType = {
+    levelId: string;
+    blocked: boolean;
+};
 export interface Props {
-    defaultData: Omit<DataBase["Users"], "password">;
-    onData: (data: { levelId: string; blocked: boolean }) => Promise<any> | any;
+    defaultData: DataBase["UsersTeachers"];
+    onData: (data: DataType) => Promise<any> | any;
 }
 export default function LevelInfoForm({ defaultData, onData }: Props) {
-    const { register, handleSubmit, formState, getValues } = useForm<DataType>({
+    const { register, handleSubmit, formState, getValues } = useForm<
+        DataBase["UsersTeachers"]
+    >({
         defaultValues: defaultData,
     });
     const { data: levels } = useGetLevels();
     return (
         <>
             <form
-                action=""
                 onSubmit={handleSubmit((data) => {
                     onData({
-                        blocked: data.blocked,
                         levelId: data.levelId,
+                        blocked: data.blocked,
                     });
                 })}
-                autoComplete="false"
+                autoComplete="off"
             >
                 <Grid2>
                     <MainInput
                         id={"name-input"}
                         title={"Name"}
-                        {...register("name", { disabled: true })}
-                        autoComplete="false"
-                        err={formState.errors.name}
-                    />
-                    <MainInput
-                        id={"username-input"}
-                        title={"User Name"}
-                        {...register("userName", { disabled: true })}
-                        autoComplete="false"
-                        err={formState.errors.userName}
+                        {...register("displayname", { disabled: true })}
+                        err={formState.errors.displayname}
                     />
                     <MainInput
                         id={"phone-input"}
                         title={"Phone"}
                         {...register("phone", { disabled: true })}
-                        autoComplete="false"
                         err={formState.errors.phone}
                     />
                     <MainInput
                         id={"email-input"}
                         title={"Email"}
                         {...register("email", { disabled: true })}
-                        autoComplete="false"
                         err={formState.errors.email}
                     />
                     <WrapElem label="Created At">

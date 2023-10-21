@@ -1,4 +1,4 @@
-import { createCollection, getDocRef } from "@/firebase";
+import { auth, createCollection, getDocRef } from "@/firebase";
 import {
     QueryDocumentSnapshot,
     deleteDoc,
@@ -17,13 +17,13 @@ import { faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useGetDoc } from "@/hooks/fireStore";
 import ErrorShower from "@/components/common/error";
-import { MainCard } from "@/components/card";
 import queryClient from "@/queryClient";
+import { useAuthState } from "react-firebase-hooks/auth";
 export interface Props {
     userId: string;
 }
 interface ElemProps {
-    payment: QueryDocumentSnapshot<DataBase["Payment"]>;
+    payment: QueryDocumentSnapshot<DataBase["Payments"]>;
 }
 function PaymentShower({ payment }: ElemProps) {
     const [open, setOpen] = useState(false);
@@ -88,9 +88,10 @@ function PaymentShower({ payment }: ElemProps) {
     );
 }
 export default function PaymentInfoGenerator({ userId }: Props) {
+    const [teacher] = useAuthState(auth);
     const [payments, loading, errorShower] = useCollection(
         query(
-            createCollection("Payment"),
+            createCollection("Payments"),
             where("userId", "==", userId),
             orderBy("activatedAt")
         )

@@ -6,12 +6,14 @@ export interface DataBase {
         name: string;
         desc: string;
         hide: boolean;
+        teacherId: string;
     }>;
     Courses: WithOrder<{
         name: string;
         desc: string;
         hide: boolean;
         levelId: string;
+        teacherId: string;
         featured: boolean;
         price: {
             num: string;
@@ -28,7 +30,8 @@ export interface DataBase {
         courseId: string;
         createdAt: Timestamp;
         publishedAt: Timestamp;
-
+        teacherId: string;
+        adderIds: Record<string, ["editor"]>;
         video?: {
             type: "youtube";
             id: string;
@@ -42,6 +45,8 @@ export interface DataBase {
             desc: string;
             hide: boolean;
             lessonId: string;
+            courseId: string;
+            teacherId: string;
             createdAt: Timestamp;
             repeatable: boolean;
             questionIds: Array<string>;
@@ -66,48 +71,50 @@ export interface DataBase {
                 }>
             >
         >;
-
         answer: string;
         shuffle: boolean;
         lessonId: string;
+        courseId: string;
         createdAt: Timestamp;
+        creatorId: string;
     };
     Results: {
+        courseId: string;
+        teacherId: string;
+        userId: string;
         examId: string;
         questions: Array<{
             questionId: string;
             state: "visited" | "unvisited" | "marked";
             answer?: string;
-            correctState: boolean;
-            correctAnswer: string;
+            correctAnswer?: string;
+            correctState?: boolean;
         }>;
-
         startAt: Timestamp;
         endAt?: Timestamp;
-        userId: string;
     };
-    Users: {
-        phone?: string;
-        email?: string;
-        password: string;
-        userName: string;
-        name: string;
+    Teacher: {
         createdAt: Timestamp;
-        blocked: boolean;
-        levelId: string;
+        contactPhone?: string;
+        contactEmail?: string;
     };
-    Payment:
+    UsersTeachers: {
+        userId: string;
+        teacherId: string;
+        levelId: string;
+        blocked: boolean;
+        displayname: string;
+        email: string;
+        phone: string;
+        createdAt: Timestamp;
+    };
+    Payments:
         | {
               activatedAt: Timestamp;
               userId: string;
               courseId: string;
-          } & (
-              | {
-                    type: "admin";
-                }
-              | {
-                    type: "code";
-                    createdAT: Timestamp;
-                }
-          );
+              teacherId: string;
+          } & {
+              type: "admin";
+          };
 }

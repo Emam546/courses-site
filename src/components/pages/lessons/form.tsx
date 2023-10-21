@@ -1,11 +1,10 @@
 import PrimaryButton from "@/components/button";
-import { CardTitle, MainCard } from "@/components/card";
+import { CardTitle } from "@/components/card";
 import ErrorShower from "@/components/common/error";
 import CheckedInput from "@/components/common/inputs/checked";
 import MainInput, { ErrorInputShower } from "@/components/common/inputs/main";
 import { WrapElem } from "@/components/common/inputs/styles";
 import { Grid2 } from "@/components/grid";
-import { DataBase } from "@/data";
 import DatePicker from "@/components/common/inputs/datePicker";
 import { useForm } from "react-hook-form";
 import FinalEditor from "@/components/common/inputs/Editor";
@@ -13,10 +12,18 @@ import { useGetDoc } from "@/hooks/fireStore";
 import { Timestamp } from "firebase/firestore";
 import TextArea from "@/components/common/inputs/textArea";
 import { isRawDraftContentStateEmpty } from "@/utils/draftjs";
-export type DataType = Omit<
-    DataBase["Lessons"],
-    "courseId" | "order" | "createdAt"
->;
+export type DataType = {
+    name: string;
+    briefDesc: string;
+    desc: string;
+    hide: boolean;
+    publishedAt: Timestamp;
+    video?: {
+        type: "youtube";
+        id: string;
+        hide: boolean;
+    };
+};
 function extractVideoId(youtubeUrl: string) {
     // Regular expression pattern to match YouTube video IDs
     const pattern =
@@ -53,7 +60,6 @@ export default function LessonGetDataForm({
         useForm<DataType>({
             defaultValues: {
                 publishedAt: Timestamp.fromDate(new Date()),
-                hide: true,
                 ...defaultData,
             },
         });
@@ -82,6 +88,7 @@ export default function LessonGetDataForm({
                 <>
                     <>
                         <form
+                            autoComplete="off"
                             onSubmit={handleSubmit(async (data) => {
                                 if (!data.video?.id) delete data.video;
                                 await onData(data);
@@ -119,7 +126,7 @@ export default function LessonGetDataForm({
                             </Grid2>
                             <div className="tw-mt-3 tw-mb-2">
                                 <CheckedInput
-                                    title={"Hide Course"}
+                                    title={"Hide Lesson"}
                                     {...register("hide")}
                                     id={"Hide-input"}
                                 />

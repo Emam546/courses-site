@@ -1,5 +1,6 @@
 import { DataBase } from "@/data";
-import { createCollection, getDocRef } from "@/firebase";
+import { auth, createCollection, getDocRef } from "@/firebase";
+import queryClient from "@/queryClient";
 import { useQuery } from "@tanstack/react-query";
 import {
     DocumentSnapshot,
@@ -12,6 +13,7 @@ import {
     where,
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 export function useCountDocs<T>(
     query?: Query<T>
@@ -34,15 +36,24 @@ export function useCountDocs<T>(
     return [count, loading, error];
 }
 export function useGetLevels() {
+    const [teacher] = useAuthState(auth);
+
     return useQuery({
         queryKey: ["Levels"],
         queryFn: async () =>
-            await getDocs(query(createCollection("Levels"), orderBy("order"))),
+            await getDocs(
+                query(
+                    createCollection("Levels"),
+                    where("teacherId", "==", teacher!.uid),
+                    orderBy("order")
+                )
+            ),
     });
 }
 export function useGetCourses(levelId?: string) {
+    const [teacher] = useAuthState(auth);
     return useQuery({
-        queryKey: ["Courses","levelId", levelId],
+        queryKey: ["Courses", "levelId", levelId],
         enabled: typeof levelId == "string",
         queryFn: async () =>
             await getDocs(
@@ -62,4 +73,11 @@ export function useGetDoc<T extends keyof DataBase>(path: T, id?: string) {
             return await getDoc(getDocRef<T>(path, id as string));
         },
     });
+}
+export function updateDocCache<T extends keyof DataBase>(
+    path: T,
+    val: DocumentSnapshot<DataBase[T]>,
+    id: string
+) {
+    queryClient.setQueryData([path, id], val);
 }

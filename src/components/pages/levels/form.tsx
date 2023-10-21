@@ -1,12 +1,15 @@
 import PrimaryButton from "@/components/button";
-import { CardTitle, MainCard } from "@/components/card";
 import { Grid2 } from "@/components/grid";
 import MainInput from "@/components/common/inputs/main";
 import TextArea from "@/components/common/inputs/textArea";
 import { useForm } from "react-hook-form";
-import { DataBase } from "@/data";
 import React from "react";
-export type DataType = Omit<DataBase["Levels"], "order">;
+import CheckedInput from "@/components/common/inputs/checked";
+export type DataType = {
+    name: string;
+    desc: string;
+    hide: boolean;
+};
 export interface Props {
     defaultData?: DataType;
     onData: (data: DataType) => Promise<any> | any;
@@ -22,9 +25,8 @@ export default function LevelInfoForm({
     });
     return (
         <form
-            action=""
             onSubmit={handleSubmit(onData)}
-            autoComplete="false"
+            autoComplete="off"
         >
             <Grid2>
                 <MainInput
@@ -34,7 +36,6 @@ export default function LevelInfoForm({
                         required: true,
                         min: 5,
                     })}
-                    autoComplete="false"
                     err={formState.errors.name}
                 />
             </Grid2>
@@ -47,6 +48,14 @@ export default function LevelInfoForm({
                     })}
                     className="tw-min-h-[10rem]"
                     err={formState.errors.desc}
+                />
+            </div>
+            <div className="tw-mt-2">
+                <CheckedInput
+                    id={"hide-input"}
+                    title={"Hide Level"}
+                    {...register("hide")}
+                    err={formState.errors.hide}
                 />
             </div>
             <div className="tw-mt-4 tw-flex tw-justify-end">

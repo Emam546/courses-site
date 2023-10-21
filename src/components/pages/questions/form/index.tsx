@@ -1,7 +1,6 @@
 import PrimaryButton from "@/components/button";
-import { MainCard } from "@/components/card";
 import { WrapElem } from "@/components/common/inputs/styles";
-import { DataBase } from "@/data";
+import { WithIdType, WithOrder } from "@/data";
 import { useForm } from "react-hook-form";
 import FinalEditor from "@/components/common/inputs/Editor";
 import { useState } from "react";
@@ -18,7 +17,18 @@ import CheckedInput from "@/components/common/inputs/checked";
 import { validateDesc } from "../../lessons/form";
 import { ErrorInputShower } from "@/components/common/inputs/main";
 import { isRawDraftContentStateEmpty } from "@/utils/draftjs";
-export type DataType = Omit<DataBase["Questions"], "lessonId" | "createdAt">;
+export type DataType = {
+    quest: string;
+    choices: Array<
+        WithOrder<
+            WithIdType<{
+                textContext: string;
+            }>
+        >
+    >;
+    answer: string;
+    shuffle: boolean;
+};
 export interface Props {
     onData: (data: DataType) => Promise<any> | any;
     defaultData?: DataType;
@@ -129,6 +139,7 @@ export default function QuestionGetDataForm({
                 await onData({ ...data });
                 if (ResetAfterSubmit) resetForm();
             })}
+            autoComplete="off"
         >
             <WrapElem label="Question Area">
                 <FinalEditor
@@ -144,7 +155,7 @@ export default function QuestionGetDataForm({
             </WrapElem>
             <div className="tw-mt-3">
                 <CheckedInput
-                    defaultChecked
+                    
                     title="Shuffle Choices"
                     id="shuffle-input"
                     {...register("shuffle")}

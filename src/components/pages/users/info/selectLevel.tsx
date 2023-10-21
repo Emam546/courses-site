@@ -35,7 +35,6 @@ export function SelectCourse({ onCourse, onLevel, levelId, courseId }: Props) {
                     onLevel(
                         levels.docs.find((v) => v.id == e.currentTarget.value)
                     );
-                    onCourse(undefined);
                 }}
                 value={levelId || ""}
             >
@@ -52,33 +51,37 @@ export function SelectCourse({ onCourse, onLevel, levelId, courseId }: Props) {
                         );
                     })}
             </SelectInput>
-            <SelectInput
-                id="course-input"
-                title="Choose Course"
-                onChange={(e) => {
-                    if (!courses) return;
-                    onCourse(
-                        courses.docs.find((v) => v.id == e.currentTarget.value)
-                    );
-                }}
-                value={courseId || ""}
-            >
-                {courses && (
-                    <>
-                        <option value="">Choose Course</option>
-                        {courses.docs.map((doc) => {
-                            return (
-                                <option
-                                    value={doc.id}
-                                    key={doc.id}
-                                >
-                                    {doc.data().name}
-                                </option>
-                            );
-                        })}
-                    </>
-                )}
-            </SelectInput>
+            {levelId && (
+                <SelectInput
+                    id="course-input"
+                    title="Choose Course"
+                    onChange={(e) => {
+                        if (!courses) return;
+                        onCourse(
+                            courses.docs.find(
+                                (v) => v.id == e.currentTarget.value
+                            )
+                        );
+                    }}
+                    value={courseId || ""}
+                >
+                    {courses && (
+                        <>
+                            <option value="">Choose Course</option>
+                            {courses.docs.map((doc) => {
+                                return (
+                                    <option
+                                        value={doc.id}
+                                        key={doc.id}
+                                    >
+                                        {doc.data().name}
+                                    </option>
+                                );
+                            })}
+                        </>
+                    )}
+                </SelectInput>
+            )}
         </Grid2>
     );
 }

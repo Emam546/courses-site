@@ -2,18 +2,219 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isAuthTeacher(){
+        return request.auth!=null && request.auth.token.email_verified==true && request.auth.token.role=="teacher";
+    }
+    function isAuthUser(){
+        return request.auth!=null && request.auth.token.email_verified==true && request.auth.token.role=="student";
+    }
+    function UserCanRead(){
+        return isAuthUser() && request.auth.uid==resource.data.userId;
+    }
+    function hasTeacherId(){
+      return isAuthTeacher() && request.resource.data.get("teacherId", request.auth.uid) == request.auth.uid;
+    }
+    function teacherOwnsDoc(){
+      return isAuthTeacher() && (resource==null || resource.data.get("teacherId", request.auth.uid) == request.auth.uid);
+    }
+    function verifyFields(required, optional) {
+      let allAllowedFields = required.concat(optional);
+      return request.resource.data.keys().hasAll(required) &&
+        request.resource.data.keys().hasOnly(allAllowedFields);
+    }
+    function allowFields(fields){
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields);
+    }
+    function isMap(key){
+      return request.resource.data.get(key,{}) is map;
+    }
+    function isStr(key){
+      return request.resource.data.get(key,"") is string;
+    }
+    function isList(key){
+      return request.resource.data.get(key,[]) is list;
+    }
+    function isInt(key){
+      return request.resource.data.get(key,0) is int;
+    }
+    function isBool(key){
+      return request.resource.data.get(key,false) is bool;
+    }
+    function istimeStamp(key){
+      return request.resource.data.get(key,request.time) is timestamp;
+    }
+    function isEqualTime(key){
+      return resource!=null || request.resource.data.get(key,request.time)==request.time;
+    }
 
-    // This rule allows anyone with your Firestore database reference to view, edit,
-    // and delete all data in your Firestore database. It is useful for getting
-    // started, but it is configured to expire after 30 days because it
-    // leaves your app open to attackers. At that time, all client
-    // requests to your Firestore database will be denied.
-    //
-    // Make sure to write security rules for your app before that time, or else
-    // all client requests to your Firestore database will be denied until you Update
-    // your rules
     match /{document=**} {
-      allow read, write, update,delete: if request.time < timestamp.date(2023, 9, 24);
+      allow read, write:if false;
+    }
+    function checkLevelId(){
+        let levelId=request.resource.data.levelId;
+        return (levelId is string && 
+          get(/databases/$(database)/documents/Levels/$(levelId)).data.teacherId==request.auth.uid
+        );
+      }
+    function checkCourseId(){
+      let courseId=request.resource.data.courseId;
+      return (courseId is string && 
+        get(/databases/$(database)/documents/Courses/$(courseId)).data.teacherId==request.auth.uid
+      );
+    }
+    function checkLessonId(){
+      let lessonId=request.resource.data.lessonId;
+      return  (lessonId is string && 
+        get(/databases/$(database)/documents/Lessons/$(lessonId)).data.teacherId==request.auth.uid
+      );
+    }
+    function checkHideOption(){
+      return resource!=null && resource.data.get("hide",true)==false
+    }
+    match /Levels/{id}{
+      function verfiedData(){
+          return isStr("name") && isStr("desc") && isBool("hide") && isStr('teacherId') && isInt("order");
+      }
+      allow read:if checkHideOption()|| teacherOwnsDoc();
+      allow create:if hasTeacherId()&& verifyFields(['name', 'desc', 'teacherId',"order","hide"],[])&& verfiedData();
+      allow update:if teacherOwnsDoc()&& allowFields(['name', 'desc',"order","hide"])&& verfiedData();
+      allow delete:if teacherOwnsDoc();
+    }
+    match /Courses/{id}{
+      function checkPrice(){
+        let price=request.resource.data.price;
+        return  price.num is int && price.num>=0 && price.currency is string;
+      }
+      
+      function verfiedData(){
+        return isStr("name") && isStr("desc")&&
+        isStr('teacherId')&& isBool("hide") && isBool("featured")
+        && isInt("order")&& checkLevelId() && checkPrice() && isEqualTime("createdAt") && istimeStamp("publishedAt");
+      }
+      allow read:if checkHideOption()|| teacherOwnsDoc();
+      allow create:if hasTeacherId()&& verifyFields(['name', 'desc', 'teacherId',"levelId","hide","order","featured","createdAt","publishedAt","price"],[]) && verfiedData();
+      allow update:if teacherOwnsDoc()&& allowFields(['name', 'desc',"hide","order","featured","publishedAt","price"])&& verfiedData();
+      allow delete:if teacherOwnsDoc();
+    }
+    match /Lessons/{id}{
+      function checkVideo(){
+        let list=["youtube"];
+        let val=request.resource.data.get("video",null);
+        return val==null || (val.type in list && val.id is string && val.hide is bool);
+      }
+      function canRead(){
+        return isAuthTeacher() && resource.data.adderIds[request.auth.uid]!=null;
+      }
+      function verfiedData(){
+        return isStr("name") && isStr("desc")&& isStr("briefDesc") &&
+        isStr('teacherId')&& isBool("hide") && 
+        isInt("order")&& checkCourseId()&& checkVideo()&& isMap("adderIds") && isEqualTime("createdAt") && istimeStamp("publishedAt");
+      }
+      allow read:if teacherOwnsDoc()|| canRead();
+      allow create:if hasTeacherId()&& verifyFields(['name', 'desc', 'teacherId',"courseId","briefDesc","publishedAt","hide","order","createdAt","adderIds"],["video"])&& verfiedData() ;
+      allow update:if teacherOwnsDoc()&& allowFields(['name', 'desc',"hide","briefDesc","publishedAt","order","adderIds","video"])&& verfiedData();
+      allow delete:if teacherOwnsDoc();
+    }
+    match /Exams/{id}{
+      function checkRandom(){
+        let random=request.resource.data.random;
+        let num=request.resource.data.num;
+        let shuffle=request.resource.data.shuffle;
+        return (random==true && num is int && num>0)||(random==false && shuffle is bool)
+      }
+      function checkQuestionIds(){
+        let val=request.resource.data.questionIds;
+        return val is list && val.size()>0;
+      }
+      function checkTime(){
+        let time=request.resource.data.time;
+        return time is int && time>60000;
+      }
+      function verfiedData(){
+        return isStr("name") && isStr("desc") &&
+        isStr('teacherId')&& isBool("hide") && isBool("random") && isBool("repeatable") &&
+        isInt("order")&& checkCourseId() && checkLessonId()&& isEqualTime("createdAt") && checkQuestionIds()&& checkRandom()&& checkTime() ;
+      }
+      allow read:if teacherOwnsDoc();
+      allow create:if hasTeacherId()&& verifyFields(['name', 'desc', 'teacherId',"courseId","lessonId","hide","order","questionIds","createdAt","random","repeatable","time"],["num","shuffle"])&& verfiedData() ;
+      allow update:if teacherOwnsDoc()&& allowFields(['name', 'desc',"hide","order","random","num","shuffle","time","questionIds","repeatable"])&& verfiedData();
+      allow delete:if teacherOwnsDoc();
+    }
+    match /Questions/{id}{
+      function canEdit(data){
+        let lessonId=data.data.lessonId;
+        let teacherId=request.auth.uid;
+        let lesson=get(/databases/$(database)/documents/Lessons/$(lessonId)).data;
+        return isAuthTeacher() && (lesson.teacherId==teacherId || (lesson.adderIds[teacherId] != null && "editor" in lesson.adderIds[teacherId]))
+      }
+      function checkCreatorId(){
+        return isAuthTeacher() && (resource!=null || request.resource.data.creatorId==request.auth.uid);
+      }
+      function checkChoices(){
+        return isList("choices") && request.resource.data.choices.size()>1;
+      }
+      function checkcanEditCourse(){
+        let lessonId=request.resource.data.lessonId;
+        let courseId=request.resource.data.courseId;
+        let lesson=get(/databases/$(database)/documents/Lessons/$(lessonId));
+        return  courseId is string && 
+          get(/databases/$(database)/documents/Courses/$(courseId)).data.teacherId==lesson.data.teacherId;
+      }
+      function verfiedData(){
+        return isStr("quest") && checkChoices()&& isStr("answer") &&
+        isBool("shuffle")&& checkcanEditCourse() && isEqualTime("createdAt") && checkCreatorId();
+      }
+      allow read:if resource==null|| canEdit(resource);
+      allow create:if canEdit(request.resource) && verifyFields(["quest", "choices","shuffle","answer","courseId","lessonId","createdAt","creatorId"],[])&& verfiedData() ;
+      allow update:if canEdit(resource) && allowFields(["quest", "choices","shuffle","answer"])&& verfiedData();
+      allow delete:if canEdit(resource);
+    }
+    match /UsersTeachers/{id}{
+      function ownLevelId(){
+          let levelId=request.resource.data.levelId;
+          let teacherId=request.resource.data.teacherId;
+          return (levelId is string && 
+              get(/databases/$(database)/documents/Levels/$(levelId)).data.teacherId==teacherId
+          );
+      }
+      function verfiyData(){
+        return isStr("displayName")&& isBool("blocked") && isStr("email")&& isStr("phone") && isStr("levelId") && ownLevelId();
+      }
+      
+      function verifyDataTeacher(){
+        return teacherOwnsDoc() && allowFields(["levelId","blocked"]) && verfiyData();
+      }
+      function verifyDataUser(){
+        return UserCanRead() && allowFields(["displayName","email","phone","levelId"]) && verfiyData();
+      }
+      allow read:if UserCanRead() || teacherOwnsDoc();
+      allow create:if false;
+      allow update:if verifyDataTeacher()|| verifyDataUser();
+      allow delete:if teacherOwnsDoc();
+    }
+    match /Results/{id}{
+      function UserCanRead(){
+        return isAuthUser() && resource.data.userId==request.auth.uid && resource.data.endAt!=null;
+      }
+      allow read:if teacherOwnsDoc() || UserCanRead();
+      allow create:if false;
+      allow update:if false;
+      allow delete:if teacherOwnsDoc();
+    }  
+    match /Payments/{id}{
+      function isAdminType(){
+        return request.resource.data.type=="admin"&& request.resource.data.activatedAt is timestamp && isEqualTime("activatedAt");
+      }
+      function checkType(){
+        return isAdminType();
+      }
+      function verfiedData(){
+        return checkCourseId() && istimeStamp("activatedAt")&& isStr("userId") && checkType();
+      }
+      allow read:if teacherOwnsDoc() || UserCanRead();
+      allow create:if hasTeacherId()&& verifyFields(["courseId","teacherId","type"],["userId","activatedAt"])&& verfiedData() ;
+      allow update:if false;
+      allow delete:if teacherOwnsDoc();
     }
   }
 }

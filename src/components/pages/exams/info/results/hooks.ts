@@ -1,4 +1,4 @@
-import { createCollection } from "@/firebase";
+import { auth, createCollection } from "@/firebase";
 import { useQuery } from "@tanstack/react-query";
 import {
     getCountFromServer,
@@ -8,9 +8,11 @@ import {
     query,
     where,
 } from "firebase/firestore";
+import { useAuthState } from "react-firebase-hooks/auth";
 const perPage = 30;
 
 export function useGetResultsCount({ examId }: { examId?: string }) {
+    const [teacher] = useAuthState(auth);
     return useQuery({
         queryKey: ["Results", "count", "examId", examId],
         queryFn: async () => {
@@ -33,6 +35,7 @@ export function useGetResults({
     examId: string;
     page: number;
 }) {
+    const [teacher] = useAuthState(auth);
     return useQuery({
         queryKey: ["Results", "examId", examId],
         queryFn: async () => {

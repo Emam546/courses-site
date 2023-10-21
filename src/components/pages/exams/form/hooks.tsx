@@ -1,4 +1,4 @@
-import { createCollection } from "@/firebase";
+import { auth, createCollection } from "@/firebase";
 import {
     Query,
     getCountFromServer,
@@ -13,6 +13,7 @@ import {
 import { useEffect, useState } from "react";
 import { getDocRef } from "@/firebase";
 import { DataBase } from "@/data";
+import { useAuthState } from "react-firebase-hooks/auth";
 export function useCourseLevelData(
     lessonId: string
 ): [DocumentSnapshot<DataBase["Courses"]>[], boolean, any] {
@@ -21,6 +22,7 @@ export function useCourseLevelData(
     >([]);
     const [loading, setLoading] = useState(true);
     const [err, setErr] = useState<any>();
+    const [teacher] = useAuthState(auth);
     useEffect(() => {
         async function getResult() {
             const lessonData = await getDoc(getDocRef("Lessons", lessonId));

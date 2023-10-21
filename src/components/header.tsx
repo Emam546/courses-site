@@ -1,9 +1,12 @@
+import { auth } from "@/firebase";
+import { signOut } from "firebase/auth";
+import { useRouter } from "next/router";
 import React from "react";
 export interface Props {
     OnOpen?: () => any;
 }
 export default function Header({ OnOpen }: Props) {
-    
+    const router = useRouter();
     return (
         <header className="app-header">
             <nav className="navbar navbar-expand-lg navbar-light">
@@ -39,12 +42,9 @@ export default function Header({ OnOpen }: Props) {
                     id="navbarNav"
                 >
                     <ul className="navbar-nav flex-row ms-auto align-items-center justify-content-end">
-                        
                         <li className="nav-item dropdown">
-                            <a
-                                className="nav-link nav-icon-hover"
-                                onClick={(e) => e.preventDefault()}
-                                href=""
+                            <span
+                                className="nav-link nav-icon-hover tw-cursor-pointer"
                                 id="drop2"
                                 data-bs-toggle="dropdown"
                                 aria-expanded="false"
@@ -56,42 +56,37 @@ export default function Header({ OnOpen }: Props) {
                                     height={35}
                                     className="rounded-circle"
                                 />
-                            </a>
+                            </span>
                             <div
                                 className="dropdown-menu dropdown-menu-end dropdown-menu-animate-up"
                                 aria-labelledby="drop2"
                             >
                                 <div className="message-body">
                                     <a
-                                        onClick={(e) => e.preventDefault()}
-                                        href=""
+                                        href="#"
                                         className="d-flex align-items-center gap-2 dropdown-item"
                                     >
                                         <i className="ti ti-user fs-6" />
                                         <p className="mb-0 fs-3">My Profile</p>
                                     </a>
                                     <a
-                                        onClick={(e) => e.preventDefault()}
-                                        href=""
+                                        href="#"
                                         className="d-flex align-items-center gap-2 dropdown-item"
                                     >
                                         <i className="ti ti-mail fs-6" />
                                         <p className="mb-0 fs-3">My Account</p>
                                     </a>
-                                    <a
-                                        onClick={(e) => e.preventDefault()}
-                                        href=""
-                                        className="d-flex align-items-center gap-2 dropdown-item"
-                                    >
-                                        <i className="ti ti-list-check fs-6" />
-                                        <p className="mb-0 fs-3">My Task</p>
-                                    </a>
-                                    <a
-                                        href="./authentication-login.html"
-                                        className="btn btn-outline-primary mx-3 mt-2 d-block"
-                                    >
-                                        Logout
-                                    </a>
+                                    <div className="mx-3 mt-2">
+                                        <button
+                                            onClick={async () => {
+                                                await signOut(auth);
+                                                router.push("/");
+                                            }}
+                                            className="btn btn-outline-primary tw-block tw-w-full"
+                                        >
+                                            Logout
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </li>

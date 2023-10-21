@@ -9,7 +9,6 @@ import { useGetResults, useGetResultsCount } from "./hooks";
 import { formateDate, formateDateClock } from "@/utils";
 import styles from "../../style.module.scss";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import { useGetDoc } from "@/hooks/fireStore";
 import { faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";

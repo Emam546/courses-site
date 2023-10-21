@@ -11,20 +11,24 @@ import { useEffect, useState } from "react";
 import QuestionInfoViewer from "../../questions/info/questionInfoViewer";
 import { getDoc } from "firebase/firestore";
 import { getDocRef } from "@/firebase";
-export type DataType = Omit<
-    DataBase["Exams"],
-    "lessonId" | "order" | "createdAt"
-> &
-    (
-        | {
-              random: true;
-              num: number;
-          }
-        | {
-              random: false;
-              shuffle: false;
-          }
-    );
+import { SearchForm } from "../../questions/info";
+export type DataType = {
+    name: string;
+    desc: string;
+    hide: boolean;
+    repeatable: boolean;
+    questionIds: Array<string>;
+    time: number;
+} & (
+    | {
+          random: true;
+          num: number;
+      }
+    | {
+          random: false;
+          shuffle: boolean;
+      }
+);
 export interface Props {
     defaultData?: DataType;
     onData: (data: DataType) => Promise<any> | any;
@@ -59,6 +63,11 @@ export default function ExamInfoForm({
             setQuestionData(res.map((v) => ({ ...v.data(), id: v.id })));
         });
     }, []);
+    const [search, setSearch] = useState<string>();
+    const searchState = search != "" && search != undefined;
+    const searchResults = questionData.filter(
+        (val) => val.createdAt.toDate().getTime() == parseInt(search as string)
+    );
     useEffect(() => {
         setValue(
             "questionIds",
@@ -83,6 +92,7 @@ export default function ExamInfoForm({
                 if (!(data as any).num) (data as any).num = 20;
                 await onData(data);
             })}
+            autoComplete="off"
         >
             <Grid2>
                 <MainInput
@@ -174,8 +184,18 @@ export default function ExamInfoForm({
                 />
             </div>
             <div>
+                {questionData.length > 0 && (
+                    <div className="tw-mb-2">
+                        <SearchForm onSearch={setSearch} />
+                    </div>
+                )}
+
                 <QuestionInfoViewer
-                    data={questionData.map((v) => v)}
+                    data={
+                        !searchState
+                            ? questionData
+                            : (searchResults as QuestionType[])
+                    }
                     onDeleteElem={(v) => {
                         setQuestionData(
                             questionData
@@ -186,14 +206,19 @@ export default function ExamInfoForm({
                                 }))
                         );
                     }}
-                    onResort={(indexes) => {
-                        setQuestionData(
-                            indexes.map((ci, i) => ({
-                                ...questionData[ci],
-                            }))
-                        );
-                    }}
+                    onResort={
+                        !searchState
+                            ? (indexes) => {
+                                  setQuestionData(
+                                      indexes.map((ci, i) => ({
+                                          ...questionData[ci],
+                                      }))
+                                  );
+                              }
+                            : undefined
+                    }
                 />
+                {searchState && searchResults.length == 0 && <p>no Results</p>}
                 <ErrorInputShower
                     className="tw-mb-3"
                     err={formState.errors.questionIds as any}

@@ -6,10 +6,8 @@ import CourseInfoForm from "@/components/pages/courses/form";
 import LessonsInfoGetter from "@/components/pages/lessons/info";
 import { DataBase } from "@/data";
 import { getDocRef } from "@/firebase";
-import {
-    QueryDocumentSnapshot,
-    updateDoc,
-} from "firebase/firestore";
+import { useGetDoc } from "@/hooks/fireStore";
+import { QueryDocumentSnapshot, updateDoc } from "firebase/firestore";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useDocument } from "react-firebase-hooks/firestore";
@@ -35,38 +33,33 @@ function UpdateForm({ doc }: UpdateForm) {
         </>
     );
 }
-function SafeArea({ id }: { id: string }) {
-    const [doc, loading, error] = useDocument(
-        getDocRef("Courses", id as string)
-    );
-    if (doc && !doc.exists())
-        return <Page404 message="The Course id is not exist" />;
+function SafeArea({
+    course,
+}: {
+    course: QueryDocumentSnapshot<DataBase["Courses"]>;
+}) {
     return (
         <div className="tw-flex-1 tw-flex tw-flex-col tw-items-stretch">
             <Head>
-                <title>{doc?.data().name || "loading ..."}</title>
+                <title>{course.data().name || "loading ..."}</title>
             </Head>
             <div className="tw-flex-1">
-                <ErrorShower
-                    loading={loading}
-                    error={error}
-                />
                 <MainCard>
-                    {doc && <UpdateForm doc={doc} />}
+                    <UpdateForm doc={course} />
                     <MainCard>
                         <CardTitle>Lessons</CardTitle>
-                        <LessonsInfoGetter courseId={id} />
+                        <LessonsInfoGetter courseId={course.id} />
                     </MainCard>
                 </MainCard>
             </div>
             <div className="py-3">
                 <AddButton
                     label="Add Lessons"
-                    href={`/lessons/add?courseId=${id}`}
+                    href={`/lessons/add?courseId=${course.id}`}
                 />
                 <GoToButton
                     label="Go To Level"
-                    href={`/levels/info?id=${doc?.data().levelId}`}
+                    href={`/levels/info?id=${course.data().levelId}`}
                 />
             </div>
         </div>
@@ -75,7 +68,22 @@ function SafeArea({ id }: { id: string }) {
 export default function Page() {
     const router = useRouter();
     const id = router.query.id;
+    const {
+        data: doc,
+        isLoading,
+        isError,
+        error,
+    } = useGetDoc("Courses", id as string);
     if (typeof id != "string")
         return <Page404 message="You must provide The page id with url" />;
-    return <SafeArea id={id} />;
+    if (isLoading || isError)
+        return (
+            <ErrorShower
+                loading={isLoading}
+                error={error as any}
+            />
+        );
+    if (doc && !doc.exists())
+        return <Page404 message="The Course id is not exist" />;
+    return <SafeArea course={doc} />;
 }

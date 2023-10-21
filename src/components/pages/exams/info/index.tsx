@@ -4,7 +4,7 @@ import { Elem as OrgElem } from "../../../InsertCommonData/Elem";
 import { DataBase, WithIdType } from "@/data";
 import Link from "next/link";
 import { useCollection } from "react-firebase-hooks/firestore";
-import { createCollection, getDocRef } from "@/firebase";
+import { auth, createCollection, getDocRef } from "@/firebase";
 import {
     deleteDoc,
     orderBy,
@@ -16,6 +16,7 @@ import DeleteDialog from "../../../common/AlertDialog";
 import ErrorShower from "../../../common/error";
 import classNames from "classnames";
 import CheckedInput from "../../../common/inputs/checked";
+import { useAuthState } from "react-firebase-hooks/auth";
 export type T = WithIdType<DataBase["Exams"]>;
 
 const Elem = CreateElem<T>(({ index, props: { data }, ...props }, ref) => {
@@ -55,6 +56,7 @@ export interface Props {
 }
 export default function ExamsInfoGetter({ lessonId }: Props) {
     const collectionExams = createCollection("Exams");
+    const [teacher] = useAuthState(auth);
     const [curDel, setCurDel] = useState<T>();
     const [courses, loading, error] = useCollection(
         query(

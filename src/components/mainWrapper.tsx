@@ -1,14 +1,12 @@
 import SideBar from "@/components/sidebar";
-import { config } from "@fortawesome/fontawesome-svg-core";
-import type { AppProps } from "next/app";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import Header from "@/components/header";
-import { LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { GoogleOAuthProvider } from "@react-oauth/google";
 import Login from "./pages/login";
 import { useRouter } from "next/router";
 import LoadingBar from "./loadingBar";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { auth } from "@/firebase";
+import EmailVerification from "./pages/emialVerfication";
 
 function MainApp({ children: children }: { children: React.ReactNode }) {
     const mainWrapper = useRef<HTMLDivElement>(null);
@@ -80,7 +78,19 @@ export default function MainWrapper({
 }: {
     children: React.ReactNode;
 }) {
-    const [login, setLogin] = useState(false);
-    // if (!login) return <Login onLogin={(state) => setLogin(state)} />;
+    const [user, loading, error] = useAuthState(auth);
+    if (loading) return null;
+    if (!user)
+        return (
+            <div className="tw-flex-1">
+                <Login />
+            </div>
+        );
+    if (!user.emailVerified)
+        return (
+            <div className="tw-flex-1">
+                <EmailVerification />
+            </div>
+        );
     return <MainApp>{children}</MainApp>;
 }
