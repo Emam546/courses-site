@@ -8,7 +8,7 @@ import {
   DocumentSnapshot,
 } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
-import { DataBase } from "../../src/data";
+import { DataBase } from "@dataBase";
 import { document } from "firebase-functions/v1/firestore";
 import type { Change } from "firebase-functions/lib/common/change";
 import type { ParamsOf } from "firebase-functions/lib/common/params";

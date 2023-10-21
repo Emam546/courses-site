@@ -2,7 +2,7 @@ import { hasOwnProperty } from "./utils";
 import { firestore, auth } from "./firebase";
 import Validator from "validator-checker-js";
 import { MessagesStore } from "validator-checker-js/dist/Rule";
-import { DataBase } from "../../src/data";
+import { DataBase } from "@dataBase";
 import { isString } from "./utils/types";
 
 declare module "validator-checker-js/dist/type" {
@@ -19,7 +19,10 @@ declare module "validator-checker-js/dist/type" {
     };
   }
 }
-Validator.register<{ role: string }, MessagesStore<{ role: string }>>(
+export const roleRule = Validator.register<
+  { role: string },
+  MessagesStore<{ role: string }>
+>(
   "role",
   (value): value is { role: string } => {
     return hasOwnProperty(value, "role") && isString(value.role);
@@ -33,13 +36,17 @@ Validator.register<{ role: string }, MessagesStore<{ role: string }>>(
   },
   {},
 );
-Validator.register<
+export const existIdRole = Validator.register<
   { existedId: { path: keyof DataBase } },
   MessagesStore<{ existedId: { path: keyof DataBase } }>
 >(
-  "role",
+  "existedId",
   (value): value is { existedId: { path: keyof DataBase } } => {
-    return hasOwnProperty(value, "existedId") && isString(value.existedId);
+    return (
+      hasOwnProperty(value, "existedId") &&
+      hasOwnProperty(value.existedId, "path") &&
+      isString(value.existedId.path)
+    );
   },
   async (id, data) => {
     if (!isString(id)) return "the id is not a string";

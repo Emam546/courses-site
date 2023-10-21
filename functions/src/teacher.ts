@@ -2,7 +2,7 @@ import { auth, getCollectionReference, getDocument } from "./firebase";
 import { FieldValue } from "firebase-admin/firestore";
 import { onCall } from "firebase-functions/v1/https";
 import { UserRecord } from "firebase-admin/auth";
-import * as logger from "firebase-functions/logger";
+import logger from "firebase-functions/logger";
 import { ResponseData } from "./types";
 import Validator from "validator-checker-js";
 export type RegisterResponseData = ResponseData<{ token: string }>;
