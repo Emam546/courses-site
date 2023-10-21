@@ -21,12 +21,12 @@ export interface RegisterRequestData {
   phone: string;
 }
 const validator = new Validator({
-  email: ["required", "email"],
-  password: ["required", "password"],
+  email: ["email", "required", "emailNotExist"],
+  password: ["string", "alpha_num", { min: 5 }, "required"],
   teacherId: ["required", { role: "teacher" }],
   levelId: ["required", { existedId: { path: "Levels" } }, "string"],
   phone: ["string"],
-  displayName: ["string"],
+  displayName: ["string", "required"],
 });
 
 export const registerStudent = onCall(async (data) => {

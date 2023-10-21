@@ -17,12 +17,14 @@ declare module "validator-checker-js/dist/type" {
       path: { existedId: { path: keyof DataBase } };
       errors: MessagesStore<{ path: keyof DataBase }>;
     };
+    emailNotExist: {
+      type: string;
+      path: "emailNotExist";
+      errors: MessagesStore<"emailNotExist">;
+    };
   }
 }
-export const roleRule = Validator.register<
-  { role: string },
-  MessagesStore<{ role: string }>
->(
+Validator.register<"role">(
   "role",
   (value): value is { role: string } => {
     return hasOwnProperty(value, "role") && isString(value.role);
@@ -36,10 +38,7 @@ export const roleRule = Validator.register<
   },
   {},
 );
-export const existIdRole = Validator.register<
-  { existedId: { path: keyof DataBase } },
-  MessagesStore<{ existedId: { path: keyof DataBase } }>
->(
+Validator.register<"existedId">(
   "existedId",
   (value): value is { existedId: { path: keyof DataBase } } => {
     return (
@@ -54,6 +53,20 @@ export const existIdRole = Validator.register<
 
     if (!res.exists) return `the id is not exist in ${data.existedId.path}`;
     return undefined;
+  },
+  {},
+);
+Validator.register(
+  "emailNotExist",
+  "emailNotExist",
+  async (email) => {
+    if (!isString(email)) return "the email is not a string";
+    return await new Promise((res) => {
+      auth
+        .getUserByEmail(email)
+        .then(() => res("the email is already exist"))
+        .catch(() => res(undefined));
+    });
   },
   {},
 );

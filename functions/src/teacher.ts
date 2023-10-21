@@ -12,13 +12,13 @@ export interface RegisterRequestData {
   displayName: string;
 }
 const validator = new Validator({
-  email: ["email", "required"],
-  password: ["password", "required"],
+  email: ["emailNotExist", "email", "required"],
+  password: ["string", "alpha_num", { min: 5 }, "required"],
   displayName: ["string", "required"],
 });
 export const registerTeacher = onCall(async (data) => {
   try {
-    const res = validator.passes(data);
+    const res = await validator.asyncPasses(data);
     if (!res.state)
       return {
         success: false,

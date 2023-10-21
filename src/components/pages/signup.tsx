@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useForm } from "react-hook-form";
+import { FieldError, useForm } from "react-hook-form";
 import { ErrorInputShower } from "../common/inputs/main";
 import { useRouter } from "next/router";
 import { createTeacherCall } from "@/firebase/functions";
@@ -10,6 +10,7 @@ import {
     isFireBaseError,
     setRememberMeState,
 } from "@/utils/firebase";
+import { isErrormessage } from "@/utils/func";
 import { ObjectEntries } from "@/utils";
 export type FormValues = {
     displayName: string;
@@ -18,11 +19,7 @@ export type FormValues = {
     confirmPassword: string;
     rememberMe: boolean;
 };
-function isErrormessage(
-    val: unknown
-): val is Record<string, [{ message: string }]> {
-    return true;
-}
+
 export default function SingUp() {
     const { register, handleSubmit, formState, setError } =
         useForm<FormValues>();
@@ -70,6 +67,7 @@ export default function SingUp() {
                                                     });
                                                 if (!res.data.success) {
                                                     const errors = res.data.err;
+                                                    console.error(errors);
                                                     if (
                                                         isFireBaseError(errors)
                                                     ) {
@@ -83,10 +81,10 @@ export default function SingUp() {
                                                                 "root",
                                                                 {
                                                                     message:
-                                                                        errors.message as string,
+                                                                        errors.message,
                                                                 }
                                                             );
-                                                        setError(
+                                                        return setError(
                                                             message.type as keyof FormValues,
                                                             {
                                                                 message:
@@ -94,7 +92,33 @@ export default function SingUp() {
                                                             }
                                                         );
                                                     }
-
+                                                    if (
+                                                        isErrormessage(errors)
+                                                    ) {
+                                                        ObjectEntries(
+                                                            errors
+                                                        ).forEach(
+                                                            ([key, val]) => {
+                                                                if (key == ".")
+                                                                    return setError(
+                                                                        "root",
+                                                                        {
+                                                                            message:
+                                                                                val[0]
+                                                                                    .message,
+                                                                        }
+                                                                    );
+                                                                setError(
+                                                                    key as keyof FormValues,
+                                                                    {
+                                                                        message:
+                                                                            val[0]
+                                                                                .message,
+                                                                    }
+                                                                );
+                                                            }
+                                                        );
+                                                    }
                                                     return;
                                                 }
                                                 await signInWithCustomToken(
@@ -103,15 +127,22 @@ export default function SingUp() {
                                                 );
                                                 router.push("/verify");
                                             } catch (err) {
-                                                if (!isFireBaseError(err))
-                                                    return;
+                                                console.error(err);
 
                                                 setError("root", {
-                                                    message: err.message,
+                                                    message: (err as any)
+                                                        .message,
                                                 });
                                             }
                                         })}
                                     >
+                                        <ErrorInputShower
+                                            className="tw-text-center"
+                                            err={
+                                                formState.errors
+                                                    .root as FieldError
+                                            }
+                                        />
                                         <div className="mb-3">
                                             <label
                                                 htmlFor="name-input"
@@ -209,7 +240,10 @@ export default function SingUp() {
                                                 )}
                                             />
                                             <ErrorInputShower
-                                                err={formState.errors.password}
+                                                err={
+                                                    formState.errors
+                                                        .confirmPassword
+                                                }
                                             />
                                         </div>
                                         <div className="form-check mb-4">
