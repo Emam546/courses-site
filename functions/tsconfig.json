@@ -1,15 +1,26 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "ES2015",
     "noImplicitReturns": true,
-    "noUnusedLocals": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
     "outDir": "lib",
     "sourceMap": true,
     "strict": true,
-    "target": "es2017"
+    "target": "ES6",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@serv/*": [
+        "./src/server/*"
+      ]
+    }
   },
   "compileOnSave": true,
   "include": [
-    "src"
+    "src",
+    "../src/data.d.ts"
   ]
 }
