@@ -3,6 +3,7 @@ import { checkPaidCourseUser } from "@/utils/auth";
 import { Router } from "express";
 import { QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { DataBase } from "../../../../src/data";
+import { ErrorMessages } from "@serv/declarations/major/Messages";
 const router = Router();
 declare global {
   namespace Express {
@@ -16,27 +17,27 @@ router.use(async (req, res, next) => {
   if (typeof lessonId != "string")
     return res.status(422).sendData({
       success: false,
-      msg: "Wrong token",
+      msg: ErrorMessages.UnProvidedId,
     });
   const lesson = await getCollection("Lessons").doc(lessonId).get();
   const lessonData = lesson.data();
   if (!lesson.exists || !lessonData)
     return res.status(404).sendData({
       success: false,
-      msg: "The lesson is not exist",
+      msg: ErrorMessages.UnExistedDoc,
     });
 
-  const state = await checkPaidCourseUser(req.user.uid, lessonData.courseId);
   if (lessonData.hide)
     return res.status(404).sendData({
       success: false,
-      msg: "The lesson is not exist",
+      msg: ErrorMessages.HidedDoc,
     });
+  const state = await checkPaidCourseUser(req.user.uid, lessonData.courseId);
 
-  if (typeof state == "string") {
+  if (!state) {
     res.status(403).sendData({
       success: false,
-      msg: state,
+      msg: ErrorMessages.UnPaidCourse,
     });
     return;
   }
@@ -44,22 +45,27 @@ router.use(async (req, res, next) => {
   return next();
 });
 router.get("/", async (req, res) => {
-  const lessonData = req.lesson.data();
-  if (!lessonData)
+  const data = req.lesson.data();
+  if (!data)
     return res.status(404).sendData({
       success: false,
-      msg: "The lesson is not exist",
+      msg: ErrorMessages.UnExistedDoc,
     });
-
-  const data = { id: req.lesson.id, ...lessonData };
-  if (data.video?.hide) delete data.video;
-  delete (data as Partial<typeof data>).adderIds;
 
   return res.status(200).sendData({
     success: true,
     msg: "success",
     data: {
-      lesson: data,
+      lesson: {
+        id: req.lesson.id,
+        name: data.name,
+        courseId: data.courseId,
+        desc: data.desc,
+        briefDesc: data.briefDesc,
+        vide: data.video,
+        publishedAt: data.publishedAt,
+        teacherId: data.teacherId,
+      },
     },
   });
 });
@@ -76,12 +82,14 @@ router.get("/exams", async (req, res) => {
     data: {
       exams: lessons.docs.map((val) => {
         const data = val.data();
+        const num = data.random ? data.num : data.questionIds.length;
         return {
           id: val.id,
           name: data.name,
           desc: data.desc,
           time: data.time,
           repeatable: data.repeatable,
+          num,
         };
       }),
     },

@@ -4,6 +4,7 @@ import { checkPaidCourseUser } from "@/utils/auth";
 import { FieldValue, QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { DataBase } from "../../../../src/data";
 import { shuffle } from "@/utils";
+import { ErrorMessages } from "@serv/declarations/major/Messages";
 const router = Router();
 
 function createExamQuestions(
@@ -48,27 +49,27 @@ router.use(async (req, res, next) => {
   if (typeof examId != "string")
     return res.status(422).sendData({
       success: false,
-      msg: "Wrong token",
+      msg: ErrorMessages.UnProvidedId,
     });
   const exam = await getCollection("Exams").doc(examId).get();
   const examData = exam.data();
   if (!exam.exists || !examData)
     return res.status(404).sendData({
       success: false,
-      msg: "The lesson is not exist",
+      msg: ErrorMessages.UnExistedDoc,
     });
 
   const state = await checkPaidCourseUser(req.user.uid, examData.courseId);
   if (examData.hide)
     return res.status(404).sendData({
       success: false,
-      msg: "The lesson is not exist",
+      msg: ErrorMessages.HidedDoc,
     });
 
-  if (typeof state == "string") {
+  if (!state) {
     res.status(403).sendData({
       success: false,
-      msg: state,
+      msg: ErrorMessages.UnPaidCourse,
     });
     return;
   }
@@ -79,22 +80,41 @@ router.use(async (req, res, next) => {
 router.get("/", (req, res) => {
   const exam = req.exam;
   const examData = req.exam.data();
-  const data = {
-    id: exam.id,
-    ...examData,
-    questionNum: examData.random ? examData.name : examData.questionIds.length,
-  };
 
-  delete (data as any).num;
   res.status(200).sendData({
     success: true,
     msg: "success",
     data: {
-      exam: data,
+      exam: {
+        id: exam.id,
+        name: examData.name,
+        desc: examData.desc,
+        lessonId: examData.lessonId,
+        courseId: examData.courseId,
+        teacherId: examData.teacherId,
+        repeatable: examData.repeatable,
+        time: examData.time,
+        num: examData.random ? examData.name : examData.questionIds.length,
+      },
     },
   });
 });
-router.post("/result", async (req, res) => {
+router.get("/results", async (req, res) => {
+  const results = await getCollection("Results")
+    .where("examId", "==", req.exam.id)
+    .where("userId", "==", req.user.uid)
+    .orderBy("order")
+    .get();
+
+  res.status(200).sendData({
+    success: true,
+    msg: "success",
+    data: {
+      results: results.docs.map((doc) => doc.data()),
+    },
+  });
+});
+router.post("/create", async (req, res) => {
   const exam = req.exam;
   const examData = exam.data();
   const resultData = {

@@ -1,6 +1,7 @@
 import { getCollection } from "@/firebase";
 import { checkPaidCourseUser } from "@/utils/auth";
 import { Router, Request, Express } from "express";
+import { ErrorMessages } from "@serv/declarations/major/Messages";
 const router = Router();
 declare global {
   namespace Express {
@@ -15,20 +16,21 @@ router.use(async (req, res, next) => {
   if (typeof courseId != "string") {
     res.status(422).sendData({
       success: false,
-      msg: "Wrong token",
+      msg: ErrorMessages.UnProvidedId,
     });
     return;
   }
   const state = await checkPaidCourseUser(req.user.uid, courseId);
-  if (typeof state == "string") {
+  if (!state) {
     res.status(403).sendData({
       success: false,
-      msg: state,
+      msg: ErrorMessages.UnPaidCourse,
     });
     return;
   }
   next();
 });
+
 router.get("/lessons", async (req, res) => {
   const lessons = await getCollection("Lessons")
     .where("courseId", "==", req.courseId)
@@ -48,6 +50,7 @@ router.get("/lessons", async (req, res) => {
           name: data.name,
           briefDesc: data.briefDesc,
           publishedAt: data.publishedAt,
+          order: data.order,
         };
       }),
     },

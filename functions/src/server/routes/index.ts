@@ -7,6 +7,7 @@ import resultsRouter from "./results";
 import { getIdToken } from "@/utils/auth";
 import { Request as RequestFireBase } from "firebase-functions/v1/https";
 import { auth } from "@/firebase";
+import { ErrorMessages } from "@serv/declarations/major/Messages";
 
 const router = Router();
 router.use(async (req, res, next) => {
@@ -15,7 +16,7 @@ router.use(async (req, res, next) => {
   if (!token)
     return res
       .status(403)
-      .sendData({ success: false, msg: "UnAuthorized Request" });
+      .sendData({ success: false, msg: ErrorMessages.UnAuthorized });
   req.user = await auth.verifyIdToken(token);
   return next();
 });

@@ -16,7 +16,8 @@ export async function checkPaidCourseUser(userId: string, courseId: string) {
   const res = await getCollection("Payments")
     .where("userId", "==", userId)
     .where("courseId", "==", courseId)
+    .limit(1)
     .get();
-  if (res.empty) return "UnPaid Course";
+  if (res.empty) return false;
   return true;
 }
