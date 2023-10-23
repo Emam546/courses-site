@@ -19,6 +19,7 @@ import { useGetDoc } from "@/hooks/fireStore";
 import ErrorShower from "@/components/common/error";
 import queryClient from "@/queryClient";
 import { useAuthState } from "react-firebase-hooks/auth";
+import { UnpaidCoursesKey } from "./form";
 export interface Props {
     userId: string;
 }
@@ -58,19 +59,22 @@ function PaymentShower({ payment }: ElemProps) {
                 onAccept={async () => {
                     await deleteDoc(payment.ref);
                     setOpen(false);
-                    const courses = queryClient.getQueryData([
-                        "courses",
-                        "unpaid",
+                    const course = await getDoc(
+                        getDocRef("Courses", payment.data().courseId)
+                    );
+                    if (!course.exists) return;
+                    const key = UnpaidCoursesKey(
                         payment.data().userId,
-                    ]) as Array<QueryDocumentSnapshot<DataBase["Courses"]>>;
+                        course.data()?.levelId
+                    );
+                    const courses =
+                        queryClient.getQueryData<
+                            Array<QueryDocumentSnapshot<DataBase["Courses"]>>
+                        >(key);
+                    if (!courses) return;
                     queryClient.setQueriesData(
-                        ["courses", "unpaid", payment.data().userId],
-                        [
-                            ...courses,
-                            await getDoc(
-                                getDocRef("Courses", payment.data().courseId)
-                            ),
-                        ].sort((doc) => doc.data()!.order)
+                        key,
+                        [...courses, course].sort((doc) => doc.data()!.order)
                     );
                 }}
                 onClose={function () {

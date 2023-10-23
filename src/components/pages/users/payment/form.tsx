@@ -15,16 +15,21 @@ export interface Props {
     userId: string;
     onData: (id: string) => any;
 }
+export const UnpaidCoursesKey = (userId: string, levelId?: string) => [
+    "Courses",
+    "unpaid",
+    userId,
+    levelId,
+];
 export function useUnAddedCourses({
     levelId,
     userId,
 }: {
-    levelId: string;
+    levelId?: string;
     userId: string;
 }) {
-    const [teacher] = useAuthState(auth);
     return useQuery({
-        queryKey: ["Courses", "unpaid", userId],
+        queryKey: UnpaidCoursesKey(userId, levelId),
         enabled: typeof levelId == "string",
 
         queryFn: async () => {
@@ -51,7 +56,7 @@ export function useUnAddedCourses({
 export default function PaymentForm({ levelId, userId, onData }: Props) {
     const { data: courses } = useUnAddedCourses({ levelId, userId });
     const { handleSubmit, register, reset } = useForm<{ id: string }>();
-    
+
     return (
         <>
             <form
@@ -59,7 +64,7 @@ export default function PaymentForm({ levelId, userId, onData }: Props) {
                     await onData(data.id);
                     reset();
                     queryClient.setQueryData(
-                        ["courses", "unpaid", userId],
+                        UnpaidCoursesKey(userId, levelId),
                         courses?.filter((doc) => doc.id != data.id)
                     );
                 })}
