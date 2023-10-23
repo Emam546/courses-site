@@ -3,7 +3,6 @@ import { DataBase, WithIdType } from "@/data";
 import { createCollection, getDocRef } from "@/firebase";
 import {
     QuerySnapshot,
-    QueryDocumentSnapshot,
     deleteDoc,
     getDocs,
     limit,
@@ -16,6 +15,7 @@ import DeleteDialog from "@/components/common/AlertDialog";
 import ErrorShower from "@/components/common/error";
 import QuestionInfoViewer from "./questionInfoViewer";
 import {
+    InfiniteData,
     UseInfiniteQueryOptions,
     UseQueryOptions,
     useInfiniteQuery,
@@ -24,42 +24,127 @@ import {
 import { useDebounceState } from "@/hooks";
 import { ErrorInputShower } from "@/components/common/inputs/main";
 import PrimaryButton from "@/components/button";
-export type T = WithIdType<DataBase["Questions"]>;
-
+import queryClient from "@/queryClient";
+import { QueryDocumentSnapshot } from "@google-cloud/firestore";
+export type QuestionType = WithIdType<DataBase["Questions"]>;
+const limitNum = 10;
 export interface Props {
     lessonId: string;
 }
-export function useLimitQuestions(
+const queryKeyInfinity = (lessonId: string) => [
+    "infinity",
+    "Questions",
+    "lessonId",
+    lessonId,
+];
+function _parseTheArray(
+    data: InfiniteData<QuestionType[]>
+): InfiniteData<QuestionType[]> {
+    const allDocs = data.pages.reduce((acc, val) => [...acc, ...val], []);
+    const newArr = new Array(Math.ceil(allDocs.length / limitNum)).fill(0);
+    console.log(newArr.length, allDocs.length);
+    const newPages = newArr
+        .map<QuestionType[]>(() => {
+            const newArr = [];
+            for (let i = 0; i < limitNum; i++) {
+                const elem = allDocs.shift();
+                if (!elem) return newArr;
+                newArr.push(elem);
+            }
+            return newArr;
+        })
+        .filter((arr) => arr.length);
+    return {
+        ...data,
+        pageParams: newPages.map((arr) => arr.at(-1)),
+        pages: newPages,
+    };
+}
+export function deleteInfinityQuestions(id: string, lessonId: string) {
+    const data = queryClient.getQueryData<InfiniteData<QuestionType[]>>(
+        queryKeyInfinity(lessonId)
+    );
+    if (!data) return;
+    data.pages = data.pages.map((val) => val.filter((val) => val.id != id));
+    queryClient.setQueryData<InfiniteData<QuestionType[]>>(
+        queryKeyInfinity(lessonId),
+        _parseTheArray(data)
+    );
+}
+export function addInfinityQuestions(item: QuestionType, lessonId: string) {
+    const data = queryClient.getQueryData<InfiniteData<QuestionType[]>>(
+        queryKeyInfinity(lessonId)
+    );
+    if (!data) return;
+    data.pages.at(-1)?.unshift(item);
+    queryClient.setQueryData<InfiniteData<QuestionType[]>>(
+        queryKeyInfinity(lessonId),
+        _parseTheArray(data)
+    );
+}
+export function updateInfinityQuestions(item: QuestionType, lessonId: string) {
+    const data = queryClient.getQueryData<InfiniteData<QuestionType[]>>(
+        queryKeyInfinity(lessonId)
+    );
+    if (!data) return;
+    data.pages = data.pages.map((val) =>
+        val.map((v) => (v.id == item.id ? item : v))
+    );
+    queryClient.setQueryData<InfiniteData<QuestionType[]>>(
+        queryKeyInfinity(lessonId),
+        data
+    );
+}
+export function useInfiniteQuestions(
     lessonId: string,
-    options?: UseInfiniteQueryOptions<QuerySnapshot<DataBase["Questions"]>>
+    options?: UseInfiniteQueryOptions<QuestionType[]>
 ) {
-    return useInfiniteQuery<QuerySnapshot<DataBase["Questions"]>>({
-        queryKey: ["questions", "lessonId", lessonId],
+    const key = ["infinity", "_Questions", "lessonId", lessonId];
+    function addLastPage(page: any) {
+        const pages =
+            queryClient.getQueryData<
+                QueryDocumentSnapshot<DataBase["Questions"]>[]
+            >(key);
+        if (pages) return queryClient.setQueryData(key, [...pages, page]);
+        queryClient.setQueryData(key, [page]);
+    }
+    return useInfiniteQuery<QuestionType[]>({
+        queryKey: queryKeyInfinity(lessonId),
         queryFn: async ({ pageParam }) => {
-            if (!pageParam)
-                return await getDocs(
+            let res: QuerySnapshot<DataBase["Questions"]>;
+            if (!pageParam) {
+                res = await getDocs(
                     query(
                         createCollection("Questions"),
                         where("lessonId", "==", lessonId),
                         orderBy("createdAt", "desc"),
-                        limit(10)
+                        limit(limitNum)
                     )
                 );
-            return await getDocs(
-                query(
-                    createCollection("Questions"),
-                    where("lessonId", "==", lessonId),
-                    orderBy("createdAt", "desc"),
-                    startAfter(pageParam),
-                    limit(10)
-                )
-            );
+            } else
+                res = await getDocs(
+                    query(
+                        createCollection("Questions"),
+                        where("lessonId", "==", lessonId),
+                        orderBy("createdAt", "desc"),
+                        startAfter(pageParam),
+                        limit(limitNum)
+                    )
+                );
+            addLastPage(res.docs.at(-1)!);
+
+            return res.docs.map<QuestionType>((val) => ({
+                ...val.data(),
+                id: val.id,
+            }));
         },
-        getNextPageParam: (lastPage, allPages) => {
-            if (lastPage.size == 0) {
-                return undefined;
-            }
-            return lastPage.docs.at(-1);
+        getNextPageParam: (lastPage) => {
+            if (lastPage.length == 0) return undefined;
+            const pages =
+                queryClient.getQueryData<
+                    QueryDocumentSnapshot<DataBase["Questions"]>[]
+                >(key);
+            return pages?.at(-1);
         },
         ...options,
     });
@@ -70,7 +155,7 @@ export function useSearchQuestion(
     options?: UseQueryOptions<QuerySnapshot<DataBase["Questions"]>>
 ) {
     return useQuery<QuerySnapshot<DataBase["Questions"]>>({
-        queryKey: ["questions", "lessonId", lessonId, "search", search],
+        queryKey: ["Questions", "lessonId", lessonId, "search", search],
         queryFn: async ({}) => {
             return await getDocs(
                 query(
@@ -142,7 +227,7 @@ export default function QuestionsInfoGetter({ lessonId }: Props) {
             enabled: searchState,
         }
     );
-    const [curDel, setCurDel] = useState<T>();
+    const [curDel, setCurDel] = useState<QuestionType>();
     const {
         hasNextPage,
         isLoading,
@@ -150,7 +235,7 @@ export default function QuestionsInfoGetter({ lessonId }: Props) {
         fetchNextPage,
         error,
         data,
-    } = useLimitQuestions(lessonId, { enabled: !searchState });
+    } = useInfiniteQuestions(lessonId, { enabled: !searchState });
 
     const questionContainer = useRef<HTMLDivElement>(null);
     useEffect(() => {
@@ -174,12 +259,10 @@ export default function QuestionsInfoGetter({ lessonId }: Props) {
         };
     }, [questionContainer, isLoading]);
 
-    const questions:
-        | QueryDocumentSnapshot<DataBase["Questions"]>[]
-        | undefined = searchState
-        ? dataSearch?.docs
-        : data?.pages.reduce<QueryDocumentSnapshot<DataBase["Questions"]>[]>(
-              (acc, val) => [...acc, ...val.docs],
+    const questions: QuestionType[] | undefined = searchState
+        ? dataSearch?.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+        : data?.pages.reduce<QuestionType[]>(
+              (acc, val) => [...acc, ...val],
               []
           );
 
@@ -189,23 +272,21 @@ export default function QuestionsInfoGetter({ lessonId }: Props) {
                 error={error as any}
                 loading={isInitialLoading}
             />
-            <div className="tw-mb-2">
-                <SearchForm onSearch={setSearchparams} />
-            </div>
+            {typeof questions != "undefined" && (
+                <div className="tw-mb-4">
+                    <SearchForm onSearch={setSearchparams} />
+                </div>
+            )}
+
             {!searchState && (
                 <>
                     {questions && questions.length > 0 && (
                         <>
                             <div ref={questionContainer}>
                                 <QuestionInfoViewer
-                                    data={questions.map((v) => ({
-                                        id: v.id,
-                                        ...v.data(),
-                                    }))}
+                                    data={questions}
                                     onDeleteElem={async (v) => {
-                                        await deleteDoc(
-                                            getDocRef("Questions", v.id)
-                                        );
+                                        setCurDel(v);
                                     }}
                                     noDragging
                                 />
@@ -225,14 +306,9 @@ export default function QuestionsInfoGetter({ lessonId }: Props) {
                     {questions && questions.length > 0 && (
                         <>
                             <QuestionInfoViewer
-                                data={questions.map((v) => ({
-                                    id: v.id,
-                                    ...v.data(),
-                                }))}
+                                data={questions}
                                 onDeleteElem={async (v) => {
-                                    await deleteDoc(
-                                        getDocRef("Questions", v.id)
-                                    );
+                                    setCurDel(v);
                                 }}
                                 noDragging
                             />
@@ -244,8 +320,8 @@ export default function QuestionsInfoGetter({ lessonId }: Props) {
             <ErrorShower loading={isLoading && !isLoading} />
             <DeleteDialog
                 onAccept={async () => {
-                    if (curDel)
-                        await deleteDoc(getDocRef("Questions", curDel.id));
+                    await deleteDoc(getDocRef("Questions", curDel!.id));
+                    deleteInfinityQuestions(curDel!.id, lessonId);
                     setCurDel(undefined);
                 }}
                 onClose={function () {

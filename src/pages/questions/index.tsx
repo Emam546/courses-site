@@ -13,6 +13,7 @@ import {
 import { useRouter } from "next/router";
 import { useDocument } from "react-firebase-hooks/firestore";
 import Head from "next/head";
+import { updateInfinityQuestions } from "@/components/pages/questions/info";
 interface UpdateForm {
     doc: QueryDocumentSnapshot<DataBase["Questions"]>;
 }
@@ -32,6 +33,14 @@ function UpdateForm({ doc }: UpdateForm) {
                         await updateDoc(doc.ref, {
                             ...data,
                         });
+                        updateInfinityQuestions(
+                            {
+                                id: doc.id,
+                                ...doc.data(),
+                                ...data,
+                            },
+                            doc.data().lessonId
+                        );
                         alert("The document updated successfully");
                     }}
                     buttonName="Update"
