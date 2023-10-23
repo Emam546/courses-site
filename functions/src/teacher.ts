@@ -26,13 +26,28 @@ export const registerTeacher = onCall(async (data) => {
         err: res.errors,
       } as RegisterResponseData;
     const { email, password, displayName } = res.data;
-
-    // Create the user in Firebase Authentication
-    const userRecord = await auth.createUser({
+    let userRecord = await auth.createUser({
       email,
       password,
       displayName,
     });
+    try {
+      userRecord = await auth.getUserByEmail(email);
+
+      userRecord = await auth.updateUser(userRecord.uid, {
+        email,
+        password,
+        displayName,
+      });
+    } catch (err) {
+      userRecord = await auth.createUser({
+        email,
+        password,
+        displayName,
+      });
+    }
+    // Create the user in Firebase Authentication
+
     await auth.setCustomUserClaims(userRecord.uid, { role: "teacher" });
     await getCollectionReference("Teacher").doc(userRecord.uid).set({
       createdAt: FieldValue.serverTimestamp(),

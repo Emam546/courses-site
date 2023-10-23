@@ -1,8 +1,10 @@
 import { hasOwnProperty } from "./utils";
 import { firestore, auth } from "./firebase";
 import Validator from "validator-checker-js";
+import { getValue } from "validator-checker-js/dist/utils/getValue";
 import { MessagesStore } from "validator-checker-js/dist/Rule";
 import { DataBase } from "@dataBase";
+import bcrypt from "bcrypt";
 import { isString } from "./utils/types";
 
 declare module "validator-checker-js/dist/type" {
@@ -21,6 +23,16 @@ declare module "validator-checker-js/dist/type" {
       type: string;
       path: "emailNotExist";
       errors: MessagesStore<"emailNotExist">;
+    };
+    emailExist: {
+      type: string;
+      path: "emailExist";
+      errors: MessagesStore<"emailExist">;
+    };
+    checkPassword: {
+      type: string;
+      path: "checkPassword";
+      errors: MessagesStore<"checkPassword">;
     };
   }
 }
@@ -57,6 +69,22 @@ Validator.register<"existedId">(
   {},
 );
 Validator.register(
+  "emailExist",
+  "emailExist",
+  async (email) => {
+    if (!isString(email)) return "the email is not a string";
+    return await new Promise((res) => {
+      auth
+        .getUserByEmail(email)
+        .then((user) => {
+          user.emailVerified ? res(undefined) : res("the email is not exist");
+        })
+        .catch(() => res("the email is not exist"));
+    });
+  },
+  {},
+);
+Validator.register(
   "emailNotExist",
   "emailNotExist",
   async (email) => {
@@ -64,7 +92,33 @@ Validator.register(
     return await new Promise((res) => {
       auth
         .getUserByEmail(email)
-        .then(() => res("the email is already exist"))
+        .then((user) => {
+          user.emailVerified ? res("the email is not exist") : res(undefined);
+        })
+        .catch(() => res(undefined));
+    });
+  },
+  {},
+);
+Validator.register(
+  "checkPassword",
+  "checkPassword",
+  async (password, _, path, input) => {
+    if (!isString(password)) return "the password is not a string";
+    const sourcePath = path.split(".").slice(0, -2).join(".");
+    const email = getValue(input, `${sourcePath}.email`);
+    if (!isString(email)) return;
+
+    return await new Promise((res) => {
+      auth
+        .getUserByEmail(email)
+        .then((user) => {
+          const isPasswordValid = bcrypt.compareSync(
+            password,
+            user.passwordHash!,
+          );
+          if (!isPasswordValid) return res("The password is not valid");
+        })
         .catch(() => res(undefined));
     });
   },

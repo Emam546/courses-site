@@ -20,7 +20,7 @@ export interface RegisterRequestData {
   levelId: string;
   phone: string;
 }
-const validator = new Validator({
+const registerValidator = new Validator({
   email: ["email", "required", "emailNotExist"],
   password: ["string", "alpha_num", { min: 5 }, "required"],
   teacherId: ["required", { role: "teacher" }],
@@ -28,10 +28,15 @@ const validator = new Validator({
   phone: ["string"],
   displayName: ["string", "required"],
 });
+const singUpStudentValidator = new Validator({
+  email: ["required", "emailExist"],
+  password: ["checkPassword", "required"],
+  teacherId: ["required", { role: "teacher" }],
+});
 
 export const registerStudent = onCall(async (data) => {
   try {
-    const checkingRes = await validator.asyncPasses(data);
+    const checkingRes = await registerValidator.asyncPasses(data);
     if (!checkingRes.state)
       return {
         success: false,
@@ -44,19 +49,21 @@ export const registerStudent = onCall(async (data) => {
 
     try {
       userRecord = await auth.getUserByEmail(email);
-      if (userRecord.customClaims?.role != "student")
-        return {
-          success: false,
-          msg: "You can't sing in with this email",
-        } as RegisterResponseData;
+      userRecord = await auth.updateUser(userRecord.uid, {
+        email,
+        password,
+        displayName,
+        phoneNumber: phone,
+      });
     } catch (err) {
       userRecord = await auth.createUser({
         email,
         password,
         displayName,
+        phoneNumber: phone,
       });
-      await auth.setCustomUserClaims(userRecord.uid, { role: "student" });
     }
+    await auth.setCustomUserClaims(userRecord.uid, { role: "student" });
     const userDoc = getCollectionReference("UsersTeachers").doc(
       teacherId + userRecord.uid,
     );
@@ -91,6 +98,35 @@ export const registerStudent = onCall(async (data) => {
     } as RegisterResponseData;
   }
 });
+export const singUpStudent = onCall(async (data) => {
+  const checkingRes = await singUpStudentValidator.asyncPasses(data);
+  if (!checkingRes.state)
+    return {
+      success: false,
+      msg: "un correct register data",
+      err: checkingRes.errors,
+    } as RegisterResponseData;
+  const { email, teacherId } = checkingRes.data;
+  const userRecord = await auth.getUserByEmail(email);
+
+  const userDoc = getCollectionReference("UsersTeachers").doc(
+    teacherId + userRecord.uid,
+  );
+  const res = await userDoc.get();
+  if (!res.exists)
+    return {
+      success: false,
+      msg: "The User is not exist",
+    } as RegisterResponseData;
+
+  const customToken = await auth.createCustomToken(userRecord.uid);
+  return {
+    success: true,
+    msg: "User registered successfully.",
+    data: { token: customToken, user: { id: res.id, ...res.data() } },
+  } as RegisterResponseData;
+});
+
 export async function deleteStudent(user: UserRecord) {
   const res = await getCollectionReference("UsersTeachers")
     .where("userId", "==", user.uid)
