@@ -49,7 +49,6 @@ export default function Login({ onLogin }: Props) {
                                     </div>
                                     <p className="text-center">Login</p>
                                     <form
-                                        autoComplete="off"
                                         onSubmit={handleSubmit(async (data) => {
                                             try {
                                                 await setRememberMeState(

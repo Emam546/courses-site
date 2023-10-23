@@ -51,7 +51,6 @@ export default function SingUp() {
                                         Create An Account
                                     </p>
                                     <form
-                                        autoComplete="off"
                                         onSubmit={handleSubmit(async (data) => {
                                             try {
                                                 await setRememberMeState(
