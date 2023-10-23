@@ -8,5 +8,7 @@ export enum ErrorMessages {
   ExamTimeOut = "ExamTimeOut",
 }
 export enum Messages {
+  DataSuccess = "Success",
   DataUpdated = "Data updated successfully",
+  DataCreated = "Data created successfully",
 }

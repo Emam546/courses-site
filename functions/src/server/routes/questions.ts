@@ -1,6 +1,6 @@
 import { getCollection } from "@/firebase";
 import { Router } from "express";
-import { ErrorMessages } from "../declarations/major/Messages";
+import { ErrorMessages, Messages } from "../declarations/major/Messages";
 import { shuffle } from "@/utils";
 const router = Router();
 
@@ -24,7 +24,7 @@ router.get("/", async (req, res) => {
 
   return res.status(200).sendData({
     success: true,
-    msg: "success",
+    msg: Messages.DataSuccess,
     data: {
       question: {
         id: question.id,

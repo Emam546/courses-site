@@ -1,6 +1,6 @@
 import { getCollection } from "@/firebase";
 import { Router, Request, Express } from "express";
-import { ErrorMessages } from "@serv/declarations/major/Messages";
+import { ErrorMessages, Messages } from "@serv/declarations/major/Messages";
 const router = Router();
 declare global {
   namespace Express {
@@ -17,7 +17,6 @@ router.use(async (req, res, next) => {
       success: false,
       msg: ErrorMessages.UnProvidedId,
     });
-  
   }
 
   next();
@@ -50,7 +49,7 @@ router.get("/courses", async (req, res) => {
   );
   res.status(200).sendData({
     success: true,
-    msg: "success",
+    msg: Messages.DataSuccess,
     data: {
       courses: courses,
     },

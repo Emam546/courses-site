@@ -3,7 +3,8 @@ import { checkPaidCourseUser } from "@/utils/auth";
 import { Router } from "express";
 import { QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { DataBase } from "../../../../src/data";
-import { ErrorMessages } from "@serv/declarations/major/Messages";
+import { ErrorMessages, Messages } from "@serv/declarations/major/Messages";
+import HttpStatusCodes from "../declarations/major/HttpStatusCodes";
 const router = Router();
 declare global {
   namespace Express {
@@ -28,14 +29,14 @@ router.use(async (req, res, next) => {
     });
 
   if (lessonData.hide)
-    return res.status(404).sendData({
+    return res.status(HttpStatusCodes.LOCKED).sendData({
       success: false,
       msg: ErrorMessages.HidedDoc,
     });
   const state = await checkPaidCourseUser(req.user.uid, lessonData.courseId);
 
   if (!state) {
-    res.status(403).sendData({
+    res.status(HttpStatusCodes.PAYMENT_REQUIRED).sendData({
       success: false,
       msg: ErrorMessages.UnPaidCourse,
     });
@@ -54,7 +55,7 @@ router.get("/", async (req, res) => {
 
   return res.status(200).sendData({
     success: true,
-    msg: "success",
+    msg: Messages.DataSuccess,
     data: {
       lesson: {
         id: req.lesson.id,
@@ -78,7 +79,7 @@ router.get("/exams", async (req, res) => {
 
   res.status(200).sendData({
     success: true,
-    msg: "success",
+    msg: Messages.DataSuccess,
     data: {
       exams: lessons.docs.map((val) => {
         const data = val.data();

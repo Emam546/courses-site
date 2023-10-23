@@ -8,6 +8,7 @@ import { getIdToken } from "@/utils/auth";
 import { Request as RequestFireBase } from "firebase-functions/v1/https";
 import { auth } from "@/firebase";
 import { ErrorMessages } from "@serv/declarations/major/Messages";
+import HttpStatusCodes from "../declarations/major/HttpStatusCodes";
 
 const router = Router();
 router.use(async (req, res, next) => {
@@ -15,7 +16,7 @@ router.use(async (req, res, next) => {
   const token = getIdToken(req as RequestFireBase);
   if (!token)
     return res
-      .status(403)
+      .status(HttpStatusCodes.UNAUTHORIZED)
       .sendData({ success: false, msg: ErrorMessages.UnAuthorized });
   req.user = await auth.verifyIdToken(token);
   return next();

@@ -1,7 +1,8 @@
 import { getCollection } from "@/firebase";
 import { checkPaidCourseUser } from "@/utils/auth";
 import { Router, Request, Express } from "express";
-import { ErrorMessages } from "@serv/declarations/major/Messages";
+import { ErrorMessages, Messages } from "@serv/declarations/major/Messages";
+import HttpStatusCodes from "../declarations/major/HttpStatusCodes";
 const router = Router();
 declare global {
   namespace Express {
@@ -22,7 +23,7 @@ router.use(async (req, res, next) => {
   }
   const state = await checkPaidCourseUser(req.user.uid, courseId);
   if (!state) {
-    res.status(403).sendData({
+    res.status(HttpStatusCodes.PAYMENT_REQUIRED).sendData({
       success: false,
       msg: ErrorMessages.UnPaidCourse,
     });
@@ -40,7 +41,7 @@ router.get("/lessons", async (req, res) => {
 
   res.status(200).sendData({
     success: true,
-    msg: "success",
+    msg: Messages.DataSuccess,
     data: {
       lessons: lessons.docs.map((val) => {
         const data = val.data();

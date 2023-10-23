@@ -6,6 +6,7 @@ import { DataBase } from "../../../../src/data";
 import { FieldValue } from "firebase-admin/firestore";
 import Validator from "validator-checker-js";
 import { ErrorMessages, Messages } from "@serv/declarations/major/Messages";
+import HttpStatusCodes from "../declarations/major/HttpStatusCodes";
 const router = Router();
 
 declare global {
@@ -38,7 +39,7 @@ router.use(async (req, res, next) => {
   const state = await checkPaidCourseUser(req.user.uid, resultData.courseId);
 
   if (!state) {
-    return res.status(403).sendData({
+    return res.status(HttpStatusCodes.PAYMENT_REQUIRED).sendData({
       success: false,
       msg: ErrorMessages.UnPaidCourse,
     });

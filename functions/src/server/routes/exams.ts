@@ -4,7 +4,8 @@ import { checkPaidCourseUser } from "@/utils/auth";
 import { FieldValue, QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { DataBase } from "../../../../src/data";
 import { shuffle } from "@/utils";
-import { ErrorMessages } from "@serv/declarations/major/Messages";
+import { ErrorMessages, Messages } from "@serv/declarations/major/Messages";
+import HttpStatusCodes from "../declarations/major/HttpStatusCodes";
 const router = Router();
 
 function createExamQuestions(
@@ -61,13 +62,13 @@ router.use(async (req, res, next) => {
 
   const state = await checkPaidCourseUser(req.user.uid, examData.courseId);
   if (examData.hide)
-    return res.status(404).sendData({
+    return res.status(HttpStatusCodes.LOCKED).sendData({
       success: false,
       msg: ErrorMessages.HidedDoc,
     });
 
   if (!state) {
-    res.status(403).sendData({
+    res.status(HttpStatusCodes.PAYMENT_REQUIRED).sendData({
       success: false,
       msg: ErrorMessages.UnPaidCourse,
     });
@@ -83,7 +84,7 @@ router.get("/", (req, res) => {
 
   res.status(200).sendData({
     success: true,
-    msg: "success",
+    msg: Messages.DataSuccess,
     data: {
       exam: {
         id: exam.id,
@@ -108,7 +109,7 @@ router.get("/results", async (req, res) => {
 
   res.status(200).sendData({
     success: true,
-    msg: "success",
+    msg: Messages.DataSuccess,
     data: {
       results: results.docs.map((doc) => doc.data()),
     },
@@ -117,6 +118,7 @@ router.get("/results", async (req, res) => {
 router.post("/create", async (req, res) => {
   const exam = req.exam;
   const examData = exam.data();
+
   const resultData = {
     courseId: examData.courseId,
     examId: exam.id,
@@ -125,10 +127,23 @@ router.post("/create", async (req, res) => {
     userId: req.user.uid,
     questions: createExamQuestions(exam),
   };
+  if (!examData.repeatable) {
+    const data = await getCollection("Results")
+      .where("examId", "==", exam.id)
+      .where("userId", "==", req.user.uid)
+      .orderBy("startAt", "desc")
+      .limit(1)
+      .get();
+    if (!data.empty)
+      return res.status(HttpStatusCodes.BAD_REQUEST).sendData({
+        success: false,
+        msg: "the exam is already taken",
+      });
+  }
   const result = await getCollection("Results").add(resultData);
   return res.sendData({
     success: true,
-    msg: "success",
+    msg: Messages.DataCreated,
     data: {
       result: {
         id: result.id,
