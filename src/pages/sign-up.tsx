@@ -1,19 +1,26 @@
 import SingUp from "@/components/pages/singup";
-import { useAppDispatch } from "@/store";
-import { AuthActions } from "@/store/auth";
+import { auth } from "@/firebase";
+import { setRememberMeState } from "@/utils/firebase";
+import { signInWithCustomToken } from "firebase/auth";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { ReactElement } from "react";
 
 function Page() {
-    const dispatch = useAppDispatch();
     const router = useRouter();
     return (
-        <SingUp
-            onUser={(user) => {
-                dispatch(AuthActions.setUser(user));
-                router.push("/login");
-            }}
-        />
+        <>
+            <Head>
+                <title>Sing up</title>
+            </Head>
+            <SingUp
+                onUser={async (token, rememberMe) => {
+                    await setRememberMeState(auth, rememberMe);
+                    await signInWithCustomToken(auth, token);
+                    router.push("/verify");
+                }}
+            />
+        </>
     );
 }
 Page.getLayout = function getLayout(page: ReactElement) {

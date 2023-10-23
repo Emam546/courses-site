@@ -1,22 +1,24 @@
-import { DataBase, WithIdType } from "@/data";
 import { useGetDoc } from "@/hooks/firebase";
-import {
-    QueryDocumentSnapshot,
-    serverTimestamp,
-    updateDoc,
-} from "firebase/firestore";
+import { updateDoc } from "firebase/firestore";
 import { useRouter } from "next/router";
-import { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import DeleteDialog from "@/components/common/deleteDailog";
-import { useDocument } from "react-firebase-hooks/firestore";
-import { getDocRef } from "@/firebase";
 import { Navigation } from "./navigation";
 import { CountDown } from "./countDown";
-import { useMutation } from "@tanstack/react-query";
+import { UseQueryOptions, useMutation, useQuery } from "@tanstack/react-query";
 import queryClient from "@/queryClient";
 import Loader from "@/components/loader";
 import Question from "./quest";
 import { GoToButton } from "@/components/common/addButton";
+import { ExamType } from "@/firebase/func/data/exam";
+import {
+    ResultType,
+    endExam,
+    getResult,
+    sendAnswers,
+} from "@/firebase/func/data/results";
+import { wrapRequest, ErrorMessage } from "@/utils/wrapRequest";
+import { ErrorMessageCom } from "@/components/handelErrorMessage";
 
 function EndTest({ onEnd }: { onEnd: () => any }) {
     const [state, setState] = useState(false);
@@ -55,9 +57,9 @@ function EndTest({ onEnd }: { onEnd: () => any }) {
 }
 
 interface MainProps {
-    result: WithIdType<DataBase["Results"]>;
+    result: ResultType;
     endState: boolean;
-    exam: WithIdType<DataBase["Exams"]>;
+    exam: DataBase.WithIdType<DataBase["Exams"]>;
     onAnswer: (id: string, answer: string, correctAnswer: string) => any;
     onState: (
         id: string,
@@ -112,7 +114,7 @@ function Main({ result, endState, exam, onState, onAnswer, onEnd }: MainProps) {
     }, [router.query.quest]);
     const questions = result.questions;
 
-    const startAt: Date = result.startAt.toDate();
+    const startAt: Date = new Date(result.startAt);
     const submitState =
         !curAnswer || result.questions[curQuest].answer != curAnswer;
     return (
@@ -218,55 +220,79 @@ function Main({ result, endState, exam, onState, onAnswer, onEnd }: MainProps) {
 }
 export interface Props {
     resultId: string;
-    exam: QueryDocumentSnapshot<DataBase["Exams"]>;
+    exam: ExamType;
+    initialData?: ResultType;
 }
-export default function QuestionsViewer({ resultId, exam }: Props) {
+export function useGetResult(
+    resultId?: string,
+    options?: UseQueryOptions<{ result: ResultType }, ErrorMessage>
+) {
+    return useQuery({
+        queryKey: ["Results", resultId],
+        queryFn: async () => {
+            return await wrapRequest(getResult(resultId!));
+        },
+        enabled: typeof resultId == "string",
+        onError(err: ErrorMessage) {},
+        ...options,
+    });
+}
+export default function QuestionsViewer({
+    resultId,
+    exam,
+    initialData,
+}: Props) {
     const router = useRouter();
-    const [result, isLoading] = useDocument(getDocRef("Results", resultId));
-    function getEndState() {
-        if (!result || !result.exists()) return false;
-        const startAt: Date = result.data().startAt.toDate() || new Date();
+    const { data, error, isLoading } = useGetResult(resultId, {
+        initialData: initialData ? { result: initialData } : undefined,
+    });
+    const mutateAnswer = useMutation({
+        mutationKey: ["Results", resultId],
+        mutationFn: async (questions: ResultType["questions"]) => {
+            return;
+        },
+    });
+    useLayoutEffect(() => {
+        if (!router.query.quest && data) {
+            router.replace(
+                `/exams/take?id=${resultId}&quest=${data.result.questions[0].questionId}`
+            );
+        }
+    }, [resultId]);
 
-        if (Date.now() - startAt.getTime() > exam.data().time) return true;
-        if (typeof result.data().endAt != "undefined") return true;
+    if (isLoading) return <Loader />;
+    if (error) return <ErrorMessageCom error={error} />;
+    const result = data.result;
+    function getEndState() {
+        const startAt = new Date(result.startAt);
+
+        if (Date.now() - startAt.getTime() > exam.time) return true;
+        if (result.endAt) return true;
         return false;
     }
     const endState = getEndState();
-    useLayoutEffect(() => {
-        if (!router.query.quest && result) {
-            router.replace(
-                `/exams/take?id=${result.id}&quest=${
-                    result.data()?.questions[0].questionId
-                }`
-            );
-        }
-    }, [result?.id]);
-    if (isLoading) return <Loader />;
-    if (!result?.exists()) return <div>The Exam is not exist</div>;
     return (
         <Main
             endState={endState}
-            exam={{ ...exam.data(), id: exam.id }}
-            result={{ ...result.data(), id: resultId }}
-            onAnswer={async (id, answer, correctAnswer) => {
+            exam={{ ...exam, id: exam.id }}
+            result={{ ...result, id: resultId }}
+            onAnswer={async (id, answer) => {
                 if (getEndState()) return;
-                const newArr = [...result.data().questions];
+                const newArr = [...result.questions];
                 const curQuest = newArr.findIndex(
                     (val) => val.questionId == id
                 );
                 newArr[curQuest] = {
                     ...newArr[curQuest],
                     answer: answer,
-                    correctAnswer: correctAnswer,
-                    correctState: correctAnswer == answer,
                 };
-                await updateDoc(result!.ref, {
+                await sendAnswers(resultId, {
                     questions: newArr,
                 });
             }}
             onState={async (id, state) => {
                 if (getEndState()) return;
-                const newArr = [...result.data().questions];
+                const newArr = [...result.questions];
                 const curQuest = newArr.findIndex(
                     (val) => val.questionId == id
                 );
@@ -274,14 +300,12 @@ export default function QuestionsViewer({ resultId, exam }: Props) {
                     ...newArr[curQuest],
                     state,
                 };
-                await updateDoc(result!.ref, {
+                await sendAnswers(resultId, {
                     questions: newArr,
                 });
             }}
             onEnd={async () => {
-                await updateDoc(result!.ref, {
-                    endAt: serverTimestamp(),
-                });
+                await endExam(resultId);
                 router.push(`/exams?id=${exam.id}`);
             }}
         />

@@ -2,29 +2,30 @@ import ErrorShower from "@/components/error";
 import Loader from "@/components/loader";
 import Page404 from "@/components/pages/404";
 import { ResultsViewer } from "@/components/pages/exams";
-import { PaymentProtector } from "@/components/payment";
-import { DataBase } from "@/data";
-import { getDocRef } from "@/firebase";
-import { useGetDoc } from "@/hooks/firebase";
+import { ExamType, getExam } from "@/firebase/func/data/exam";
 import { useQuery } from "@tanstack/react-query";
-import { QueryDocumentSnapshot, getDoc } from "firebase/firestore";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useGetLesson } from "../lessons";
+import { useGetCourse } from "../courses";
+import { LessonType } from "@/firebase/func/data/lessons";
+import { CourseType } from "@/firebase/func/data/course";
+import { ErrorMessage, wrapRequest } from "@/utils/wrapRequest";
 
-function SafeArea({
+function Page({
     doc,
-    lessons,
+    lesson,
     course,
 }: {
-    doc: QueryDocumentSnapshot<DataBase["Exams"]>;
-    lessons: QueryDocumentSnapshot<DataBase["Lessons"]>;
-    course: QueryDocumentSnapshot<DataBase["Courses"]>;
+    doc: ExamType;
+    lesson: LessonType;
+    course: CourseType;
 }) {
     return (
         <>
             <Head>
-                <title>{doc.data().name}</title>
+                <title>{doc.name}</title>
             </Head>
             <div
                 className="page-info-section"
@@ -36,12 +37,12 @@ function SafeArea({
                     <div className="site-breadcrumb">
                         <Link href="/">Home</Link>
                         <Link href={`/courses?id=${course.id}`}>
-                            {course.data().name}
+                            {course.name}
                         </Link>
-                        <Link href={`/lessons?id=${lessons.id}`}>
-                            {lessons.data().name}
+                        <Link href={`/lessons?id=${lesson.id}`}>
+                            {lesson.name}
                         </Link>
-                        <span>{doc.data().name}</span>
+                        <span>{doc.name}</span>
                     </div>
                 </div>
             </div>
@@ -69,7 +70,7 @@ function SafeArea({
                                 <h2 className="tw-font-medium tw-text-4xl tw-mb-6">
                                     Exam Description
                                 </h2>
-                                <p>{doc.data().desc}</p>
+                                <p>{doc.desc}</p>
                             </div>
                         </div>
                         <div className="col-lg-10 offset-lg-1">
@@ -81,53 +82,38 @@ function SafeArea({
         </>
     );
 }
-export function useGetExamCourse(examId?: string) {
+export function useGetExam(examId?: string) {
     return useQuery({
+        queryKey: ["Exams", examId],
         enabled: typeof examId == "string",
-        queryKey: ["Courses", "lessonId", "examId", examId],
         queryFn: async () => {
-            const exam = await getDoc(getDocRef("Exams", examId!));
-            const lesson = await getDoc(
-                getDocRef("Lessons", exam.data()!.lessonId)
-            );
-            return await getDoc(getDocRef("Courses", lesson.data()!.courseId));
+            return await wrapRequest(getExam(examId!));
         },
+        onError(err: ErrorMessage) {},
     });
 }
-function Main() {
+export default function SafeArea() {
     const router = useRouter();
     const { id } = router.query;
-    const queryExam = useGetDoc("Exams", id as string);
-    const queryLesson = useGetDoc("Lessons", queryExam.data?.data()?.lessonId);
-    const queryCourse = useGetDoc(
-        "Courses",
-        queryLesson.data?.data()?.courseId
-    );
+    const queryExam = useGetExam(id as string);
+    const queryLesson = useGetLesson(queryExam.data?.exam.lessonId);
+    const queryCourse = useGetCourse(queryExam.data?.exam.courseId);
     if (typeof id != "string")
         return <Page404 message="The Exam id is not exist in the url" />;
-    if (queryExam.isLoading) return <Loader />;
-    if (queryExam.isError) return <ErrorShower err={queryExam.error} />;
-    if (!queryExam.data.exists())
-        return <Page404 message="The Exam is not exist" />;
-    if (queryLesson.isLoading) return <Loader />;
-    if (queryLesson.isError) return <ErrorShower err={queryExam.error} />;
-    if (!queryLesson.data.exists())
-        return <Page404 message="The Lesson is not exist" />;
-    if (queryCourse.isLoading) return <Loader />;
-    if (queryCourse.isError) return <ErrorShower err={queryCourse.error} />;
-    if (!queryCourse.data.exists())
-        return <Page404 message="The Course is not exist" />;
+    if (queryExam.isLoading || queryLesson.isLoading || queryCourse.isLoading)
+        return <Loader />;
+    if (queryExam.error || queryLesson.error || queryCourse.error)
+        return (
+            <ErrorShower
+                err={queryExam.error || queryLesson.error || queryCourse.error}
+            />
+        );
 
     return (
-        <PaymentProtector course={queryCourse.data}>
-            <SafeArea
-                lessons={queryLesson.data}
-                doc={queryExam.data}
-                course={queryCourse.data}
-            />
-        </PaymentProtector>
+        <Page
+            lesson={queryLesson.data.lesson}
+            doc={queryExam.data.exam}
+            course={queryCourse.data.course}
+        />
     );
-}
-export default function Page() {
-    return <Main />;
 }

@@ -9,7 +9,8 @@ import {
     connectFirestoreEmulator,
 } from "firebase/firestore";
 import { getAuth, connectAuthEmulator } from "firebase/auth";
-import { DataBase } from "./data";
+import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
+
 let firebaseConfig: FirebaseOptions = {
     apiKey: "AIzaSyDuI2roFqIlzYsbqvU8EiYrGTWzK4pym7Y",
     authDomain: "coursessite-d6e57.firebaseapp.com",
@@ -22,9 +23,11 @@ let firebaseConfig: FirebaseOptions = {
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const fireStore = getFirestore(app);
+export const functions = getFunctions(app);
 if (process.env.NODE_ENV == "development") {
     connectFirestoreEmulator(fireStore, "127.0.0.1", 8080);
     connectAuthEmulator(auth, "http://127.0.0.1:9099");
+    connectFunctionsEmulator(functions, "127.0.0.1", 5001);
 }
 // export const analytics = getAnalytics(app);
 export function createCollection<T extends keyof DataBase>(path: T) {

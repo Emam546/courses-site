@@ -1,8 +1,7 @@
-import { DataBase } from "@/data";
 import { createSlice } from "@reduxjs/toolkit";
 import { QueryDocumentSnapshot } from "firebase/firestore";
 export interface StateType {
-    user?: QueryDocumentSnapshot<DataBase["Users"]>;
+    user?: DataBase["UsersTeachers"];
 }
 export const slice = createSlice({
     initialState: {} as StateType,

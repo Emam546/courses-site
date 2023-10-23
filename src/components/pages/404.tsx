@@ -1,15 +1,11 @@
 import Head from "next/head";
 import React, { useEffect } from "react";
 export interface Props {
-    message: string;
-}
-export default function Page404({
-    message,
-    state = "404",
-}: {
+    message?: React.ReactNode;
+    children?: React.ReactNode;
     state?: string;
-    message: string;
-}) {
+}
+export default function Page404({ message, children, state = "404" }: Props) {
     useEffect(() => {
         document.title = state;
     }, [state]);
@@ -24,8 +20,10 @@ export default function Page404({
             >
                 <div className="container">
                     <div className="hero-text text-white">
-                        <h2>{state}</h2>
-                        <p>{message}</p>
+                        {state && <h2>{state}</h2>}
+
+                        {message && <p>{message}</p>}
+                        {children}
                     </div>
                 </div>
             </section>

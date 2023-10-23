@@ -1,5 +1,4 @@
-import { DataBase, WithIdType } from "@/data";
-import { shuffle } from "@/utils";
+
 import draftToHtml from "draftjs-to-html";
 import { QueryDocumentSnapshot } from "firebase/firestore";
 import { useQuery } from "@tanstack/react-query";
@@ -10,11 +9,11 @@ export interface Props {
 }
 
 export type QuestionProps = {
-    quest?: WithIdType<DataBase["Questions"]>;
+    quest?: DataBase.WithIdType<DataBase["Questions"]>;
     curAnswer?: string;
     onAnswer: (val: string) => any;
     endState: boolean;
-    correctAnswer: string;
+    correctAnswer?: string;
 };
 export default function Question({
     quest,
@@ -27,7 +26,7 @@ export default function Question({
         queryKey: ["Choices", quest?.id],
         queryFn: () => {
             const choices = quest!.choices;
-            if (quest!.shuffle) return shuffle(choices);
+            if (quest!.shuffle) return choices;
             return choices;
         },
         enabled: typeof quest != "undefined",

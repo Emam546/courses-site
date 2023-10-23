@@ -1,53 +1,34 @@
 /* eslint-disable jsx-a11y/alt-text */
 import Loader from "@/components/loader";
 import Page404 from "@/components/pages/404";
-import { PaymentProtector } from "@/components/payment";
-import { DataBase } from "@/data";
-import { useGetDoc } from "@/hooks/firebase";
-import {
-    QueryDocumentSnapshot,
-    getDocs,
-    orderBy,
-    query,
-    where,
-} from "firebase/firestore";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React from "react";
 import draftToHtml from "draftjs-to-html";
 import { useQuery } from "@tanstack/react-query";
-import { createCollection } from "@/firebase";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import Protector from "@/components/protector";
-export function useGetExams(lessonId: string) {
-    return useQuery({
-        queryKey: ["Exams", "lessonId", lessonId],
-        queryFn: async () => {
-            return await getDocs(
-                query(
-                    createCollection("Exams"),
-                    where("lessonId", "==", lessonId),
-                    where("hide", "==", false),
-                    orderBy("order")
-                )
-            );
-        },
-    });
-}
-function SafeArea({
+import { LessonType, getLesson } from "@/firebase/func/data/lessons";
+import { CourseType } from "@/firebase/func/data/course";
+import { useGetCourse } from "./courses";
+import { ExamsLessonType, getExamLesson } from "@/firebase/func/data/exam";
+import { WrapElem } from "@/components/pages/account/common/inputs/styles";
+import { ErrorMessage, wrapRequest } from "@/utils/wrapRequest";
+import { ErrorMessageCom } from "@/components/handelErrorMessage";
+
+function Page({
     doc,
     course,
+    exams,
 }: {
-    doc: QueryDocumentSnapshot<DataBase["Lessons"]>;
-    course: QueryDocumentSnapshot<DataBase["Courses"]>;
+    doc: LessonType;
+    course: CourseType;
+    exams: ExamsLessonType[];
 }) {
-    const { data: exams } = useGetExams(doc.id);
     return (
         <>
             <Head>
-                <title>{doc.data().name}</title>
+                <title>{doc.name}</title>
             </Head>
             <div
                 className="page-info-section"
@@ -59,9 +40,9 @@ function SafeArea({
                     <div className="site-breadcrumb">
                         <Link href="/">Home</Link>
                         <Link href={`/courses?id=${course.id}`}>
-                            {course.data().name}
+                            {course.name}
                         </Link>
-                        <span>{doc.data().name}</span>
+                        <span>{doc.name}</span>
                     </div>
                 </div>
             </div>
@@ -96,7 +77,7 @@ function SafeArea({
                                 <div
                                     dangerouslySetInnerHTML={{
                                         __html: draftToHtml(
-                                            JSON.parse(doc.data().desc)
+                                            JSON.parse(doc.desc)
                                         ),
                                     }}
                                 ></div>
@@ -105,7 +86,7 @@ function SafeArea({
                         <div className="col-lg-10 offset-lg-1">
                             <h1 className="tw-text-5xl tw-mb-6">Exams</h1>
                             <div className="tw-space-y-5">
-                                {exams?.docs.map((doc) => {
+                                {exams.map((doc) => {
                                     return (
                                         <Link
                                             key={doc.id}
@@ -113,7 +94,7 @@ function SafeArea({
                                             className="site-btn tw-text-start tw-px-10 tw-py-3 tw-flex tw-items-center"
                                         >
                                             <p className="tw-flex-1 tw-text-white tw-text-lg tw-font-semibold">
-                                                {doc.data().name}
+                                                {doc.name}
                                             </p>
                                             <div>
                                                 <FontAwesomeIcon
@@ -132,39 +113,51 @@ function SafeArea({
         </>
     );
 }
-function Main() {
+export function useGetExams(lessonId: string) {
+    return useQuery({
+        queryKey: ["Exams", "lessonId", lessonId],
+        enabled: typeof lessonId == "string",
+        queryFn: async () => {
+            return await wrapRequest(getExamLesson(lessonId));
+        },
+        onError(err: ErrorMessage) {},
+    });
+}
+export function useGetLesson(lessonId?: string) {
+    return useQuery({
+        queryKey: ["Lessons", lessonId],
+        queryFn: async () => {
+            return await wrapRequest(getLesson(lessonId!));
+        },
+        enabled: typeof lessonId == "string",
+        onError(err: ErrorMessage) {},
+    });
+}
+export default function SafeArea() {
     const router = useRouter();
     const { id } = router.query;
 
-    const queryLesson = useGetDoc("Lessons", id as string);
-    const queryCourse = useGetDoc(
-        "Courses",
-        queryLesson.data?.data()?.courseId as string
-    );
+    const queryLesson = useGetLesson(id as string);
+    const queryExams = useGetExams(id as string);
+    const queryCourse = useGetCourse(queryLesson.data?.lesson.courseId);
     if (typeof id != "string")
         return <Page404 message="The Lesson id is not exist" />;
-    if (queryLesson.isLoading) return <Loader />;
-    if (queryLesson.isError) return null;
-    if (!queryLesson.data.exists())
-        return <Page404 message="The Lesson is not exist" />;
-    if (queryCourse.isLoading) return <Loader />;
-    if (queryCourse.isError) return null;
-    if (!queryCourse.data.exists())
-        return <Page404 message="The Course is not exist" />;
+    if (queryLesson.isLoading || queryCourse.isLoading || queryExams.isLoading)
+        return <Loader />;
+    if (queryLesson.error || queryCourse.error || queryExams.error)
+        return (
+            <ErrorMessageCom
+                error={
+                    queryLesson.error || queryCourse.error || queryExams.error
+                }
+            />
+        );
 
     return (
-        <PaymentProtector course={queryCourse.data}>
-            <SafeArea
-                course={queryCourse.data}
-                doc={queryLesson.data}
-            />
-        </PaymentProtector>
-    );
-}
-export default function Page() {
-    return (
-        <>
-            <Main />
-        </>
+        <Page
+            exams={queryExams.data.exams}
+            course={queryCourse.data.course}
+            doc={queryLesson.data.lesson}
+        />
     );
 }

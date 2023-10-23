@@ -1,21 +1,9 @@
-import { DataBase } from "@/data";
-import { createCollection } from "@/firebase";
-import { useAppSelector } from "@/store";
-import { shuffle } from "@/utils";
 import { CircularProgressbar } from "react-circular-progressbar";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import {
-    QueryDocumentSnapshot,
-    addDoc,
-    getDocs,
-    orderBy,
-    query,
-    serverTimestamp,
-    where,
-} from "firebase/firestore";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useRef } from "react";
+import { ExamType } from "@/firebase/func/data/exam";
+import { createResult, getResultsExam } from "@/firebase/func/data/results";
 export function Loader({ per, text }: { per: number; text: string }) {
     const percent = Math.floor(per * 100);
     return (
@@ -28,93 +16,54 @@ export function Loader({ per, text }: { per: number; text: string }) {
     );
 }
 function useGetResults(examId: string) {
-    const user = useAppSelector((state) => state.auth.user!);
     return useQuery({
+        enabled: typeof examId == "string",
         queryKey: ["Results", "exam", examId],
         queryFn: async () => {
-            return await getDocs(
-                query(
-                    createCollection("Results"),
-                    where("userId", "==", user.id),
-                    where("examId", "==", examId),
-                    orderBy("startAt", "desc")
-                )
-            );
+            return await getResultsExam(examId);
         },
     });
 }
 
-function createExam(
-    doc: QueryDocumentSnapshot<DataBase["Exams"]>
-): DataBase["Results"]["questions"] {
-    const data = doc.data();
-    if (data.random) {
-        const questions: DataBase["Results"]["questions"] = [];
-        for (let i = 0; i < data.num && data.questionIds.length > 0; i++) {
-            const floor = Math.floor(Math.random() * data.questionIds.length);
-            const elem = data.questionIds[floor];
-            if (elem == undefined) break;
-            data.questionIds.splice(floor, 1);
-            questions.push({
-                correctState: false,
-                questionId: elem,
-                state: "unvisited",
-                correctAnswer: "",
-            });
-        }
-        return questions;
-    }
-    if (data.shuffle) data.questionIds = shuffle(data.questionIds);
+export function ResultsViewer({ doc: exam }: { doc: ExamType }) {
+    const { data } = useGetResults(exam.id);
 
-    return data.questionIds.map((id) => ({
-        correctState: false,
-        questionId: id,
-        state: "unvisited",
-        correctAnswer: "",
-    }));
-}
-export function ResultsViewer({
-    doc: exam,
-}: {
-    doc: QueryDocumentSnapshot<DataBase["Exams"]>;
-}) {
-    const { data: results } = useGetResults(exam.id);
     const router = useRouter();
-    const curExam = results?.docs.find((result) => {
-        const res = result.data();
-        if (res.endAt) return false;
-        const s: number = res.startAt.toDate().getTime() || Date.now();
-        return Date.now() - s < exam.data().time;
-    });
-    const startState =
-        curExam == undefined && (results?.empty || exam.data().repeatable);
-    const user = useAppSelector((state) => state.auth.user!);
     const mutation = useMutation({
         mutationFn: async (newTodo) => {
-            return await addDoc(createCollection("Results"), {
-                examId: exam.id,
-                startAt: serverTimestamp(),
-                questions: createExam(exam),
-                userId: user.id,
-            });
+            return await createResult();
         },
         onSuccess(data) {
-            router.push(`/exams/take?id=${data.id}`);
+            if (data.data.success)
+                router.push(`/exams/take?id=${data.data.data.result.id}`);
         },
     });
+    if (!data?.data.success) return null;
+    const results = data.data.data.results;
+    const curExam = results.find((res) => {
+        if (res.endAt) return false;
+        const s: number = new Date(res.startAt).getTime() || Date.now();
+        return Date.now() - s < exam.time;
+    });
+    const startState =
+        curExam == undefined && (results.length == 0 || exam.repeatable);
+
     return (
         <div>
             <div className="tw-mb-4 tw-flex tw-flex-wrap tw-gap-5">
-                {results?.docs.map((doc) => {
-                    const questions = doc.data().questions;
+                {results.map((doc) => {
+                    const questions = doc.questions;
                     const state =
-                        !doc.data().endAt &&
-                        Date.now() - doc.data().startAt.toDate().getTime() <
-                            exam.data().time;
+                        !doc.endAt &&
+                        Date.now() - new Date(doc.startAt).getTime() <
+                            exam.time;
                     if (state) return null;
                     return (
                         <div key={doc.id}>
-                            <Link href={`/exams/take?id=${doc.id}`} className="hover:tw-opacity-70">
+                            <Link
+                                href={`/exams/take?id=${doc.id}`}
+                                className="hover:tw-opacity-70"
+                            >
                                 <Loader
                                     per={
                                         questions.filter(
@@ -160,14 +109,14 @@ export function ResultsViewer({
                         className="site-btn"
                     >
                         <span>
-                            {results.empty && "Start Exam"}
-                            {!results.empty &&
-                                exam.data().repeatable &&
+                            {results.length == 0 && "Start Exam"}
+                            {results.length != 0 &&
+                                exam.repeatable &&
                                 "Retake Exam"}
                         </span>
                     </button>
                 )}
-                {!startState && results && !exam.data().repeatable && (
+                {!startState && results && !exam.repeatable && (
                     <p className="tw-text-2xl tw-mt-10 tw-font-bold tw-text-black">
                         You can{"'"}t retake the exam
                     </p>

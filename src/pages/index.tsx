@@ -1,45 +1,23 @@
 import Loader from "@/components/loader";
 import ErrorShower from "@/components/error";
-import { createCollection } from "@/firebase";
 import { useAppSelector } from "@/store";
-import {
-    query,
-    where,
-    orderBy,
-    getCountFromServer,
-    QueryDocumentSnapshot,
-    getDocs,
-} from "firebase/firestore";
-import { useCollectionOnce } from "react-firebase-hooks/firestore";
 import { useQuery } from "@tanstack/react-query";
-import { DataBase } from "@/data";
 import ClassNames from "classnames";
 import Link from "next/link";
 import Head from "next/head";
-function useGetStudentsNum(courseId: string) {
-    return useQuery({
-        queryKey: ["Payments", "count", "courseId", courseId],
-        queryFn: async () => {
-            return (
-                await getCountFromServer(
-                    query(
-                        createCollection("Payment"),
-                        where("courseId", "==", courseId)
-                    )
-                )
-            ).data().count;
-        },
-    });
-}
+import { CourseLevelType, getLevelCourses } from "@/firebase/func/data/course";
+import { useGetDoc } from "@/hooks/firebase";
+import Page404 from "@/components/pages/404";
+import { wrapRequest, ErrorMessage, ErrorStates } from "@/utils/wrapRequest";
+import { ErrorMessageCom } from "@/components/handelErrorMessage";
+
 export function Course({
-    doc,
+    data,
     index,
 }: {
     index: number;
-    doc: QueryDocumentSnapshot<DataBase["Courses"]>;
+    data: CourseLevelType;
 }) {
-    const data = doc.data();
-    const { data: count, isLoading, isError } = useGetStudentsNum(doc.id);
     return (
         <div className="featured-course course-item">
             <div
@@ -55,7 +33,7 @@ export function Course({
                     {data.price.currency.toUpperCase()}
                 </div>
             </div>
-            <Link href={`/courses?id=${doc.id}`}>
+            <Link href={`/courses?id=${data.id}`}>
                 <div className="row">
                     <div
                         className={ClassNames({
@@ -72,11 +50,10 @@ export function Course({
                                 )}
                                 <h5>{data.name}</h5>
                                 <p>{data.desc}</p>
-                                {!isLoading && !isError && (
-                                    <div className="students">
-                                        {count} Students
-                                    </div>
-                                )}
+
+                                <div className="students">
+                                    {data.studentNum} Students
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -90,27 +67,16 @@ export function useGetCourses(levelId?: string) {
         enabled: typeof levelId == "string",
         queryKey: ["Courses", "levelId", levelId],
         queryFn: async () => {
-            return await getDocs(
-                query(
-                    createCollection("Courses"),
-                    where("levelId", "==", levelId),
-                    where("hide", "==", false),
-                    orderBy("order")
-                )
-            );
+            return await wrapRequest(getLevelCourses(levelId as string));
         },
+        onError(err: ErrorMessage) {},
     });
 }
-export default function Page() {
-    const user = useAppSelector((state) => state.auth.user!);
-    const {
-        data: courses,
-        isLoading,
-        isError,
-        error,
-    } = useGetCourses(user.data().levelId);
-    if (isLoading) return <Loader />;
-    if (isError) return <ErrorShower err={error} />;
+interface PageParams {
+    level: DataBase.WithIdType<DataBase["Levels"]>;
+    courses: CourseLevelType[];
+}
+export function Page({ courses, level }: PageParams) {
     return (
         <>
             <Head>
@@ -124,13 +90,8 @@ export default function Page() {
             >
                 <div className="container">
                     <div className="hero-text text-white">
-                        <h2>Get The Best Free Online Courses</h2>
-                        <p>
-                            Lorem ipsum dolor sit amet, consectetur adipiscing
-                            elit. Donec malesuada lorem maximus mauris
-                            scelerisque, at rutrum nulla <br /> dictum. Ut ac
-                            ligula sapien. Suspendisse cursus faucibus finibus.
-                        </p>
+                        <h2>{level.name}</h2>
+                        <p>{level.desc}</p>
                     </div>
                 </div>
             </section>
@@ -138,12 +99,12 @@ export default function Page() {
             <section className="course-section spad tw-pb-20">
                 <div className="course-warp">
                     <div className="featured-courses">
-                        {courses?.docs.map((doc, i) => {
+                        {courses.map((data, i) => {
                             return (
                                 <Course
-                                    doc={doc}
+                                    data={data}
                                     index={i}
-                                    key={doc.id}
+                                    key={data.id}
                                 />
                             );
                         })}
@@ -153,5 +114,28 @@ export default function Page() {
 
             {/* categories section end */}
         </>
+    );
+}
+export default function SafeArea() {
+    const user = useAppSelector((state) => state.auth.user!);
+    const { data, isLoading, error } = useGetCourses(user.levelId);
+    const {
+        data: level,
+        isLoading: isLevelLoading,
+        isError: isLevelError,
+        error: levelError,
+    } = useGetDoc("Levels", user.levelId);
+    if (isLoading || isLevelLoading) return <Loader />;
+    if (error) return <ErrorMessageCom error={error} />;
+    if (isLevelError) return <ErrorShower err={levelError} />;
+    if (!level.exists()) return <Page404 message="the level is not exist" />;
+    return (
+        <Page
+            courses={data.courses}
+            level={{
+                id: level.id,
+                ...level.data(),
+            }}
+        />
     );
 }

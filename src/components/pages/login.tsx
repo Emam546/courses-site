@@ -1,26 +1,36 @@
-import { DataBase } from "@/data";
-import { createCollection } from "@/firebase";
-import {
-    QueryDocumentSnapshot,
-    getDocs,
-    query,
-    where,
-} from "firebase/firestore";
-import { useForm } from "react-hook-form";
+import { auth } from "@/firebase";
+import { FieldError, useForm } from "react-hook-form";
 import { ErrorInputShower, NormalInput } from "../common/registeration";
 import Link from "next/link";
+import {
+    setRememberMeState,
+    isFireBaseError,
+    getErrorMessage,
+    isErrormessage,
+} from "@/utils/firebase";
+import {
+    UserCredential,
+    signInWithCustomToken,
+    signInWithEmailAndPassword,
+} from "firebase/auth";
+import { singUpStudentCall } from "@/firebase/func";
+import { ObjectEntries } from "@/utils";
 
 export interface Props {
-    onUser: (user: QueryDocumentSnapshot<DataBase["Users"]>) => any;
+    onLogin?: (
+        user: UserCredential,
+        data: DataBase.WithIdType<DataBase["UsersTeachers"]>
+    ) => any;
 }
-export interface Form {
-    userName: string;
+export interface FormValues {
+    email: string;
     password: string;
-    remeberMe: boolean;
+    rememberMe: boolean;
 }
 
-export default function LogIn({ onUser }: Props) {
-    const { register, formState, handleSubmit, setError } = useForm<Form>();
+export default function LogIn({ onLogin }: Props) {
+    const { register, formState, handleSubmit, setError } =
+        useForm<FormValues>();
     return (
         <section className="dark:tw-bg-gray-900 tw-bg-gray-50">
             <div className="tw-min-h-screen tw-flex tw-flex-col tw-items-center tw-justify-center tw-px-6 tw-py-8 tw-mx-auto md:tw-h-screen lg:tw-py-0">
@@ -31,45 +41,69 @@ export default function LogIn({ onUser }: Props) {
                         </h1>
                         <ErrorInputShower
                             className="tw-text-lg py-3"
-                            err={formState.errors.root as any}
+                            err={formState.errors.root as FieldError}
                         />
                         <form
                             className="tw-space-y-4 md:tw-space-y-6"
                             action="#"
+                            autoComplete="off"
                             onSubmit={handleSubmit(async (data) => {
-                                const docs = await getDocs(
-                                    query(
-                                        createCollection("Users"),
-                                        where("userName", "==", data.userName)
-                                    )
-                                );
-                                if (docs.empty)
-                                    return setError("userName", {
-                                        message: "userName is not exist",
-                                    });
-
-                                const confirmPassword =
-                                    docs.docs[0].data().password;
-
-                                if (data.password != confirmPassword)
-                                    return setError("password", {
-                                        message: "password is not correct",
-                                    });
-                                if (data.remeberMe)
-                                    localStorage.setItem(
-                                        "userId",
-                                        docs.docs[0].id
+                                try {
+                                    await setRememberMeState(
+                                        auth,
+                                        data.rememberMe
                                     );
-                                await onUser(docs.docs[0]);
+                                    const res = await singUpStudentCall({
+                                        email: data.email,
+                                        password: data.password,
+                                        teacherId: process.env
+                                            .NEXT_PUBLIC_TEACHER_ID as string,
+                                    });
+                                    if (!res.data.success) {
+                                        if (isErrormessage(res.data.err)) {
+                                            ObjectEntries(res.data.err).forEach(
+                                                ([key, val]) => {
+                                                    setError(
+                                                        key as keyof FormValues,
+                                                        {
+                                                            message:
+                                                                val[0].message,
+                                                        }
+                                                    );
+                                                }
+                                            );
+                                            return;
+                                        }
+                                        return setError("root", {
+                                            message: res.data.msg,
+                                        });
+                                    }
+                                    const user = await signInWithCustomToken(
+                                        auth,
+                                        res.data.data.token
+                                    );
+                                    onLogin?.(user, res.data.data.user);
+                                } catch (err) {
+                                    if (!isFireBaseError(err)) return;
+                                    const message = getErrorMessage(err.code);
+
+                                    if (!message)
+                                        return setError("root", {
+                                            message: err.message as string,
+                                        });
+                                    setError(message.type as keyof FormValues, {
+                                        message: message.message,
+                                    });
+                                }
                             })}
                         >
                             <NormalInput
                                 labelText={"User Name"}
-                                type="text"
-                                id="userName"
-                                err={formState.errors.userName}
-                                placeholder="eg.ahmed-ali-546"
-                                {...register("userName", {
+                                type="email"
+                                id="email"
+                                err={formState.errors.email}
+                                placeholder="eg.example@gmail.com"
+                                {...register("email", {
                                     required: true,
                                 })}
                             />
@@ -92,7 +126,7 @@ export default function LogIn({ onUser }: Props) {
                                             aria-describedby="remember"
                                             type="checkbox"
                                             className="tw-w-4 tw-h-4 tw-border tw-border-gray-300 tw-rounded tw-bg-gray-50 focus:tw-ring-3 focus:tw-ring-primary-300 dark:tw-bg-gray-700 dark:tw-border-gray-600 dark:focus:tw-ring-primary-600 dark:tw-ring-offset-gray-800"
-                                            {...register("remeberMe")}
+                                            {...register("rememberMe")}
                                             defaultChecked={true}
                                         />
                                     </div>

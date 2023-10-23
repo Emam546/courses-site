@@ -1,70 +1,60 @@
 import Page404 from "@/components/pages/404";
-import QuestionsViewer from "@/components/pages/exams/questions";
+import QuestionsViewer, {
+    useGetResult,
+} from "@/components/pages/exams/questions";
 import Loader from "@/components/loader";
-import { PaymentProtector } from "@/components/payment";
-import { DataBase } from "@/data";
-import { useGetDoc } from "@/hooks/firebase";
-import { QueryDocumentSnapshot } from "firebase/firestore";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { NextPageWithLayout } from "../_app";
 import { ProvideUser } from "@/components/wrapper";
 import Protector from "@/components/protector";
-import { useGetExamCourse } from ".";
-import { GoToButton } from "@/components/common/addButton";
-function SafeArea({
-    doc,
-}: {
-    doc: QueryDocumentSnapshot<DataBase["Results"]>;
-}) {
-    const { data: exam } = useGetDoc("Exams", doc.data().examId);
+import { useGetExam } from ".";
+import { ResultType } from "@/firebase/func/data/results";
+import { ExamType } from "@/firebase/func/data/exam";
+import { ErrorMessageCom } from "@/components/handelErrorMessage";
 
+function Page({ doc, exam }: { doc: ResultType; exam: ExamType }) {
     return (
         <>
             <Head>
-                <title>{exam?.data()?.name || "loading ..."}</title>
+                <title>{exam.name}</title>
             </Head>
-            {exam?.exists() && (
-                <QuestionsViewer
-                    resultId={doc.id}
-                    exam={exam}
-                />
-            )}
+
+            <QuestionsViewer
+                resultId={doc.id}
+                initialData={doc}
+                exam={exam}
+            />
         </>
     );
 }
 
-function Main() {
+function SafeArea() {
     const router = useRouter();
     const { id } = router.query;
-    const queryResult = useGetDoc("Results", id as string);
-    const queryCourse = useGetExamCourse(queryResult.data?.data()?.examId);
-
+    const queryResult = useGetResult(id as string);
+    const queryExam = useGetExam(queryResult.data?.result.examId);
     if (typeof id != "string")
         return <Page404 message="The Lesson id is not exist" />;
-    if (queryResult.isLoading) return <Loader />;
-    if (queryResult.isError) return null;
-    if (!queryResult.data.exists())
-        return <Page404 message="The Lesson is not exist" />;
-    if (queryCourse.isLoading) return <Loader />;
-    if (queryCourse.isError) return null;
-    if (!queryCourse.data.exists())
-        return <Page404 message="The Course is not exist" />;
+    if (queryResult.isLoading || queryExam.isLoading) return <Loader />;
+    if (queryResult.error || queryExam.error)
+        return <ErrorMessageCom error={queryResult.error || queryExam.error} />;
 
     return (
         <ProvideUser>
             <Protector>
-                <PaymentProtector course={queryCourse.data}>
-                    <SafeArea doc={queryResult.data} />
-                </PaymentProtector>
+                <Page
+                    doc={queryResult.data.result}
+                    exam={queryExam.data.exam}
+                />
             </Protector>
         </ProvideUser>
     );
 }
-const Page: NextPageWithLayout = () => {
-    return <Main />;
+const FinalPage: NextPageWithLayout = () => {
+    return <SafeArea />;
 };
-Page.getLayout = (child) => {
+FinalPage.getLayout = (child) => {
     return <>{child}</>;
 };
 export default Page;

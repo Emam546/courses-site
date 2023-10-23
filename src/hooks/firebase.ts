@@ -1,5 +1,4 @@
-import { DataBase } from "@/data";
-import { createCollection, getDocRef } from "@/firebase";
+import { auth, createCollection, getDocRef } from "@/firebase";
 import { useAppSelector } from "@/store";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -11,17 +10,18 @@ import {
     DocumentSnapshot,
     orderBy,
 } from "firebase/firestore";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 export function useGetPayment(courseId?: string) {
-    const user = useAppSelector((state) => state.auth.user);
+    const [user] = useAuthState(auth);
     return useQuery({
         queryKey: ["payment", courseId],
         enabled: typeof courseId == "string" && user != undefined,
         queryFn: async () => {
             const res = await getDocs(
                 query(
-                    createCollection("Payment"),
-                    where("userId", "==", user!.id),
+                    createCollection("Payments"),
+                    where("userId", "==", user!.uid),
                     where("courseId", "==", courseId),
                     limit(1)
                 )
