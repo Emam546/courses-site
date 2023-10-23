@@ -1,5 +1,7 @@
 import { getCollection } from "@/firebase";
 import { Router } from "express";
+import { ErrorMessages } from "../declarations/major/Messages";
+import { shuffle } from "@/utils";
 const router = Router();
 
 router.get("/", async (req, res) => {
@@ -7,23 +9,31 @@ router.get("/", async (req, res) => {
   if (typeof questionId != "string")
     return res.status(422).sendData({
       success: false,
-      msg: "Wrong token",
+      msg: ErrorMessages.UnProvidedId,
     });
 
   const question = await getCollection("Questions").doc(questionId).get();
-  if (!question.exists)
+  const data = question.data();
+  if (!question.exists || !data)
     return res.status(404).sendData({
       success: false,
-      msg: "The lesson is not exist",
+      msg: ErrorMessages.UnExistedDoc,
     });
 
-  const data = { id: question.id, ...question.data() };
-  delete data.answer;
+  const choices = data.shuffle ? shuffle(data.choices) : data.choices;
+
   return res.status(200).sendData({
     success: true,
     msg: "success",
     data: {
-      quest: data,
+      question: {
+        id: question.id,
+        choices,
+        quest: data.quest,
+        creatorId: data.creatorId,
+        lessonId: data.lessonId,
+        courseId: data.courseId,
+      },
     },
   });
 });

@@ -1,10 +1,11 @@
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import { getCollection } from "@/firebase";
 import { checkPaidCourseUser } from "@/utils/auth";
 import { QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { DataBase } from "../../../../src/data";
+import { FieldValue } from "firebase-admin/firestore";
 import Validator from "validator-checker-js";
-import { ErrorMessages } from "@serv/declarations/major/Messages";
+import { ErrorMessages, Messages } from "@serv/declarations/major/Messages";
 const router = Router();
 
 declare global {
@@ -57,7 +58,7 @@ const validator = new Validator({
     ["required"],
   ],
 });
-router.post("/", async (req, res) => {
+router.post("/", async (req, res, next) => {
   const result = req.result;
   const checkRes = validator.passes(req.body);
   if (!checkRes.state) {
@@ -67,21 +68,54 @@ router.post("/", async (req, res) => {
       err: checkRes.errors,
     });
   }
+  const exam = await getCollection("Exams").doc(req.result.data().examId).get();
+
+  function getEndState() {
+    if (!result || !result.exists) return false;
+    const startAt: Date = result.data().startAt.toDate() || new Date();
+
+    if (Date.now() - startAt.getTime() > exam.data()!.time) return true;
+    if (typeof result.data().endAt != "undefined") return true;
+    return false;
+  }
+  if (getEndState()) return await endExam(req, res);
+
   const data = checkRes.data as DataBase["Results"];
   result.ref.update(data);
   return res.sendData({
     success: true,
-    msg: "success",
+    msg: Messages.DataUpdated,
     data,
   });
 });
-router.post("/end", async (req, res) => {
+async function endExam(req: Request, res: Response) {
   const result = req.result;
-
+  const questions = await Promise.all(
+    req.result.data().questions.map(async (data) => {
+      const quest = await getCollection("Questions").doc(data.questionId).get();
+      const questData = quest.data();
+      if (!questData)
+        return {
+          ...data,
+          correctAnswer: data.answer || "",
+          correctState: true,
+        };
+      return {
+        ...data,
+        correctAnswer: questData.answer,
+        correctState: questData.answer == data.answer,
+      };
+    }),
+  );
+  await result.ref.update({
+    endAt: FieldValue.serverTimestamp(),
+    questions: questions,
+  });
   return res.sendData({
     success: true,
-    msg: "success",
-    data: null,
+    msg: Messages.DataUpdated,
+    data: {},
   });
-});
+}
+router.post("/end", endExam);
 export default router;
