@@ -13,5 +13,6 @@ const config: Config = {
     testMatch: ["**/*.+(test|spec).+(ts|tsx|js)"],
     testEnvironment: "node",
     preset: "ts-jest/presets/js-with-ts",
+    forceExit: true,
 };
 export default config;
