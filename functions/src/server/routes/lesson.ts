@@ -23,7 +23,7 @@ router.use(async (req, res, next) => {
   const lesson = await getCollection("Lessons").doc(lessonId).get();
   const lessonData = lesson.data();
   if (!lesson.exists || !lessonData)
-    return res.status(404).sendData({
+    return res.status(HttpStatusCodes.NOT_FOUND).sendData({
       success: false,
       msg: ErrorMessages.UnExistedDoc,
     });
@@ -48,7 +48,7 @@ router.use(async (req, res, next) => {
 router.get("/", async (req, res) => {
   const data = req.lesson.data();
   if (!data)
-    return res.status(404).sendData({
+    return res.status(HttpStatusCodes.NOT_FOUND).sendData({
       success: false,
       msg: ErrorMessages.UnExistedDoc,
     });

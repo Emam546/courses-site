@@ -1,9 +1,10 @@
-import { auth, getCollectionReference, getDocument } from "./firebase";
+import "./validator";
+import { auth, getCollectionReference, getDocument } from "@/firebase";
 import { FieldValue } from "firebase-admin/firestore";
 import { onCall } from "firebase-functions/v1/https";
 import { UserRecord } from "firebase-admin/auth";
 import logger from "firebase-functions/logger";
-import { ResponseData } from "./types";
+import { ResponseData } from "@/types";
 import Validator from "validator-checker-js";
 export type RegisterResponseData = ResponseData<{ token: string }>;
 export interface RegisterRequestData {
@@ -74,7 +75,7 @@ export const onTeacherDelete = teacher.onDelete(async (doc) => {
     .orderBy("order")
     .get();
   await Promise.all(levels.docs.map((level) => level.ref.delete()));
-  const res = await getCollectionReference("UsersTeachers")
+  const res = await getCollectionReference("Students")
     .where("teacherId", "==", doc.id)
     .get();
   await Promise.all(res.docs.map((doc) => doc.ref.delete()));

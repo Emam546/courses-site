@@ -55,7 +55,7 @@ router.use(async (req, res, next) => {
   const exam = await getCollection("Exams").doc(examId).get();
   const examData = exam.data();
   if (!exam.exists || !examData)
-    return res.status(404).sendData({
+    return res.status(HttpStatusCodes.NOT_FOUND).sendData({
       success: false,
       msg: ErrorMessages.UnExistedDoc,
     });

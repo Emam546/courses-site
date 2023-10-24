@@ -2,6 +2,7 @@ import { getCollection } from "@/firebase";
 import { Router } from "express";
 import { ErrorMessages, Messages } from "../declarations/major/Messages";
 import { shuffle } from "@/utils";
+import HttpStatusCodes from "../declarations/major/HttpStatusCodes";
 const router = Router();
 
 router.get("/", async (req, res) => {
@@ -15,7 +16,7 @@ router.get("/", async (req, res) => {
   const question = await getCollection("Questions").doc(questionId).get();
   const data = question.data();
   if (!question.exists || !data)
-    return res.status(404).sendData({
+    return res.status(HttpStatusCodes.NOT_FOUND).sendData({
       success: false,
       msg: ErrorMessages.UnExistedDoc,
     });

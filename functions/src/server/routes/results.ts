@@ -26,13 +26,13 @@ router.use(async (req, res, next) => {
   const result = await getCollection("Results").doc(resultId).get();
   const resultData = result.data();
   if (!result.exists || !resultData)
-    return res.status(404).sendData({
+    return res.status(HttpStatusCodes.NOT_FOUND).sendData({
       success: false,
       msg: ErrorMessages.UnExistedDoc,
     });
 
   if (req.user.uid == resultData.userId)
-    return res.status(404).sendData({
+    return res.status(HttpStatusCodes.NOT_FOUND).sendData({
       success: false,
       msg: ErrorMessages.UnAuthorized,
     });

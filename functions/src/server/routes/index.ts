@@ -1,4 +1,5 @@
 import { Router } from "express";
+import levelsRouter from "./level";
 import lessonsRouter from "./lesson";
 import courseRouter from "./course";
 import questionsRouter from "./questions";
@@ -12,7 +13,6 @@ import HttpStatusCodes from "../declarations/major/HttpStatusCodes";
 
 const router = Router();
 router.use(async (req, res, next) => {
-  req.user;
   const token = getIdToken(req as RequestFireBase);
   if (!token)
     return res
@@ -21,6 +21,7 @@ router.use(async (req, res, next) => {
   req.user = await auth.verifyIdToken(token);
   return next();
 });
+router.get("/level", levelsRouter);
 router.get("/course", courseRouter);
 router.get("/lesson", lessonsRouter);
 router.get("/question", questionsRouter);
