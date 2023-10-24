@@ -36,7 +36,16 @@ export function useGetLevels() {
         queryKey: ["Levels"],
         queryFn: async () => {
             return await getDocs(
-                query(createCollection("Levels"), orderBy("order"))
+                query(
+                    createCollection("Levels"),
+                    where(
+                        "teacherId",
+                        "==",
+                        process.env.NEXT_PUBLIC_TEACHER_ID as string
+                    ),
+                    where("hide", "==", false),
+                    orderBy("order")
+                )
             );
         },
     });
