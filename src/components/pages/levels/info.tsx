@@ -1,22 +1,11 @@
-import React, { useState } from "react";
-import InfoGetter, {
-    CreateElem,
-    Props as InfoProps,
-} from "../../InsertCommonData";
+import { useState } from "react";
+import InfoGetter, { CreateElem } from "../../InsertCommonData";
 import { Elem as OrgElem } from "../../InsertCommonData/Elem";
 import { DataBase, WithIdType } from "@/data";
 import Link from "next/link";
 import { useCollection } from "react-firebase-hooks/firestore";
-import { auth, createCollection, fireStore, getDocRef } from "@/firebase";
-import {
-    deleteDoc,
-    doc,
-    getDoc,
-    orderBy,
-    query,
-    updateDoc,
-    where,
-} from "firebase/firestore";
+import { auth, createCollection, fireStore } from "@/firebase";
+import { deleteDoc, doc, orderBy, query, updateDoc, where } from "firebase/firestore";
 import DeleteDialog from "../../common/AlertDialog";
 import ErrorShower from "../../common/error";
 import { useAuthState } from "react-firebase-hooks/auth";

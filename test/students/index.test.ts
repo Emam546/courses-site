@@ -2,15 +2,13 @@ import {
     CreateAuth,
     InitialAuth,
     getAppAdmin,
-    getAuth,
     getFireStore,
     uuid,
 } from "../utils";
 import { CompleteLevelData } from "../level";
 import * as firebase from "@firebase/testing";
-import { expect } from "chai";
 import { faker } from "@faker-js/faker";
-describe("UsersTeachers", () => {
+describe("Students", () => {
     const StudentAuth = { ...CreateAuth(), role: "student" };
     const AuthFire = getFireStore(InitialAuth);
     const levelDoc = AuthFire.collection("Levels").doc(uuid());
@@ -22,7 +20,7 @@ describe("UsersTeachers", () => {
     });
     const docData = {
         displayName: faker.internet.displayName(),
-        userId: StudentAuth.uid,
+
         teacherId: InitialAuth.uid,
         levelId: levelDoc.id,
         blocked: false,
@@ -31,8 +29,8 @@ describe("UsersTeachers", () => {
     describe("read", () => {
         const doc = getAppAdmin()
             .firestore()
-            .collection("UsersTeachers")
-            .doc(uuid());
+            .collection("Students")
+            .doc(StudentAuth.uid);
         beforeAll(async () => {
             await doc.set(docData);
         });
@@ -40,28 +38,26 @@ describe("UsersTeachers", () => {
             await doc.delete();
         });
         test("read teacher", async () => {
-            const query = AuthFire.collection("UsersTeachers")
-                .doc(doc.id)
-                .get();
+            const query = AuthFire.collection("Students").doc(doc.id).get();
             await firebase.assertSucceeds(query);
         });
         test("read student", async () => {
             const query = getFireStore(StudentAuth)
-                .collection("UsersTeachers")
+                .collection("Students")
                 .doc(doc.id)
                 .get();
             await firebase.assertSucceeds(query);
         });
         test("read un authorized", async () => {
             const query = getFireStore()
-                .collection("UsersTeachers")
+                .collection("Students")
                 .doc(doc.id)
                 .get();
             await firebase.assertFails(query);
         });
         test("read unlisted teacher", async () => {
             const query = getFireStore(CreateAuth())
-                .collection("UsersTeachers")
+                .collection("Students")
                 .doc(doc.id)
                 .get();
             await firebase.assertFails(query);
@@ -70,8 +66,8 @@ describe("UsersTeachers", () => {
     describe("update", () => {
         const doc = getAppAdmin()
             .firestore()
-            .collection("UsersTeachers")
-            .doc(uuid());
+            .collection("Students")
+            .doc(StudentAuth.uid);
         beforeAll(async () => {
             await doc.set(docData);
         });
@@ -83,7 +79,7 @@ describe("UsersTeachers", () => {
                 const data = {
                     levelId: levelDoc.id,
                 };
-                const query = AuthFire.collection("UsersTeachers")
+                const query = AuthFire.collection("Students")
                     .doc(doc.id)
                     .update(data);
                 await firebase.assertSucceeds(query);
@@ -92,7 +88,7 @@ describe("UsersTeachers", () => {
                 const data = {
                     blocked: true,
                 };
-                const query = AuthFire.collection("UsersTeachers")
+                const query = AuthFire.collection("Students")
                     .doc(doc.id)
                     .update(data);
                 await firebase.assertSucceeds(query);
@@ -102,7 +98,7 @@ describe("UsersTeachers", () => {
                     const data = {
                         displayName: "new name",
                     };
-                    const query = AuthFire.collection("UsersTeachers")
+                    const query = AuthFire.collection("Students")
                         .doc(doc.id)
                         .update(data);
                     await firebase.assertFails(query);
@@ -111,7 +107,7 @@ describe("UsersTeachers", () => {
                     const data = {
                         email: faker.internet.email(),
                     };
-                    const query = AuthFire.collection("UsersTeachers")
+                    const query = AuthFire.collection("Students")
                         .doc(doc.id)
                         .update(data);
                     await firebase.assertFails(query);
@@ -120,7 +116,7 @@ describe("UsersTeachers", () => {
                     const data = {
                         teacherId: uuid(),
                     };
-                    const query = AuthFire.collection("UsersTeachers")
+                    const query = AuthFire.collection("Students")
                         .doc(doc.id)
                         .update(data);
                     await firebase.assertFails(query);
@@ -129,7 +125,7 @@ describe("UsersTeachers", () => {
                     const data = {
                         teacherId: uuid(),
                     };
-                    const query = AuthFire.collection("UsersTeachers")
+                    const query = AuthFire.collection("Students")
                         .doc(doc.id)
                         .update(data);
                     await firebase.assertFails(query);
@@ -142,7 +138,7 @@ describe("UsersTeachers", () => {
                     displayName: faker.internet.displayName(),
                 };
                 const query = getFireStore(StudentAuth)
-                    .collection("UsersTeachers")
+                    .collection("Students")
                     .doc(doc.id)
                     .update(data);
                 await firebase.assertSucceeds(query);
@@ -152,7 +148,7 @@ describe("UsersTeachers", () => {
                     email: faker.internet.email(),
                 };
                 const query = getFireStore(StudentAuth)
-                    .collection("UsersTeachers")
+                    .collection("Students")
                     .doc(doc.id)
                     .update(data);
                 await firebase.assertSucceeds(query);
@@ -161,7 +157,7 @@ describe("UsersTeachers", () => {
                 const data = {
                     levelId: levelDoc.id,
                 };
-                const query = AuthFire.collection("UsersTeachers")
+                const query = AuthFire.collection("Students")
                     .doc(doc.id)
                     .update(data);
                 await firebase.assertSucceeds(query);
@@ -171,7 +167,7 @@ describe("UsersTeachers", () => {
                     phone: faker.phone.number(),
                 };
                 const query = getFireStore(StudentAuth)
-                    .collection("UsersTeachers")
+                    .collection("Students")
                     .doc(doc.id)
                     .update(data);
                 await firebase.assertSucceeds(query);
@@ -182,7 +178,7 @@ describe("UsersTeachers", () => {
                         blocked: false,
                     };
                     const query = getFireStore(StudentAuth)
-                        .collection("UsersTeachers")
+                        .collection("Students")
                         .doc(doc.id)
                         .update(data);
                     await firebase.assertFails(query);
@@ -192,7 +188,7 @@ describe("UsersTeachers", () => {
                         teacherId: uuid(),
                     };
                     const query = getFireStore(StudentAuth)
-                        .collection("UsersTeachers")
+                        .collection("Students")
                         .doc(doc.id)
                         .update(data);
                     await firebase.assertFails(query);
@@ -202,7 +198,7 @@ describe("UsersTeachers", () => {
                         teacherId: uuid(),
                     };
                     const query = getFireStore(StudentAuth)
-                        .collection("UsersTeachers")
+                        .collection("Students")
                         .doc(doc.id)
                         .update(data);
                     await firebase.assertFails(query);
@@ -214,7 +210,7 @@ describe("UsersTeachers", () => {
                 email: faker.internet.email(),
             };
             const query = getFireStore()
-                .collection("UsersTeachers")
+                .collection("Students")
                 .doc(doc.id)
                 .update(data);
             await firebase.assertFails(query);
@@ -224,7 +220,7 @@ describe("UsersTeachers", () => {
                 blocked: true,
             };
             const query = getFireStore(CreateAuth())
-                .collection("UsersTeachers")
+                .collection("Students")
                 .doc(doc.id)
                 .update(data);
             await firebase.assertFails(query);
@@ -232,26 +228,24 @@ describe("UsersTeachers", () => {
     });
     describe("create", () => {
         test("create teacher", async () => {
-            const query = AuthFire.collection("UsersTeachers").add(docData);
+            const query = AuthFire.collection("Students").add(docData);
             await firebase.assertFails(query);
         });
         test("create student", async () => {
             const query = getFireStore(StudentAuth)
-                .collection("UsersTeachers")
+                .collection("Students")
                 .add(docData);
             await firebase.assertFails(query);
         });
         test("create un Authorized", async () => {
-            const query = getFireStore()
-                .collection("UsersTeachers")
-                .add(docData);
+            const query = getFireStore().collection("Students").add(docData);
             await firebase.assertFails(query);
         });
     });
     describe("delete", () => {
         const doc = getAppAdmin()
             .firestore()
-            .collection("UsersTeachers")
+            .collection("Students")
             .doc(StudentAuth.uid);
         beforeEach(async () => {
             await doc.set(docData);
@@ -260,28 +254,26 @@ describe("UsersTeachers", () => {
             await doc.delete();
         });
         test("delete teacher", async () => {
-            const query = AuthFire.collection("UsersTeachers")
-                .doc(doc.id)
-                .delete();
+            const query = AuthFire.collection("Students").doc(doc.id).delete();
             await firebase.assertSucceeds(query);
         });
         test("delete student", async () => {
             const query = getFireStore(StudentAuth)
-                .collection("UsersTeachers")
+                .collection("Students")
                 .doc(doc.id)
                 .delete();
             await firebase.assertFails(query);
         });
         test("delete un authorized", async () => {
             const query = getFireStore()
-                .collection("UsersTeachers")
+                .collection("Students")
                 .doc(doc.id)
                 .delete();
             await firebase.assertFails(query);
         });
         test("delete unlisted teacher", async () => {
             const query = getFireStore(CreateAuth())
-                .collection("UsersTeachers")
+                .collection("Students")
                 .doc(doc.id)
                 .delete();
             await firebase.assertFails(query);

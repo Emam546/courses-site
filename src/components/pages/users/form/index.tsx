@@ -13,12 +13,12 @@ export type DataType = {
     blocked: boolean;
 };
 export interface Props {
-    defaultData: DataBase["UsersTeachers"];
+    defaultData: DataBase["Students"];
     onData: (data: DataType) => Promise<any> | any;
 }
 export default function LevelInfoForm({ defaultData, onData }: Props) {
     const { register, handleSubmit, formState, getValues } = useForm<
-        DataBase["UsersTeachers"]
+        DataBase["Students"]
     >({
         defaultValues: defaultData,
     });

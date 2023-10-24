@@ -13,7 +13,7 @@ import Head from "next/head";
 import { useAuthState } from "react-firebase-hooks/auth";
 
 function SafeArea({ id }: { id: string }) {
-    const [doc, loading, error] = useDocument(getDocRef("UsersTeachers", id));
+    const [doc, loading, error] = useDocument(getDocRef("Students", id));
     const [teacher] = useAuthState(auth);
     if (doc && !doc.exists())
         return <Page404 message="The Level id is not exist" />;
@@ -65,13 +65,13 @@ function SafeArea({ id }: { id: string }) {
                 <>
                     <CardTitle>Payments</CardTitle>
                     <MainCard>
-                        <PaymentInfoGenerator userId={doc.data().userId} />
+                        <PaymentInfoGenerator userId={doc.id} />
                     </MainCard>
                 </>
                 <>
                     <CardTitle>Results</CardTitle>
                     <MainCard>
-                        <UserResultGenerator userId={doc.data().userId} />
+                        <UserResultGenerator userId={doc.id} />
                     </MainCard>
                 </>
             </MainCard>

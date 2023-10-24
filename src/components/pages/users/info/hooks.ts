@@ -24,7 +24,7 @@ export function useGetUsersCount({
 }) {
     const [teacher] = useAuthState(auth);
     return useQuery({
-        queryKey: ["UsersTeachers", "count", levelId, courseId],
+        queryKey: ["Students", "count", levelId, courseId],
         queryFn: async () => {
             if (courseId) {
                 return (
@@ -40,7 +40,7 @@ export function useGetUsersCount({
                 return (
                     await getCountFromServer(
                         query(
-                            createCollection("UsersTeachers"),
+                            createCollection("Students"),
                             where("levelId", "==", levelId)
                         )
                     )
@@ -49,7 +49,7 @@ export function useGetUsersCount({
             return (
                 await getCountFromServer(
                     query(
-                        createCollection("UsersTeachers"),
+                        createCollection("Students"),
                         where("teacherId", "==", teacher!.uid)
                     )
                 )
@@ -68,10 +68,10 @@ export function useGetUser({
 }) {
     const [teacher] = useAuthState(auth);
     return useQuery({
-        queryKey: ["UsersTeachers", "page", page, levelId, courseId],
+        queryKey: ["Students", "page", page, levelId, courseId],
 
         queryFn: async (): Promise<
-            QueryDocumentSnapshot<DataBase["UsersTeachers"]>[]
+            QueryDocumentSnapshot<DataBase["Students"]>[]
         > => {
             if (courseId) {
                 const users = await Promise.all(
@@ -88,7 +88,7 @@ export function useGetUser({
                         .map(async (pay) => {
                             return await getDoc(
                                 getDocRef(
-                                    "UsersTeachers",
+                                    "Students",
                                     teacher!.uid + pay.data().userId
                                 )
                             );
@@ -96,15 +96,13 @@ export function useGetUser({
                 );
                 return users.filter((doc) =>
                     doc.exists()
-                ) as unknown as QueryDocumentSnapshot<
-                    DataBase["UsersTeachers"]
-                >[];
+                ) as unknown as QueryDocumentSnapshot<DataBase["Students"]>[];
             }
             if (levelId) {
                 return (
                     await getDocs(
                         query(
-                            createCollection("UsersTeachers"),
+                            createCollection("Students"),
                             where("levelId", "==", levelId),
                             orderBy("createdAt"),
                             limit(perPage * page + perPage)
@@ -115,7 +113,7 @@ export function useGetUser({
             return (
                 await getDocs(
                     query(
-                        createCollection("UsersTeachers"),
+                        createCollection("Students"),
                         where("teacherId", "==", teacher!.uid),
                         orderBy("createdAt"),
                         limit(perPage * page + perPage)

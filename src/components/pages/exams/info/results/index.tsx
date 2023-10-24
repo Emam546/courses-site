@@ -19,7 +19,7 @@ interface ElemProps {
 
 function ResultShower({ result: result }: ElemProps) {
     const [open, setOpen] = useState(false);
-    const { data: user } = useGetDoc("UsersTeachers", result.data().userId);
+    const { data: user } = useGetDoc("Students", result.data().userId);
     const data = result.data();
     return (
         <>

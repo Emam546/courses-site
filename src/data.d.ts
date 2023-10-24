@@ -98,15 +98,19 @@ export interface DataBase {
         contactPhone?: string;
         contactEmail?: string;
     };
-    UsersTeachers: {
-        userId: string;
+    Students: {
         teacherId: string;
         levelId: string;
         blocked: boolean;
         displayname: string;
+        emailVerified: boolean;
         email: string;
         phone: string;
         createdAt: Timestamp;
+    };
+    AuthStudent: {
+        passwordHash: string;
+        passwordSalt: string;
     };
     Payments:
         | {

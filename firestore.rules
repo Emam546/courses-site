@@ -17,6 +17,7 @@ service cloud.firestore {
     function teacherOwnsDoc(){
       return isAuthTeacher() && (resource==null || resource.data.get("teacherId", request.auth.uid) == request.auth.uid);
     }
+
     function verifyFields(required, optional) {
       let allAllowedFields = required.concat(optional);
       return request.resource.data.keys().hasAll(required) &&
@@ -169,13 +170,16 @@ service cloud.firestore {
       allow update:if canEdit(resource) && allowFields(["quest", "choices","shuffle","answer"])&& verfiedData();
       allow delete:if canEdit(resource);
     }
-    match /UsersTeachers/{id}{
+    match /Students/{id}{
       function ownLevelId(){
           let levelId=request.resource.data.levelId;
           let teacherId=request.resource.data.teacherId;
           return (levelId is string && 
               get(/databases/$(database)/documents/Levels/$(levelId)).data.teacherId==teacherId
           );
+      }
+      function studentOwnsDoc(){
+        return isAuthUser() && (resource==null || id == request.auth.uid);
       }
       function verfiyData(){
         return isStr("displayName")&& isBool("blocked") && isStr("email")&& isStr("phone") && isStr("levelId") && ownLevelId();
@@ -185,9 +189,9 @@ service cloud.firestore {
         return teacherOwnsDoc() && allowFields(["levelId","blocked"]) && verfiyData();
       }
       function verifyDataUser(){
-        return UserCanRead() && allowFields(["displayName","email","phone","levelId"]) && verfiyData();
+        return studentOwnsDoc() && allowFields(["displayName","email","phone","levelId"]) && verfiyData();
       }
-      allow read:if UserCanRead() || teacherOwnsDoc();
+      allow read:if studentOwnsDoc() || teacherOwnsDoc();
       allow create:if false;
       allow update:if verifyDataTeacher()|| verifyDataUser();
       allow delete:if teacherOwnsDoc();
@@ -215,6 +219,9 @@ service cloud.firestore {
       allow create:if hasTeacherId()&& verifyFields(["courseId","teacherId","type"],["userId","activatedAt"])&& verfiedData() ;
       allow update:if false;
       allow delete:if teacherOwnsDoc();
+    }
+    match /AuthStudent/{id}{
+      allow read, write:if false;
     }
   }
 }

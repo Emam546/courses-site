@@ -14,7 +14,7 @@ import { useRouter } from "next/router";
 import { useGetDoc } from "@/hooks/fireStore";
 import { perPage } from "../results/hooks";
 interface ElemProps {
-    userTeacher: QueryDocumentSnapshot<DataBase["UsersTeachers"]>;
+    userTeacher: QueryDocumentSnapshot<DataBase["Students"]>;
 }
 
 function UserShower({ userTeacher: user }: ElemProps) {
