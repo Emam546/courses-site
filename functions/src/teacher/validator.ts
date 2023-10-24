@@ -10,29 +10,8 @@ declare module "validator-checker-js/dist/type" {
       path: "emailNotExist";
       errors: MessagesStore<"emailNotExist">;
     };
-    emailExist: {
-      type: string;
-      path: "emailExist";
-      errors: MessagesStore<"emailExist">;
-    };
   }
 }
-Validator.register(
-  "emailExist",
-  "emailExist",
-  async (email) => {
-    if (!isString(email)) return "the email is not a string";
-    return await new Promise((res) => {
-      auth
-        .getUserByEmail(email)
-        .then((user) => {
-          user.emailVerified ? res(undefined) : res("the email is not exist");
-        })
-        .catch(() => res("the email is not exist"));
-    });
-  },
-  {},
-);
 Validator.register(
   "emailNotExist",
   "emailNotExist",

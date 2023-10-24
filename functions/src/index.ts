@@ -1,4 +1,5 @@
 import "./validator";
+import "./teacher/validator";
 export * from "./auth";
 export { onTeacherDelete, registerTeacher } from "./teacher";
 export { registerStudent, onUserDelete, signInStudent } from "./student";

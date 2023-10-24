@@ -1,3 +1,4 @@
+
 import "./validator";
 import { FieldValue } from "firebase-admin/firestore";
 import {
@@ -69,7 +70,7 @@ export const registerStudent = onCall(async (data) => {
     createdAt: FieldValue.serverTimestamp(),
     levelId: levelId,
     teacherId: teacherId,
-    emailVerified: false,
+    emailVerified: true,
   };
   const userDoc = await getCollectionReference("Students").add(gData);
   const passwordSalt = bcrypt.genSaltSync();

@@ -1,6 +1,6 @@
 import { hasOwnProperty } from "@/utils";
 import { firestore, auth } from "@/firebase";
-import Validator from "validator-checker-js";
+import Validator, { AvailableRules } from "validator-checker-js";
 import { MessagesStore } from "validator-checker-js/dist/Rule";
 import { DataBase } from "@dataBase";
 import { isString } from "@/utils/types";
@@ -15,7 +15,7 @@ declare module "validator-checker-js/dist/type" {
     existedId: {
       type: string;
       path: { existedId: { path: keyof DataBase } };
-      errors: MessagesStore<{ path: keyof DataBase }>;
+      errors: MessagesStore<{ existedId: { path: keyof DataBase } }>;
     };
   }
 }
@@ -35,7 +35,7 @@ Validator.register<"role">(
 );
 Validator.register<"existedId">(
   "existedId",
-  (value): value is { existedId: { path: keyof DataBase } } => {
+  (value): value is AvailableRules["existedId"]["path"] => {
     return (
       hasOwnProperty(value, "existedId") &&
       hasOwnProperty(value.existedId, "path") &&
