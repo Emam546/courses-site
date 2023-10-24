@@ -1,9 +1,9 @@
-import { DecodedIdToken } from "firebase-admin/auth";
 import { Send } from "express";
+import { DataBase, WithIdType } from "@dataBase";
 declare global {
   namespace Express {
     interface Request {
-      user: DecodedIdToken;
+      user: WithIdType<DataBase["Students"]>;
     }
   }
 }

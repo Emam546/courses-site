@@ -19,7 +19,7 @@ declare module "validator-checker-js/dist/type" {
     };
   }
 }
-Validator.register<"role">(
+Validator.register(
   "role",
   (value): value is { role: string } => {
     return hasOwnProperty(value, "role") && isString(value.role);
@@ -33,7 +33,7 @@ Validator.register<"role">(
   },
   {},
 );
-Validator.register<"existedId">(
+Validator.register(
   "existedId",
   (value): value is AvailableRules["existedId"]["path"] => {
     return (

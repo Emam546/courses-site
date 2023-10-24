@@ -13,7 +13,7 @@ export interface RegisterRequestData {
   displayName: string;
 }
 const validator = new Validator({
-  email: ["emailNotExist", "email", "required"],
+  email: ["email", "required"],
   password: ["string", "alpha_num", { min: 5 }, "required"],
   displayName: ["string", "required"],
 });

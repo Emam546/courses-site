@@ -21,7 +21,7 @@ router.use(async (req, res, next) => {
     });
     return;
   }
-  const state = await checkPaidCourseUser(req.user.uid, courseId);
+  const state = await checkPaidCourseUser(req.user.id, courseId);
   if (!state) {
     res.status(HttpStatusCodes.PAYMENT_REQUIRED).sendData({
       success: false,

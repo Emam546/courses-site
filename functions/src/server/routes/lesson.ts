@@ -33,7 +33,7 @@ router.use(async (req, res, next) => {
       success: false,
       msg: ErrorMessages.HidedDoc,
     });
-  const state = await checkPaidCourseUser(req.user.uid, lessonData.courseId);
+  const state = await checkPaidCourseUser(req.user.id, lessonData.courseId);
 
   if (!state) {
     res.status(HttpStatusCodes.PAYMENT_REQUIRED).sendData({

@@ -17,18 +17,22 @@
   "main": "lib/index.js",
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "command-line-args": "^5.2.1",
     "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "express-async-errors": "^3.1.1",
     "firebase-admin": "^11.8.0",
     "firebase-functions": "^4.3.1",
+    "jsonwebtoken": "^9.0.2",
     "uuid": "^9.0.1",
-    "validator-checker-js": "^1.1.6"
+    "validator-checker-js": "^1.1.8"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.1.0",
     "@firebase/testing": "^0.20.11",
     "@types/bcrypt": "^5.0.1",
+    "@types/command-line-args": "^5.2.2",
     "@typescript-eslint/eslint-plugin": "^5.12.0",
     "@typescript-eslint/parser": "^5.12.0",
     "chai": "^4.3.8",

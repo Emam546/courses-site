@@ -31,12 +31,12 @@ router.use(async (req, res, next) => {
       msg: ErrorMessages.UnExistedDoc,
     });
 
-  if (req.user.uid == resultData.userId)
+  if (req.user.id == resultData.userId)
     return res.status(HttpStatusCodes.NOT_FOUND).sendData({
       success: false,
       msg: ErrorMessages.UnAuthorized,
     });
-  const state = await checkPaidCourseUser(req.user.uid, resultData.courseId);
+  const state = await checkPaidCourseUser(req.user.id, resultData.courseId);
 
   if (!state) {
     return res.status(HttpStatusCodes.PAYMENT_REQUIRED).sendData({

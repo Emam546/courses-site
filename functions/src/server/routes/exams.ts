@@ -60,7 +60,7 @@ router.use(async (req, res, next) => {
       msg: ErrorMessages.UnExistedDoc,
     });
 
-  const state = await checkPaidCourseUser(req.user.uid, examData.courseId);
+  const state = await checkPaidCourseUser(req.user.id, examData.courseId);
   if (examData.hide)
     return res.status(HttpStatusCodes.LOCKED).sendData({
       success: false,
@@ -103,7 +103,7 @@ router.get("/", (req, res) => {
 router.get("/results", async (req, res) => {
   const results = await getCollection("Results")
     .where("examId", "==", req.exam.id)
-    .where("userId", "==", req.user.uid)
+    .where("userId", "==", req.user.id)
     .orderBy("order")
     .get();
 
@@ -124,13 +124,13 @@ router.post("/create", async (req, res) => {
     examId: exam.id,
     startAt: FieldValue.serverTimestamp(),
     teacherId: examData.teacherId,
-    userId: req.user.uid,
+    userId: req.user.id,
     questions: createExamQuestions(exam),
   };
   if (!examData.repeatable) {
     const data = await getCollection("Results")
       .where("examId", "==", exam.id)
-      .where("userId", "==", req.user.uid)
+      .where("userId", "==", req.user.id)
       .orderBy("startAt", "desc")
       .limit(1)
       .get();

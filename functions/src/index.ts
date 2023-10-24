@@ -1,8 +1,8 @@
 import "./validator";
 import "./teacher/validator";
+export { onTeacherDelete, registerTeacher } from "./teacher/index";
 export * from "./auth";
-export { onTeacherDelete, registerTeacher } from "./teacher";
-export { registerStudent, onUserDelete, signInStudent } from "./student";
+export * from "./student";
 export * from "./level";
 export * from "./course";
 export * from "./lesson";
