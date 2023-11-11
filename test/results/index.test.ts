@@ -47,7 +47,7 @@ describe("Results", () => {
                 await firebase.assertFails(query);
             });
             test("read after the exam ended", async () => {
-                doc.set({
+                await doc.set({
                     teacherId: InitialAuth.uid,
                     userId: StudentAuth.uid,
                     endAt: firebase.firestore.FieldValue.serverTimestamp(),
