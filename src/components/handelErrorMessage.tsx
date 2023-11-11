@@ -24,9 +24,9 @@ export function HidedDoc() {
 }
 export function PageNotExisted() {
     return (
-        <Page404>
+        <Page404 state="404">
             <h1 className="tw-text-3xl tw-font-semibold tw-text-gray-800">
-                404 - Page Not Found
+                The Page is Not Found
             </h1>
             <p className="tw-text-gray-600">
                 Sorry, the page you are looking for could not be found. It may

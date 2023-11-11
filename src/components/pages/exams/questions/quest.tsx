@@ -1,15 +1,15 @@
-
 import draftToHtml from "draftjs-to-html";
 import { QueryDocumentSnapshot } from "firebase/firestore";
 import { useQuery } from "@tanstack/react-query";
 import classNames from "classnames";
+import { QuestionType } from "@/firebase/func/data/question";
 export interface Props {
     resultId: string;
     exam: QueryDocumentSnapshot<DataBase["Exams"]>;
 }
 
 export type QuestionProps = {
-    quest?: DataBase.WithIdType<DataBase["Questions"]>;
+    quest?: QuestionType;
     curAnswer?: string;
     onAnswer: (val: string) => any;
     endState: boolean;
@@ -26,7 +26,6 @@ export default function Question({
         queryKey: ["Choices", quest?.id],
         queryFn: () => {
             const choices = quest!.choices;
-            if (quest!.shuffle) return choices;
             return choices;
         },
         enabled: typeof quest != "undefined",
@@ -43,7 +42,7 @@ export default function Question({
                     }}
                 ></div>
                 <span className="tw-absolute tw-top-0 tw-right-0 tw-text-gray-300">
-                    {quest.createdAt.toDate().getTime()}
+                    {quest.searchId}
                 </span>
             </div>
 

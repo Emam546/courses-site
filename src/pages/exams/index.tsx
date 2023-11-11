@@ -1,6 +1,4 @@
-import ErrorShower from "@/components/error";
 import Loader from "@/components/loader";
-import Page404 from "@/components/pages/404";
 import { ResultsViewer } from "@/components/pages/exams";
 import { ExamType, getExam } from "@/firebase/func/data/exam";
 import { useQuery } from "@tanstack/react-query";
@@ -12,6 +10,10 @@ import { useGetCourse } from "../courses";
 import { LessonType } from "@/firebase/func/data/lessons";
 import { CourseType } from "@/firebase/func/data/course";
 import { ErrorMessage, wrapRequest } from "@/utils/wrapRequest";
+import {
+    ErrorMessageCom,
+    PageNotExisted,
+} from "@/components/handelErrorMessage";
 
 function Page({
     doc,
@@ -98,16 +100,17 @@ export default function SafeArea() {
     const queryExam = useGetExam(id as string);
     const queryLesson = useGetLesson(queryExam.data?.exam.lessonId);
     const queryCourse = useGetCourse(queryExam.data?.exam.courseId);
-    if (typeof id != "string")
-        return <Page404 message="The Exam id is not exist in the url" />;
-    if (queryExam.isLoading || queryLesson.isLoading || queryCourse.isLoading)
-        return <Loader />;
+    if (typeof id != "string") return <PageNotExisted />;
     if (queryExam.error || queryLesson.error || queryCourse.error)
         return (
-            <ErrorShower
-                err={queryExam.error || queryLesson.error || queryCourse.error}
+            <ErrorMessageCom
+                error={
+                    queryExam.error || queryLesson.error || queryCourse.error
+                }
             />
         );
+    if (queryExam.isLoading || queryLesson.isLoading || queryCourse.isLoading)
+        return <Loader />;
 
     return (
         <Page

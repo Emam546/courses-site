@@ -1,14 +1,22 @@
 import Login from "@/components/pages/login";
+import { useAppDispatch } from "@/store";
+import { AuthActions } from "@/store/auth";
 import Head from "next/head";
+import { useRouter } from "next/router";
 import { ReactElement } from "react";
 
 function Page() {
+    const router = useRouter();
+    const dispatch = useAppDispatch();
     return (
         <>
-            <Head>
-                <title>Sing up</title>
-            </Head>
-            <Login onLogin={() => {}} />
+            <Login
+                onLogin={async (user) => {
+                    dispatch(AuthActions.setUser(user));
+
+                    router.push("/");
+                }}
+            />
         </>
     );
 }

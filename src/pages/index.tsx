@@ -8,7 +8,7 @@ import Head from "next/head";
 import { CourseLevelType, getLevelCourses } from "@/firebase/func/data/course";
 import { useGetDoc } from "@/hooks/firebase";
 import Page404 from "@/components/pages/404";
-import { wrapRequest, ErrorMessage, ErrorStates } from "@/utils/wrapRequest";
+import { wrapRequest, ErrorMessage } from "@/utils/wrapRequest";
 import { ErrorMessageCom } from "@/components/handelErrorMessage";
 
 export function Course({
@@ -73,7 +73,7 @@ export function useGetCourses(levelId?: string) {
     });
 }
 interface PageParams {
-    level: DataBase.WithIdType<DataBase["Levels"]>;
+    level: DataBase.DataBase.WithIdType<DataBase["Levels"]>;
     courses: CourseLevelType[];
 }
 export function Page({ courses, level }: PageParams) {
@@ -128,7 +128,7 @@ export default function SafeArea() {
     if (isLoading || isLevelLoading) return <Loader />;
     if (error) return <ErrorMessageCom error={error} />;
     if (isLevelError) return <ErrorShower err={levelError} />;
-    if (!level.exists()) return <Page404 message="the level is not exist" />;
+    if (!level.exists()) return <Page404 message="the Level is not exist" />;
     return (
         <Page
             courses={data.courses}

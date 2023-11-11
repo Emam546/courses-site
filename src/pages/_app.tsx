@@ -5,6 +5,8 @@ import "@/styles/pages/exam.scss";
 import "@/styles/globals.scss";
 import "@/styles/owl.carousel.css";
 import "react-circular-progressbar/dist/styles.css";
+import 'react-phone-number-input/style.css'
+
 import { config } from "@fortawesome/fontawesome-svg-core";
 config.autoAddCss = false;
 import queryClient from "@/queryClient";

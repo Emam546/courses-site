@@ -10,7 +10,10 @@ import {
 } from "@/firebase/func/data/lessons";
 import { CourseType, getCourse } from "@/firebase/func/data/course";
 import { ErrorMessage, wrapRequest } from "@/utils/wrapRequest";
-import { ErrorMessageCom } from "@/components/handelErrorMessage";
+import {
+    ErrorMessageCom,
+    PageNotExisted,
+} from "@/components/handelErrorMessage";
 
 function Lesson({ data, index }: { index: number; data: LessonCourseType }) {
     return (
@@ -85,19 +88,25 @@ export function Page({
 
             {/* categories section */}
             <section className="course-section spad tw-pb-20">
-                <div className="course-warp">
-                    <div className="row course-items-area">
-                        {lessons.map((data, i) => {
-                            return (
-                                <Lesson
-                                    data={data}
-                                    index={i}
-                                    key={data.id}
-                                />
-                            );
-                        })}
+                {lessons.length > 0 ? (
+                    <div className="course-warp">
+                        <div className="row course-items-area">
+                            {lessons.map((data, i) => {
+                                return (
+                                    <Lesson
+                                        data={data}
+                                        index={i}
+                                        key={data.id}
+                                    />
+                                );
+                            })}
+                        </div>
                     </div>
-                </div>
+                ) : (
+                    <p className="tw-text-lg tw-text-center tw-px-2">
+                        There is no lessons so far
+                    </p>
+                )}
             </section>
         </>
     );
@@ -127,13 +136,12 @@ export default function SafeArea() {
     const { id } = router.query;
     const queryCourse = useGetCourse(id as string);
     const queryLessons = useGetLessons(id as string);
-    if (typeof id != "string")
-        return <Page404 message="The Course id is not exist" />;
-    if (queryCourse.isLoading || queryLessons.isLoading) return <Loader />;
+    if (typeof id != "string") return <PageNotExisted />;
     if (queryCourse.error || queryLessons.error)
         return (
             <ErrorMessageCom error={queryCourse.error || queryLessons.error} />
         );
+    if (queryCourse.isLoading || queryLessons.isLoading) return <Loader />;
 
     return (
         <Page

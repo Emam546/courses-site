@@ -1,24 +1,16 @@
-import axios from "axios";
-import { createRequestUrl } from "..";
-export type QuestionType = {
-    quest: string;
-    choices: Array<
-        DataBase.WithOrder<
-            DataBase.WithIdType<{
-                textContext: string;
-            }>
-        >
-    >;
-    lessonId: string;
-    courseId: string;
-    creatorId: string;
-};
+import { instance } from "..";
+export type QuestionType = DataBase.DataBase.WithIdType<
+    Omit<DataBase["Questions"], "answer" | "shuffle"> & {
+        searchId: string;
+    }
+>;
+
 export function getQuestion(questionId: string) {
-    return axios.get<
+    return instance.get<
         ResponseData<{
             question: QuestionType;
         }>
-    >(createRequestUrl("getData/api/question"), {
+    >("getData/api/question", {
         params: { questionId },
     });
 }

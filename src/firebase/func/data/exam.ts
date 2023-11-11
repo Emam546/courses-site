@@ -1,5 +1,4 @@
-import axios from "axios";
-import { createRequestUrl } from "..";
+import { instance } from "..";
 
 export type ExamsLessonType = {
     id: string;
@@ -9,26 +8,27 @@ export type ExamsLessonType = {
     num: number;
     repeatable: boolean;
 };
-export type ExamType = DataBase.WithIdType<
-    Exclude<DataBase["Exams"], "random" | "questionIds"> & {
+
+export type ExamType = DataBase.DataBase.WithIdType<
+    Omit<DataBase["Exams"], "random" | "questionIds"> & {
         num: number;
     }
 >;
 export function getExamLesson(lessonId: string) {
-    return axios.get<
+    return instance.get<
         ResponseData<{
             exams: Array<ExamsLessonType>;
         }>
-    >(createRequestUrl("getData/api/lesson/exams"), {
+    >("getData/api/lesson/exams", {
         params: { lessonId },
     });
 }
 export function getExam(examId: string) {
-    return axios.get<
+    return instance.get<
         ResponseData<{
             exam: ExamType;
         }>
-    >(createRequestUrl("getData/api/exam"), {
+    >("getData/api/exam", {
         params: { examId },
     });
 }

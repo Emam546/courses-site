@@ -1,4 +1,5 @@
 import { auth } from "@/firebase";
+import { changeTitle } from "@/hooks";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import {
@@ -15,6 +16,7 @@ export default function EmailVerification() {
         else if (user?.emailVerified) router.replace("/");
         else sendVerification();
     }, [user]);
+    changeTitle("Verify Email");
     return (
         <section className="dark:tw-bg-gray-900 tw-bg-gray-50">
             <div className="tw-min-h-screen tw-flex tw-flex-col tw-items-center tw-justify-center tw-px-6 tw-py-8 tw-mx-auto md:tw-h-screen lg:tw-py-0">

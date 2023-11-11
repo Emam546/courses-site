@@ -1,66 +1,55 @@
-import axios from "axios";
-import { createRequestUrl } from "..";
+import { instance } from "..";
 
-export type ResultsExamsType = DataBase.WithIdType<{
-    questions: Array<{
-        questionId: string;
-        state: "visited" | "unvisited" | "marked";
-        answer?: string;
-        correctAnswer?: string;
-        correctState?: boolean;
-    }>;
-    startAt: string;
-    endAt?: string;
-}>;
-export type ResultType = DataBase.WithIdType<
-    ResultsExamsType & {
-        examId: string;
-        userId: string;
-        courseId: string;
-        endAt: string | null;
-        startAt: string;
-    }
+export type ResultsExamsType = DataBase.KeyToString<
+    DataBase.DataBase.WithIdType<
+        Omit<DataBase["Results"], "examId" | "userId" | "teacherId">
+    >,
+    "startAt" | "endAt"
+>;
+export type ResultType = DataBase.KeyToString<
+    DataBase.DataBase.WithIdType<DataBase["Results"]>,
+    "startAt" | "endAt"
 >;
 export function getResultsExam(examId: string) {
-    return axios.get<
+    return instance.get<
         ResponseData<{
             results: Array<ResultsExamsType>;
         }>
-    >(createRequestUrl("getData/api/exam/results"), {
+    >("getData/api/exam/results", {
         params: { examId },
     });
 }
 export function getResult(resultId: string) {
-    return axios.get<
+    return instance.get<
         ResponseData<{
             result: ResultType;
         }>
-    >(createRequestUrl("getData/api/result"), {
+    >("getData/api/result", {
         params: { resultId },
     });
 }
 export function sendAnswers(resultId: string, body: unknown) {
-    return axios.post<
+    return instance.post<
         ResponseData<{
             result: ResultType;
         }>
-    >(createRequestUrl("getData/api/result"), body, {
+    >("getData/api/result", body, {
         params: { resultId },
     });
 }
 export function endExam(resultId: string) {
-    return axios.post<ResponseData<unknown>>(
-        createRequestUrl("getData/api/result/end"),
+    return instance.post<ResponseData<unknown>>(
+        "getData/api/result/end",
         {},
         {
             params: { resultId },
         }
     );
 }
-export function createResult() {
-    return axios.post<
+export function createResult(examId: string) {
+    return instance.post<
         ResponseData<{
             result: ResultType;
         }>
-    >(createRequestUrl("getData/api/exam/create"));
+    >("getData/api/exam/create", null, { params: { examId } });
 }

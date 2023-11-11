@@ -1,7 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { QueryDocumentSnapshot } from "firebase/firestore";
+import { QueryDocumentSnapshot, Timestamp } from "firebase/firestore";
+
 export interface StateType {
-    user?: DataBase["UsersTeachers"];
+    user?: DataBase.DataBase.WithIdType<
+        Omit<DataBase["Students"], "createdAt">
+    >;
 }
 export const slice = createSlice({
     initialState: {} as StateType,

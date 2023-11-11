@@ -1,17 +1,17 @@
-import Page404 from "@/components/pages/404";
-import QuestionsViewer, {
-    useGetResult,
-} from "@/components/pages/exams/questions";
+import QuestionsViewer from "@/components/pages/exams/questions";
+import { useGetResult } from "@/components/pages/exams/questions/hooks";
 import Loader from "@/components/loader";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { NextPageWithLayout } from "../_app";
 import { ProvideUser } from "@/components/wrapper";
-import Protector from "@/components/protector";
 import { useGetExam } from ".";
 import { ResultType } from "@/firebase/func/data/results";
 import { ExamType } from "@/firebase/func/data/exam";
-import { ErrorMessageCom } from "@/components/handelErrorMessage";
+import {
+    ErrorMessageCom,
+    PageNotExisted,
+} from "@/components/handelErrorMessage";
 
 function Page({ doc, exam }: { doc: ResultType; exam: ExamType }) {
     return (
@@ -19,7 +19,6 @@ function Page({ doc, exam }: { doc: ResultType; exam: ExamType }) {
             <Head>
                 <title>{exam.name}</title>
             </Head>
-
             <QuestionsViewer
                 resultId={doc.id}
                 initialData={doc}
@@ -34,20 +33,17 @@ function SafeArea() {
     const { id } = router.query;
     const queryResult = useGetResult(id as string);
     const queryExam = useGetExam(queryResult.data?.result.examId);
-    if (typeof id != "string")
-        return <Page404 message="The Lesson id is not exist" />;
-    if (queryResult.isLoading || queryExam.isLoading) return <Loader />;
+
+    if (typeof id != "string") return <PageNotExisted />;
     if (queryResult.error || queryExam.error)
         return <ErrorMessageCom error={queryResult.error || queryExam.error} />;
-
+    if (queryResult.isLoading || queryExam.isLoading) return <Loader />;
     return (
         <ProvideUser>
-            <Protector>
-                <Page
-                    doc={queryResult.data.result}
-                    exam={queryExam.data.exam}
-                />
-            </Protector>
+            <Page
+                doc={queryResult.data.result}
+                exam={queryExam.data.exam}
+            />
         </ProvideUser>
     );
 }
@@ -57,4 +53,4 @@ const FinalPage: NextPageWithLayout = () => {
 FinalPage.getLayout = (child) => {
     return <>{child}</>;
 };
-export default Page;
+export default FinalPage;

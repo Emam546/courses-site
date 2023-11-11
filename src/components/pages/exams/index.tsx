@@ -3,8 +3,15 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ExamType } from "@/firebase/func/data/exam";
-import { createResult, getResultsExam } from "@/firebase/func/data/results";
-export function Loader({ per, text }: { per: number; text: string }) {
+import {
+    ResultsExamsType,
+    createResult,
+    getResultsExam,
+} from "@/firebase/func/data/results";
+import { ErrorMessage, wrapRequest } from "@/utils/wrapRequest";
+import queryClient from "@/queryClient";
+import ErrorShower from "@/components/error";
+export function LoaderComponent({ per, text }: { per: number; text: string }) {
     const percent = Math.floor(per * 100);
     return (
         <div className="circle-progress tw-h-40 tw-w-40 tw-relative tw-m-0 ">
@@ -20,92 +27,104 @@ function useGetResults(examId: string) {
         enabled: typeof examId == "string",
         queryKey: ["Results", "exam", examId],
         queryFn: async () => {
-            return await getResultsExam(examId);
+            return await wrapRequest(getResultsExam(examId));
         },
+        onError(err: ErrorMessage) {},
     });
 }
-
+type ResultType = {
+    results: ResultsExamsType[];
+};
 export function ResultsViewer({ doc: exam }: { doc: ExamType }) {
-    const { data } = useGetResults(exam.id);
+    const { data, error, isLoading } = useGetResults(exam.id);
 
     const router = useRouter();
-    const mutation = useMutation({
-        mutationFn: async (newTodo) => {
-            return await createResult();
+    const createExamMutation = useMutation({
+        mutationFn: async () => {
+            return await wrapRequest(createResult(exam.id));
         },
         onSuccess(data) {
-            if (data.data.success)
-                router.push(`/exams/take?id=${data.data.data.result.id}`);
+            router.push(`/exams/take?id=${data.result.id}`).then(() => {
+                const results = queryClient.getQueryData<ResultType>([
+                    "Results",
+                    "exam",
+                    exam.id,
+                ]) || { results: [] };
+                queryClient.setQueryData<ResultType>(
+                    ["Results", "exam", exam.id],
+                    {
+                        results: [...results.results, data.result],
+                    }
+                );
+            });
         },
     });
-    if (!data?.data.success) return null;
-    const results = data.data.data.results;
-    const curExam = results.find((res) => {
+    if (isLoading) return null;
+    if (error) return <ErrorShower err={error} />;
+    const results = data.results.filter((doc) => doc.endAt);
+    const curExam = data.results.find((res) => {
         if (res.endAt) return false;
-        const s: number = new Date(res.startAt).getTime() || Date.now();
-        return Date.now() - s < exam.time;
+        return true;
     });
     const startState =
         curExam == undefined && (results.length == 0 || exam.repeatable);
 
     return (
         <div>
-            <div className="tw-mb-4 tw-flex tw-flex-wrap tw-gap-5">
-                {results.map((doc) => {
-                    const questions = doc.questions;
-                    const state =
-                        !doc.endAt &&
-                        Date.now() - new Date(doc.startAt).getTime() <
-                            exam.time;
-                    if (state) return null;
-                    return (
-                        <div key={doc.id}>
-                            <Link
-                                href={`/exams/take?id=${doc.id}`}
-                                className="hover:tw-opacity-70"
-                            >
-                                <Loader
-                                    per={
-                                        questions.filter(
-                                            (quest) => quest.correctState
-                                        ).length / questions.length
-                                    }
-                                    text="Good"
-                                />
-                                <div className="tw-mt-3">
-                                    <p className="tw-m-0 tw-leading-7 tw-text-lg">
-                                        Total Questions:{questions.length}
-                                    </p>
-                                    <p className="tw-m-0 tw-leading-7 tw-text-lg">
-                                        Wrong Questions:
-                                        {
+            {results.length > 0 && (
+                <div className="tw-mb-4 tw-flex tw-flex-wrap tw-gap-5">
+                    {results.map((doc) => {
+                        const questions = doc.questions;
+                        return (
+                            <div key={doc.id}>
+                                <Link
+                                    href={`/exams/take?id=${doc.id}`}
+                                    className="hover:tw-opacity-70"
+                                >
+                                    <LoaderComponent
+                                        per={
                                             questions.filter(
-                                                (quest) =>
-                                                    !quest.correctState &&
-                                                    quest.answer
-                                            ).length
+                                                (quest) => quest.correctState
+                                            ).length / questions.length
                                         }
-                                    </p>
-                                    <p className="tw-m-0 tw-leading-7 tw-text-lg">
-                                        UnAnswered Questions:
-                                        {
-                                            questions.filter(
-                                                (quest) => !quest.answer
-                                            ).length
-                                        }
-                                    </p>
-                                </div>
-                            </Link>
-                        </div>
-                    );
-                })}
-            </div>
-            <div className="mt-5 tw-space-y-4">
+                                        text="Good"
+                                    />
+                                    <div className="tw-mt-3">
+                                        <p className="tw-m-0 tw-leading-7 tw-text-lg">
+                                            Total Questions:{questions.length}
+                                        </p>
+                                        <p className="tw-m-0 tw-leading-7 tw-text-lg">
+                                            Wrong Questions:
+                                            {
+                                                questions.filter(
+                                                    (quest) =>
+                                                        !quest.correctState &&
+                                                        quest.answer
+                                                ).length
+                                            }
+                                        </p>
+                                        <p className="tw-m-0 tw-leading-7 tw-text-lg">
+                                            UnAnswered Questions:
+                                            {
+                                                questions.filter(
+                                                    (quest) => !quest.answer
+                                                ).length
+                                            }
+                                        </p>
+                                    </div>
+                                </Link>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+
+            <div className="tw-space-y-4">
                 {startState && results && (
                     <button
                         type="button"
-                        onClick={() => mutation.mutate()}
-                        disabled={mutation.isLoading}
+                        onClick={() => createExamMutation.mutate()}
+                        disabled={createExamMutation.isLoading}
                         className="site-btn"
                     >
                         <span>
@@ -117,7 +136,7 @@ export function ResultsViewer({ doc: exam }: { doc: ExamType }) {
                     </button>
                 )}
                 {!startState && results && !exam.repeatable && (
-                    <p className="tw-text-2xl tw-mt-10 tw-font-bold tw-text-black">
+                    <p className="tw-text-lg tw-font-medium tw-text-black">
                         You can{"'"}t retake the exam
                     </p>
                 )}

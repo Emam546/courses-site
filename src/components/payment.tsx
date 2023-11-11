@@ -1,8 +1,9 @@
-import { auth } from "@/firebase";
-import { useAuthState } from "react-firebase-hooks/auth";
+import { useChangeTitle } from "@/hooks";
+import { useAppSelector } from "@/store";
 
 export function PaymentCourse() {
-    const [user] = useAuthState(auth);
+    const user = useAppSelector((state) => state.auth.user);
+    useChangeTitle("UnPaid Course");
     return (
         <>
             <section
@@ -14,7 +15,7 @@ export function PaymentCourse() {
                 <div className="container">
                     <div className="hero-text text-white">
                         <h2>Course Payment Reminder</h2>
-                        <p>Dear {user?.displayName},</p>
+                        <p>Dear {user?.displayname},</p>
                         <p>
                             We would like to remind you that your payment for
                             the course is still pending.

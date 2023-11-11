@@ -3,14 +3,28 @@ import {
     ErrorInputShower,
     NormalInput,
     SelectInput,
-} from "../common/registeration";
+} from "@/components/common/registeration";
+
 import { useGetLevels } from "@/hooks/firebase";
 import { createStudentCall } from "@/firebase/func";
-import { isErrormessage } from "@/utils/firebase";
-import { ObjectEntries } from "@/utils";
+import {
+    getErrorMessage,
+    isErrormessage,
+    isFireBaseError,
+    setRememberMeState,
+} from "@/utils/firebase";
+import { ObjectEntries, hasOwnProperty } from "@/utils";
+import classNames from "classnames";
+import { StateType } from "@/store/auth";
+import { UserCredential, signInWithCustomToken } from "firebase/auth";
+import { auth } from "@/firebase";
+import PhoneNumber from "./phonefield";
 
 export interface Props {
-    onUser: (token: string, rememberMe: boolean) => any;
+    onUser?: (
+        user: NonNullable<StateType["user"]>,
+        credential: UserCredential
+    ) => any;
 }
 export interface Form {
     phone: string;
@@ -24,14 +38,6 @@ export interface Form {
 }
 const egyptianPhoneNumberPattern = /^\+2(010|011|012|015)[0-9]{8}$/;
 const UserNamePattern = /^[a-zA-Z_]{6,19}$/;
-export function validatePhone(val?: string) {
-    if (!val)
-        return "Invalid Egyptian phone number format. Please check and try again.";
-    const state = egyptianPhoneNumberPattern.test(val);
-    if (!state)
-        return "Invalid Egyptian phone number format. Please check and try again.";
-    return true;
-}
 export async function validateUserName(val: string) {
     const state = UserNamePattern.test(val);
     if (!state)
@@ -40,12 +46,13 @@ export async function validateUserName(val: string) {
     return true;
 }
 export default function SingUp({ onUser }: Props) {
-    const { register, formState, handleSubmit, setError, setValue } =
+    const { register, formState, handleSubmit, setError, setValue, watch } =
         useForm<Form>();
     const { data: levels } = useGetLevels();
+    register("phone", { required: "phone number is required" });
     return (
         <section className="dark:tw-bg-gray-900 tw-bg-gray-50">
-            <div className="tw-min-h-screen tw-flex tw-flex-col tw-items-center tw-justify-center tw-px-6 tw-py-8 tw-mx-auto md:tw-h-screen lg:tw-py-0">
+            <div className="tw-min-h-screen tw-flex tw-flex-col tw-items-center tw-justify-center tw-px-6 tw-py-8 tw-mx-auto">
                 <div className="tw-w-full tw-bg-white tw-rounded-lg tw-shadow dark:tw-border md:tw-mt-0 sm:tw-max-w-md xl:tw-p-0 dark:tw-bg-gray-800 dark:tw-border-gray-700">
                     <div className="tw-p-6 tw-space-y-4 md:tw-space-y-6 sm:tw-p-8">
                         <h1 className="tw-text-xl tw-font-bold tw-leading-tight tw-tracking-tight tw-text-gray-900 md:tw-text-2xl dark:tw-text-white">
@@ -59,18 +66,31 @@ export default function SingUp({ onUser }: Props) {
                             className="tw-space-y-4 md:tw-space-y-6"
                             action="#"
                             onSubmit={handleSubmit(async (data) => {
-                                const res = await createStudentCall({
-                                    displayName: data.userName,
-                                    email: data.email,
-                                    levelId: data.levelId,
-                                    password: data.password,
-                                    phone: data.phone,
-                                    teacherId: process.env
-                                        .NEXT_PUBLIC_TEACHER_ID as string,
-                                });
-                                if (!res.data.success) {
-                                    if (isErrormessage(res.data.err)) {
-                                        ObjectEntries(res.data.err).forEach(
+                                try {
+                                    await setRememberMeState(
+                                        auth,
+                                        data.rememberMe
+                                    );
+                                    const res = await createStudentCall({
+                                        displayName: data.userName,
+                                        email: data.email,
+                                        levelId: data.levelId,
+                                        password: data.password,
+                                        phone: data.phone,
+                                        teacherId: process.env
+                                            .NEXT_PUBLIC_TEACHER_ID as string,
+                                    });
+                                    const user = await signInWithCustomToken(
+                                        auth,
+                                        res.firebaseToken
+                                    );
+                                    await onUser?.(res.user, user);
+                                } catch (err) {
+                                    if (
+                                        hasOwnProperty(err, "errors") &&
+                                        isErrormessage(err.errors)
+                                    ) {
+                                        ObjectEntries(err.errors).forEach(
                                             ([key, val]) => {
                                                 setError(key as keyof Form, {
                                                     message: val[0].message,
@@ -79,15 +99,16 @@ export default function SingUp({ onUser }: Props) {
                                         );
                                         return;
                                     }
-                                    setError("root", {
-                                        message: res.data.msg,
+                                    if (!isFireBaseError(err)) return;
+                                    const message = getErrorMessage(err.code);
+                                    if (!message)
+                                        return setError("root", {
+                                            message: err.message as string,
+                                        });
+                                    setError(message.type as keyof Form, {
+                                        message: message.message,
                                     });
-                                    return;
                                 }
-                                await onUser(
-                                    res.data.data.token,
-                                    data.rememberMe
-                                );
                             })}
                         >
                             <SelectInput
@@ -110,16 +131,18 @@ export default function SingUp({ onUser }: Props) {
                                     );
                                 })}
                             </SelectInput>
-                            <NormalInput
+
+                            <PhoneNumber
                                 labelText={"Your phone number"}
-                                id="tel"
-                                type="tel"
                                 err={formState.errors.phone}
-                                placeholder="+201091907365"
-                                {...register("phone", {
-                                    required: true,
-                                    validate: validatePhone,
-                                })}
+                                id="tel"
+                                placeholder="Enter your phone number"
+                                countryCallingCodeEditable={false}
+                                international
+                                defaultCountry="EG"
+                                onChange={(val) => {
+                                    if (val) setValue("phone", val);
+                                }}
                             />
                             <NormalInput
                                 labelText={"Your Email"}
@@ -132,25 +155,13 @@ export default function SingUp({ onUser }: Props) {
                                 })}
                             />
                             <NormalInput
-                                labelText={"User Name"}
+                                labelText={"Your Name"}
                                 type="text"
                                 id="userName"
                                 err={formState.errors.userName}
-                                placeholder="eg.ahmed-ali-546"
                                 {...register("userName", {
                                     required: true,
                                     validate: validateUserName,
-                                })}
-                            />
-                            <NormalInput
-                                labelText="Your name"
-                                type="text"
-                                id="name"
-                                err={formState.errors.name}
-                                placeholder="eg.ahmed mohamed ali hasem"
-                                {...register("name", {
-                                    required: true,
-                                    min: 5,
                                 })}
                             />
                             <NormalInput
@@ -158,7 +169,6 @@ export default function SingUp({ onUser }: Props) {
                                 type="password"
                                 id="password"
                                 err={formState.errors.password}
-                                placeholder="**********"
                                 {...register("password", {
                                     required: true,
                                     min: 8,
@@ -169,7 +179,6 @@ export default function SingUp({ onUser }: Props) {
                                 type="password"
                                 id="confirmPassword"
                                 err={formState.errors.confirmPassword}
-                                placeholder="**********"
                                 {...register("confirmPassword", {
                                     required: true,
                                     min: 8,
@@ -208,7 +217,10 @@ export default function SingUp({ onUser }: Props) {
                                     formState.isSubmitting ||
                                     formState.isValidating
                                 }
-                                className="tw-w-full tw-text-white tw-bg-primary-600 hover:tw-bg-primary-700 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-primary-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center dark:tw-bg-primary-600 dark:hover:tw-bg-primary-700 dark:focus:tw-ring-primary-800"
+                                className={classNames(
+                                    "tw-w-full tw-text-white tw-bg-primary-600 hover:tw-bg-primary-700 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-primary-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center dark:tw-bg-primary-600 dark:hover:tw-bg-primary-700 dark:focus:tw-ring-primary-800",
+                                    "disabled:tw-bg-primary-400 hover:tw-bg-primary-400"
+                                )}
                             >
                                 Sign up
                             </button>

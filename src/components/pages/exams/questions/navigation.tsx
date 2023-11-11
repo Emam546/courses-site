@@ -1,5 +1,3 @@
-import { DataBase } from "@/data";
-import { QueryDocumentSnapshot } from "firebase/firestore";
 import classNames from "classnames";
 
 export function Navigation({

@@ -1,5 +1,4 @@
-import axios from "axios";
-import { createRequestUrl } from "..";
+import { instance } from "..";
 
 export type LessonCourseType = {
     id: string;
@@ -7,24 +6,24 @@ export type LessonCourseType = {
     briefDesc: string;
     publishedAt: string;
 };
-export type LessonType = DataBase.WithIdType<
+export type LessonType = DataBase.DataBase.WithIdType<
     Exclude<DataBase["Lessons"], "addersId">
 >;
 export function getCourseLessons(courseId: string) {
-    return axios.get<
+    return instance.get<
         ResponseData<{
             lessons: Array<LessonCourseType>;
         }>
-    >(createRequestUrl("getData/api/course/lessons"), {
+    >("getData/api/course/lessons", {
         params: { courseId },
     });
 }
 export function getLesson(lessonId: string) {
-    return axios.get<
+    return instance.get<
         ResponseData<{
             lesson: LessonType;
         }>
-    >(createRequestUrl("getData/api/lesson"), {
+    >("getData/api/lesson", {
         params: { lessonId },
     });
 }

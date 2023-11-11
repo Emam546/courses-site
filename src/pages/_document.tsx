@@ -19,7 +19,7 @@ export default function Document() {
                 />
                 {/* Favicon */}
                 <link
-                    href="img/favicon.ico"
+                    href="/img/favicon.ico"
                     rel="shortcut icon"
                 />
                 {/* Google Fonts */}
@@ -32,19 +32,19 @@ export default function Document() {
                 <Main />
                 <NextScript />
                 <script
-                    src="js/jquery-3.2.1.min.js"
+                    src="/js/jquery-3.2.1.min.js"
                     defer
                 />
                 <script
-                    src="js/circle-progress.min.js"
+                    src="/js/circle-progress.min.js"
                     defer
                 />
                 <script
-                    src="js/owl.carousel.min.js"
+                    src="/js/owl.carousel.min.js"
                     defer
                 />
                 <script
-                    src="js/main.js"
+                    src="/js/main.js"
                     defer
                 />
             </body>

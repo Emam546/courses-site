@@ -1,28 +1,35 @@
 import { Timestamp } from "firebase/firestore";
 declare global {
-    export type ResponseData<T> =
+    type FailType = {
+        success: false;
+        msg: string;
+        err?: unknown;
+    };
+    type ResponseData<T> =
         | {
               success: true;
               msg: string;
               data: T;
           }
-        | {
-              success: false;
-              msg: string;
-              err?: unknown;
-          };
+        | FailType;
     declare namespace DataBase {
         type WithOrder<T> = { order: number } & T;
-        type WithIdType<T> = { id: string } & T;
+        type DataBase.WithIdType<T> = { id: string } & T;
+        type TimeStampToDate<T> = {
+            [K in keyof T]: T[K] extends Timestamp ? Date : T[K];
+        };
+        type KeyToString<T, G extends string> = {
+            [K in keyof T]: K extends G ? string : T[K];
+        };
     }
     interface DataBase {
-        Levels: DataBase.WithOrder<{
+        Levels: WithOrder<{
             name: string;
             desc: string;
             hide: boolean;
             teacherId: string;
         }>;
-        Courses: DataBase.WithOrder<{
+        Courses: WithOrder<{
             name: string;
             desc: string;
             hide: boolean;
@@ -36,7 +43,7 @@ declare global {
             createdAt: Timestamp;
             publishedAt: Timestamp;
         }>;
-        Lessons: DataBase.WithOrder<{
+        Lessons: WithOrder<{
             name: string;
             briefDesc: string;
             desc: string;
@@ -53,7 +60,7 @@ declare global {
                 hide: boolean;
             };
         }>;
-        Exams: DataBase.WithOrder<
+        Exams: WithOrder<
             {
                 name: string;
                 desc: string;
@@ -79,7 +86,7 @@ declare global {
         Questions: {
             quest: string;
             choices: Array<
-                DataBase.WithOrder<
+                WithOrder<
                     DataBase.WithIdType<{
                         textContext: string;
                     }>
@@ -104,6 +111,7 @@ declare global {
                 correctAnswer?: string;
                 correctState?: boolean;
             }>;
+            time: number;
             startAt: Timestamp;
             endAt?: Timestamp;
         };
@@ -112,15 +120,19 @@ declare global {
             contactPhone?: string;
             contactEmail?: string;
         };
-        UsersTeachers: {
-            userId: string;
+        Students: {
             teacherId: string;
             levelId: string;
             blocked: boolean;
             displayname: string;
+            emailVerified: boolean;
             email: string;
             phone: string;
             createdAt: Timestamp;
+        };
+        AuthStudent: {
+            passwordHash: string;
+            passwordSalt: string;
         };
         Payments:
             | {

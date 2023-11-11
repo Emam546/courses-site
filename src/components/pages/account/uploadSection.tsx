@@ -7,7 +7,7 @@ import SelectInput from "./common/inputs/selectOption";
 import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useGetLevels } from "@/hooks/firebase";
-import { DataBase } from "@/data";
+
 import { validatePhone, validateUserName } from "../singup";
 export type DateType = Omit<
     DataBase["Users"],

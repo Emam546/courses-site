@@ -12,9 +12,8 @@ import { LessonType, getLesson } from "@/firebase/func/data/lessons";
 import { CourseType } from "@/firebase/func/data/course";
 import { useGetCourse } from "./courses";
 import { ExamsLessonType, getExamLesson } from "@/firebase/func/data/exam";
-import { WrapElem } from "@/components/pages/account/common/inputs/styles";
 import { ErrorMessage, wrapRequest } from "@/utils/wrapRequest";
-import { ErrorMessageCom } from "@/components/handelErrorMessage";
+import { ErrorMessageCom, PageNotExisted } from "@/components/handelErrorMessage";
 
 function Page({
     doc,
@@ -141,9 +140,7 @@ export default function SafeArea() {
     const queryExams = useGetExams(id as string);
     const queryCourse = useGetCourse(queryLesson.data?.lesson.courseId);
     if (typeof id != "string")
-        return <Page404 message="The Lesson id is not exist" />;
-    if (queryLesson.isLoading || queryCourse.isLoading || queryExams.isLoading)
-        return <Loader />;
+        return <PageNotExisted />;
     if (queryLesson.error || queryCourse.error || queryExams.error)
         return (
             <ErrorMessageCom
@@ -152,7 +149,8 @@ export default function SafeArea() {
                 }
             />
         );
-
+    if (queryLesson.isLoading || queryCourse.isLoading || queryExams.isLoading)
+        return <Loader />;
     return (
         <Page
             exams={queryExams.data.exams}

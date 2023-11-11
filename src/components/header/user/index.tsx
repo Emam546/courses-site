@@ -7,6 +7,8 @@ import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
 import { AuthActions } from "@/store/auth";
 import { useRouter } from "next/router";
+import { signOut } from "firebase/auth";
+import { auth } from "@/firebase";
 export default function UserComponent() {
     const user = useAppSelector((state) => state.auth.user);
     const [expand, setExpand] = useState(false);
@@ -70,17 +72,16 @@ export default function UserComponent() {
                             <Link href="/account">Account Settings</Link>
                         </li>
                         <li className="tw-py-2">
-                            <Link
-                                onClick={(e) => {
+                            <button
+                                onClick={async (e) => {
                                     e.preventDefault();
-                                    localStorage.removeItem("userId");
+                                    await signOut(auth);
                                     dispatch(AuthActions.setUser(undefined));
-                                    router.push("/login");
+                                    await router.push("/login");
                                 }}
-                                href="/login"
                             >
                                 Log Out
-                            </Link>
+                            </button>
                         </li>
                     </ul>
                 </div>

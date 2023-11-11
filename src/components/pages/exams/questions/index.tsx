@@ -1,24 +1,18 @@
-import { useGetDoc } from "@/hooks/firebase";
-import { updateDoc } from "firebase/firestore";
 import { useRouter } from "next/router";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import DeleteDialog from "@/components/common/deleteDailog";
 import { Navigation } from "./navigation";
 import { CountDown } from "./countDown";
-import { UseQueryOptions, useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import queryClient from "@/queryClient";
 import Loader from "@/components/loader";
 import Question from "./quest";
 import { GoToButton } from "@/components/common/addButton";
 import { ExamType } from "@/firebase/func/data/exam";
-import {
-    ResultType,
-    endExam,
-    getResult,
-    sendAnswers,
-} from "@/firebase/func/data/results";
-import { wrapRequest, ErrorMessage } from "@/utils/wrapRequest";
+import { ResultType, endExam, sendAnswers } from "@/firebase/func/data/results";
 import { ErrorMessageCom } from "@/components/handelErrorMessage";
+import { useGetQuestion, useGetResult, setQuestionsResults } from "./hooks";
+import { useForceUpdate } from "@/hooks";
 
 function EndTest({ onEnd }: { onEnd: () => any }) {
     const [state, setState] = useState(false);
@@ -59,40 +53,37 @@ function EndTest({ onEnd }: { onEnd: () => any }) {
 interface MainProps {
     result: ResultType;
     endState: boolean;
-    exam: DataBase.WithIdType<DataBase["Exams"]>;
-    onAnswer: (id: string, answer: string, correctAnswer: string) => any;
+    exam: DataBase.DataBase.WithIdType<DataBase["Exams"]>;
+    onAnswer: (id: string, answer: string) => any;
     onState: (
         id: string,
         state: DataBase["Results"]["questions"][0]["state"]
     ) => any;
     onEnd: () => any;
 }
+
 function Main({ result, endState, exam, onState, onAnswer, onEnd }: MainProps) {
     const router = useRouter();
     const curId = router.query.quest;
     const [curQuest, setCurQuest] = useState(
         curId ? result.questions.findIndex((val) => val.questionId == curId) : 0
     );
-    const { data: quest } = useGetDoc(
-        "Questions",
+    const { data: quest } = useGetQuestion(
         result.questions[curQuest].questionId
     );
     const [curAnswer, setCurAnswer] = useState<string>();
 
     const submitAnswer = useMutation({
         mutationFn: async () => {
-            await onAnswer(
-                questions[curQuest].questionId,
-                curAnswer!,
-                quest?.data()?.answer!
-            );
+            await onAnswer(questions[curQuest].questionId, curAnswer!);
         },
     });
     const navigating = useMutation({
         mutationFn: async (i: number) => {
+            if (endState) return;
             await onState(questions[curQuest].questionId, "visited");
         },
-        onSuccess(data, i, context) {
+        onSuccess(data, i) {
             setCurQuest(i);
         },
     });
@@ -116,7 +107,8 @@ function Main({ result, endState, exam, onState, onAnswer, onEnd }: MainProps) {
 
     const startAt: Date = new Date(result.startAt);
     const submitState =
-        !curAnswer || result.questions[curQuest].answer != curAnswer;
+        (!curAnswer || result.questions[curQuest].answer != curAnswer) &&
+        !endState;
     return (
         <>
             <div className="quiz-app tw-flex tw-flex-col tw-items-stretch tw-min-h-screen">
@@ -132,11 +124,7 @@ function Main({ result, endState, exam, onState, onAnswer, onEnd }: MainProps) {
                             endState={endState}
                             curAnswer={curAnswer}
                             onAnswer={(val) => setCurAnswer(val)}
-                            quest={
-                                quest.exists()
-                                    ? { ...quest.data(), id: quest.id }
-                                    : undefined
-                            }
+                            quest={quest.question}
                             correctAnswer={
                                 result.questions[curQuest].correctAnswer
                             }
@@ -218,25 +206,13 @@ function Main({ result, endState, exam, onState, onAnswer, onEnd }: MainProps) {
         </>
     );
 }
+
 export interface Props {
     resultId: string;
     exam: ExamType;
     initialData?: ResultType;
 }
-export function useGetResult(
-    resultId?: string,
-    options?: UseQueryOptions<{ result: ResultType }, ErrorMessage>
-) {
-    return useQuery({
-        queryKey: ["Results", resultId],
-        queryFn: async () => {
-            return await wrapRequest(getResult(resultId!));
-        },
-        enabled: typeof resultId == "string",
-        onError(err: ErrorMessage) {},
-        ...options,
-    });
-}
+
 export default function QuestionsViewer({
     resultId,
     exam,
@@ -245,29 +221,43 @@ export default function QuestionsViewer({
     const router = useRouter();
     const { data, error, isLoading } = useGetResult(resultId, {
         initialData: initialData ? { result: initialData } : undefined,
+        onSuccess(data) {
+            if (!router.query.quest)
+                router.replace(
+                    `/exams/take?id=${resultId}&quest=${data.result.questions[0].questionId}`
+                );
+        },
     });
+    const forceUpdate = useForceUpdate();
     const mutateAnswer = useMutation({
         mutationKey: ["Results", resultId],
         mutationFn: async (questions: ResultType["questions"]) => {
-            return;
+            return sendAnswers(resultId, {
+                questions: questions,
+            });
+        },
+        onMutate(variables) {
+            setQuestionsResults(resultId, variables);
+            if (data) data.result.questions = variables;
+            forceUpdate();
+            return { previous: data!.result.questions };
+        },
+        onError(err, variables, context) {
+            if (context?.previous)
+                setQuestionsResults(resultId, context.previous);
+            if (data) data.result.questions = variables;
+
+            forceUpdate();
         },
     });
-    useLayoutEffect(() => {
-        if (!router.query.quest && data) {
-            router.replace(
-                `/exams/take?id=${resultId}&quest=${data.result.questions[0].questionId}`
-            );
-        }
-    }, [resultId]);
-
     if (isLoading) return <Loader />;
     if (error) return <ErrorMessageCom error={error} />;
     const result = data.result;
     function getEndState() {
-        const startAt = new Date(result.startAt);
-
-        if (Date.now() - startAt.getTime() > exam.time) return true;
         if (result.endAt) return true;
+        const startAt = new Date(result.startAt);
+        if (Date.now() - startAt.getTime() > result.time) return true;
+
         return false;
     }
     const endState = getEndState();
@@ -277,7 +267,6 @@ export default function QuestionsViewer({
             exam={{ ...exam, id: exam.id }}
             result={{ ...result, id: resultId }}
             onAnswer={async (id, answer) => {
-                if (getEndState()) return;
                 const newArr = [...result.questions];
                 const curQuest = newArr.findIndex(
                     (val) => val.questionId == id
@@ -286,12 +275,9 @@ export default function QuestionsViewer({
                     ...newArr[curQuest],
                     answer: answer,
                 };
-                await sendAnswers(resultId, {
-                    questions: newArr,
-                });
+                await mutateAnswer.mutateAsync(newArr);
             }}
             onState={async (id, state) => {
-                if (getEndState()) return;
                 const newArr = [...result.questions];
                 const curQuest = newArr.findIndex(
                     (val) => val.questionId == id
@@ -300,13 +286,13 @@ export default function QuestionsViewer({
                     ...newArr[curQuest],
                     state,
                 };
-                await sendAnswers(resultId, {
-                    questions: newArr,
-                });
+                await mutateAnswer.mutateAsync(newArr);
             }}
             onEnd={async () => {
                 await endExam(resultId);
-                router.push(`/exams?id=${exam.id}`);
+                await queryClient.refetchQueries(["Results", resultId]);
+                await queryClient.refetchQueries(["Results", "exam", exam.id]);
+                await router.push(`/exams?id=${exam.id}`);
             }}
         />
     );
