@@ -21,7 +21,7 @@ export default function LevelInfoForm({
     onData,
 }: Props) {
     const { register, handleSubmit, formState } = useForm<DataType>({
-        defaultValues: defaultData,
+        defaultValues: { ...defaultData },
     });
     return (
         <form
@@ -43,9 +43,7 @@ export default function LevelInfoForm({
                 <TextArea
                     id={"desc-input"}
                     title={"Level description"}
-                    {...register("desc", {
-                        required: true,
-                    })}
+                    {...register("desc")}
                     className="tw-min-h-[10rem]"
                     err={formState.errors.desc}
                 />

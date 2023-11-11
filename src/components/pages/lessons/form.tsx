@@ -12,6 +12,8 @@ import { useGetDoc } from "@/hooks/fireStore";
 import { Timestamp } from "firebase/firestore";
 import TextArea from "@/components/common/inputs/textArea";
 import { isRawDraftContentStateEmpty } from "@/utils/draftjs";
+import { EditorState } from "react-draft-wysiwyg";
+import { convertToRaw } from "draft-js";
 export type DataType = {
     name: string;
     briefDesc: string;
@@ -46,8 +48,8 @@ export interface Props {
 }
 export function validateDesc(val: string) {
     if (!val) return "The Field is required";
-    if (isRawDraftContentStateEmpty(JSON.parse(val)))
-        return "The Field is required";
+    // if (isRawDraftContentStateEmpty(JSON.parse(val)))
+    //     return "The Field is required";
     return true;
 }
 export default function LessonGetDataForm({
@@ -60,6 +62,9 @@ export default function LessonGetDataForm({
         useForm<DataType>({
             defaultValues: {
                 publishedAt: Timestamp.fromDate(new Date()),
+                desc: JSON.stringify(
+                    convertToRaw(EditorState.createEmpty().getCurrentContent())
+                ),
                 ...defaultData,
             },
         });
@@ -74,7 +79,6 @@ export default function LessonGetDataForm({
         required: "You must provide a date",
     });
     register("desc", {
-        required: true,
         validate: validateDesc,
     });
     return (
@@ -135,9 +139,7 @@ export default function LessonGetDataForm({
                                 <TextArea
                                     id={"brief-desc-input"}
                                     title="Brief Description"
-                                    {...register("briefDesc", {
-                                        required: true,
-                                    })}
+                                    {...register("briefDesc")}
                                     err={formState.errors.briefDesc}
                                 />
                             </div>

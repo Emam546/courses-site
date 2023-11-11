@@ -5,6 +5,7 @@ import { auth, createCollection } from "@/firebase";
 import LevelInfoForm from "@/components/pages/levels/form";
 import { useAuthState } from "react-firebase-hooks/auth";
 import AddButton, { GoToButton } from "@/components/common/inputs/addButton";
+import Head from "next/head";
 
 export default function Page() {
     const router = useRouter();
@@ -12,11 +13,15 @@ export default function Page() {
     const [teacher] = useAuthState(auth);
     return (
         <>
+            <Head>
+                <title>Add Level</title>
+            </Head>
             <MainCard>
                 <CardTitle>Add Level</CardTitle>
                 <MainCard>
                     <LevelInfoForm
                         onData={async (data) => {
+                            console.log(data);
                             await addDoc(colRef, {
                                 ...data,
                                 teacherId: teacher?.uid,

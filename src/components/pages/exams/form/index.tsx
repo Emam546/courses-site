@@ -165,7 +165,7 @@ export default function ExamInfoForm({
                 <TextArea
                     title="Description"
                     id="desc-input"
-                    {...register("desc", { required: true })}
+                    {...register("desc")}
                     err={formState.errors.desc}
                 />
             </div>

@@ -110,9 +110,7 @@ export default function CourseInfoForm({
                 <TextArea
                     title="Description"
                     id="desc-input"
-                    {...register("desc", {
-                        required: true,
-                    })}
+                    {...register("desc")}
                     err={formState.errors.desc}
                 />
             </div>
