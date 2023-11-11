@@ -2,7 +2,7 @@ import { Router } from "express";
 import { getCollection } from "@/firebase";
 import { checkPaidCourseUser } from "@/utils/auth";
 import { FieldValue, QueryDocumentSnapshot } from "firebase-admin/firestore";
-import { DataBase } from "../../../../src/data";
+
 import { shuffle } from "@/utils";
 import { ErrorMessages, Messages } from "@serv/declarations/major/Messages";
 import HttpStatusCodes from "../declarations/major/HttpStatusCodes";
@@ -20,10 +20,8 @@ function createExamQuestions(
       if (elem == undefined) break;
       data.questionIds.splice(floor, 1);
       questions.push({
-        correctState: false,
         questionId: elem,
         state: "unvisited",
-        correctAnswer: "",
       });
     }
     return questions;
@@ -31,10 +29,8 @@ function createExamQuestions(
   if (data.shuffle) data.questionIds = shuffle(data.questionIds);
 
   return data.questionIds.map((id) => ({
-    correctState: false,
     questionId: id,
     state: "unvisited",
-    correctAnswer: "",
   }));
 }
 
@@ -104,14 +100,14 @@ router.get("/results", async (req, res) => {
   const results = await getCollection("Results")
     .where("examId", "==", req.exam.id)
     .where("userId", "==", req.user.id)
-    .orderBy("order")
+    .orderBy("startAt", "desc")
     .get();
 
   res.status(200).sendData({
     success: true,
     msg: Messages.DataSuccess,
     data: {
-      results: results.docs.map((doc) => doc.data()),
+      results: results.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
     },
   });
 });
@@ -126,6 +122,7 @@ router.post("/create", async (req, res) => {
     teacherId: examData.teacherId,
     userId: req.user.id,
     questions: createExamQuestions(exam),
+    time: examData.time,
   };
   if (!examData.repeatable) {
     const data = await getCollection("Results")

@@ -7,7 +7,7 @@ import { WrapElem } from "@/components/common/inputs/styles";
 import SelectInput from "@/components/common/inputs/select";
 import { useGetLevels } from "@/hooks/fireStore";
 import CheckedInput from "@/components/common/inputs/checked";
-import { DataBase } from "@/data";
+
 export type DataType = {
     levelId: string;
     blocked: boolean;

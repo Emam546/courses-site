@@ -13,7 +13,6 @@ import ErrorShower from "@/components/common/error";
 import Head from "next/head";
 import { useGetDoc } from "@/hooks/fireStore";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { DataBase } from "@/data";
 function SafeArea({
     course,
 }: {

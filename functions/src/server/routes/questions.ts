@@ -34,6 +34,7 @@ router.get("/", async (req, res) => {
         creatorId: data.creatorId,
         lessonId: data.lessonId,
         courseId: data.courseId,
+        searchId: data.createdAt.toDate().getTime(),
       },
     },
   });

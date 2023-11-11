@@ -1,5 +1,3 @@
-import { DataBase, WithIdType } from "@/data";
-
 import { useCollection } from "react-firebase-hooks/firestore";
 import { Query, getDocs, orderBy, query, where } from "firebase/firestore";
 import { auth, createCollection } from "@/firebase";
@@ -11,7 +9,7 @@ import { useCountDocs } from "@/hooks/fireStore";
 import { useCourseLevelData } from "./hooks";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthState } from "react-firebase-hooks/auth";
-export type QuestionType = WithIdType<DataBase["Questions"]>;
+export type QuestionType = DataBase.WithIdType<DataBase["Questions"]>;
 
 function SelectLevel({ courseId }: { courseId: string }) {
     const [teacher] = useAuthState(auth);

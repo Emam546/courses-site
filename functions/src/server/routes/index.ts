@@ -7,29 +7,27 @@ import courseRouter from "./course";
 import questionsRouter from "./questions";
 import examsRouter from "./exams";
 import resultsRouter from "./results";
-import { getIdToken } from "@/utils/auth";
-import { Request as RequestFireBase } from "firebase-functions/v1/https";
 import { ErrorMessages } from "@serv/declarations/major/Messages";
 import HttpStatusCodes from "../declarations/major/HttpStatusCodes";
 import { decode } from "@serv/utils/jwt";
 
 const router = Router();
-router.get("/auth", authRouter);
-router.get("/level", levelsRouter);
+router.use("/auth", authRouter);
+router.use("/level", levelsRouter);
 
 router.use(async (req, res, next) => {
-  const token = getIdToken(req as RequestFireBase);
-  if (!token)
+  const token = req.cookies.token;
+  if (typeof token != "string")
     return res
       .status(HttpStatusCodes.UNAUTHORIZED)
       .sendData({ success: false, msg: ErrorMessages.UnAuthorized });
   req.user = await decode(token);
   return next();
 });
-router.get("/student", studentRouter);
-router.get("/course", courseRouter);
-router.get("/lesson", lessonsRouter);
-router.get("/question", questionsRouter);
-router.get("/exam", examsRouter);
-router.get("/result", resultsRouter);
+router.use("/student", studentRouter);
+router.use("/course", courseRouter);
+router.use("/lesson", lessonsRouter);
+router.use("/question", questionsRouter);
+router.use("/exam", examsRouter);
+router.use("/result", resultsRouter);
 export default router;

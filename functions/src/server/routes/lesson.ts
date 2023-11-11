@@ -2,7 +2,7 @@ import { getCollection } from "@/firebase";
 import { checkPaidCourseUser } from "@/utils/auth";
 import { Router } from "express";
 import { QueryDocumentSnapshot } from "firebase-admin/firestore";
-import { DataBase } from "../../../../src/data";
+
 import { ErrorMessages, Messages } from "@serv/declarations/major/Messages";
 import HttpStatusCodes from "../declarations/major/HttpStatusCodes";
 const router = Router();

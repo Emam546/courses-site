@@ -3,7 +3,7 @@ export enum ErrorMessages {
   UnProvidedId = "UnProvided Id",
   UnAuthorized = "UnAuthorized",
   UnExistedDoc = "unExisted Document",
-  HidedDoc = "UnAuthorized",
+  HidedDoc = "The Course is not available",
   InValidData = "InValidData",
   ExamTimeOut = "ExamTimeOut",
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { DataBase, WithIdType } from "@/data";
+import { DataBase, DataBase.WithIdType } from "@/data";
 import { createCollection, getDocRef } from "@/firebase";
 import {
     QuerySnapshot,
@@ -26,7 +26,7 @@ import { ErrorInputShower } from "@/components/common/inputs/main";
 import PrimaryButton from "@/components/button";
 import queryClient from "@/queryClient";
 import { QueryDocumentSnapshot } from "@google-cloud/firestore";
-export type QuestionType = WithIdType<DataBase["Questions"]>;
+export type QuestionType = DataBase.WithIdType<DataBase["Questions"]>;
 const limitNum = 10;
 export interface Props {
     lessonId: string;
@@ -42,7 +42,6 @@ function _parseTheArray(
 ): InfiniteData<QuestionType[]> {
     const allDocs = data.pages.reduce((acc, val) => [...acc, ...val], []);
     const newArr = new Array(Math.ceil(allDocs.length / limitNum)).fill(0);
-    console.log(newArr.length, allDocs.length);
     const newPages = newArr
         .map<QuestionType[]>(() => {
             const newArr = [];

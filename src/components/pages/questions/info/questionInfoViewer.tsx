@@ -4,10 +4,10 @@ import InfoGetter, {
     Props as InfoProps,
 } from "../../../InsertCommonData";
 import { Elem as OrgElem } from "../../../InsertCommonData/Elem";
-import { DataBase, WithIdType } from "@/data";
+import { DataBase, DataBase.WithIdType } from "@/data";
 
 import draftToHtml from "draftjs-to-html";
-export type QuestionType = WithIdType<DataBase["Questions"]>;
+export type QuestionType = DataBase.WithIdType<DataBase["Questions"]>;
 const Elem = CreateElem<QuestionType>(
     ({ index, props: { data }, ...props }, ref) => {
         return (

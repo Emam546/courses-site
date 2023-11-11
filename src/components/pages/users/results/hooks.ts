@@ -30,6 +30,14 @@ export function useGetResultsCount({ userId }: { userId?: string }) {
         },
     });
 }
+export function clearResults(userId: string) {
+    queryClient.refetchQueries({
+        queryKey: ["Results", "userId", userId],
+    });
+    queryClient.refetchQueries({
+        queryKey: ["Results", "count", "userId", userId],
+    });
+}
 export function useGetResults({
     userId,
     page,

@@ -6,6 +6,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import bcrypt from "bcrypt";
 import Validator from "validator-checker-js";
 import { sign } from "@serv/utils/jwt";
+import { ErrorMessages } from "@/server/declarations/major/Messages";
 
 const router = Router();
 export function generateToken(
@@ -43,7 +44,7 @@ router.post("/sing-up", async (req, res) => {
   if (!checkingRes.state)
     return res.status(HttpStatusCodes.BAD_REQUEST).sendData({
       success: false,
-      msg: "un correct register data",
+      msg: ErrorMessages.InValidData,
       err: checkingRes.errors,
     });
   const { email, password, displayName, teacherId, levelId, phone } =
@@ -67,13 +68,16 @@ router.post("/sing-up", async (req, res) => {
     passwordSalt,
   });
   const token = sign(generateToken(userDoc.id, gData));
-  const firebaseToken = await auth.createCustomToken(req.user.id);
-
+  await auth.setCustomUserClaims(userDoc.id, { role: "student" });
+  const firebaseToken = await auth.createCustomToken(userDoc.id);
   res.cookie("token", token);
   return res.sendData({
     success: true,
     msg: "User registered successfully.",
-    data: { user: { ...gData, id: userDoc.id }, firebaseToken },
+    data: {
+      user: { ...(await userDoc.get()).data(), id: userDoc.id },
+      firebaseToken,
+    },
   });
 });
 const signInValidator = new Validator({
@@ -89,12 +93,15 @@ const signInValidator = new Validator({
   ],
   teacherId: ["string", "required"],
 });
+export enum AuthMessages {
+  BLOCKED = "You have been blocked by the teacher",
+}
 router.post("/login", async (req, res) => {
   const checkingRes = await signInValidator.asyncPasses(req.body);
   if (!checkingRes.state)
     return res.status(HttpStatusCodes.BAD_REQUEST).sendData({
       success: false,
-      msg: "un correct register data",
+      msg: ErrorMessages.InValidData,
       err: checkingRes.errors,
     });
   const { email, teacherId } = checkingRes.data;
@@ -103,21 +110,27 @@ router.post("/login", async (req, res) => {
     .where("email", "==", email)
     .limit(1)
     .get();
+
   const userDoc = result.docs[0];
   const resData = userDoc.data();
   if (!resData)
     return res.status(HttpStatusCodes.BAD_REQUEST).sendData({
       success: false,
-      msg: "User registered successfully.",
+      msg: ErrorMessages.InValidData,
     });
-  const token = generateToken(userDoc.id, resData);
-  const firebaseToken = await auth.createCustomToken(req.user.id);
+  if (resData.blocked)
+    return res.status(HttpStatusCodes.FORBIDDEN).sendData({
+      success: false,
+      msg: AuthMessages.BLOCKED,
+    });
+  const token = sign(generateToken(userDoc.id, resData));
+  const firebaseToken = await auth.createCustomToken(userDoc.id);
 
   res.cookie("token", token);
   return res.sendData({
     success: true,
     msg: "User registered successfully.",
-    data: { user: { ...userDoc.data(), id: userDoc.id }, firebaseToken },
+    data: { user: { id: userDoc.id }, firebaseToken, token },
   });
 });
 export default router;

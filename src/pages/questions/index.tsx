@@ -3,7 +3,6 @@ import ErrorShower from "@/components/common/error";
 import AddButton, { GoToButton } from "@/components/common/inputs/addButton";
 import Page404 from "@/components/pages/404";
 import QuestionInfoForm from "@/components/pages/questions/form";
-import { DataBase } from "@/data";
 import { getDocRef } from "@/firebase";
 import {
     DocumentSnapshot,

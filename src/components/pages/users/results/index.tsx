@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { DataBase } from "@/data";
 import { deleteDoc } from "firebase/firestore";
 import ErrorShower from "../../../common/error";
 import { QueryDocumentSnapshot } from "firebase/firestore";
 import Pagination from "@mui/material/Pagination";
 import DeleteDialog from "@/components/common/AlertDialog";
-import { useGetResults, useGetResultsCount } from "./hooks";
+import { clearResults, useGetResults, useGetResultsCount } from "./hooks";
 import { formateDate, formateDateClock } from "@/utils";
 import styles from "../../style.module.scss";
 import Link from "next/link";
@@ -38,7 +37,7 @@ function ResultShower({ result: result }: ElemProps) {
                         (data.questions.filter((q) => q.correctState).length /
                             data.questions.length) *
                             100
-                    )}
+                    )}%
                 </td>
                 <td>
                     {
@@ -83,9 +82,9 @@ function ResultShower({ result: result }: ElemProps) {
             </tr>
             <DeleteDialog
                 onAccept={async () => {
+                    clearResults(result.data().userId);
                     await deleteDoc(result.ref);
                     setOpen(false);
-                    alert("Result Updated successfully");
                 }}
                 onClose={function () {
                     setOpen(false);

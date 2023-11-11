@@ -10,7 +10,6 @@ import {
 } from "firebase/firestore";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 import { getAuth, connectAuthEmulator } from "firebase/auth";
-import { DataBase } from "@/data";
 let firebaseConfig: FirebaseOptions = {
     apiKey: "AIzaSyDuI2roFqIlzYsbqvU8EiYrGTWzK4pym7Y",
     authDomain: "coursessite-d6e57.firebaseapp.com",

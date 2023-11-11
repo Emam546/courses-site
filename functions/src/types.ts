@@ -1,9 +1,9 @@
 import { Send } from "express";
-import { DataBase, WithIdType } from "@dataBase";
+import { DataBase, DataBase.WithIdType } from "@dataBase";
 declare global {
   namespace Express {
     interface Request {
-      user: WithIdType<DataBase["Students"]>;
+      user: DataBase.WithIdType<DataBase["Students"]>;
     }
   }
 }

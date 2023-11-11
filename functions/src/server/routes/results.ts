@@ -1,8 +1,8 @@
 import { Router, Request, Response } from "express";
 import { getCollection } from "@/firebase";
 import { checkPaidCourseUser } from "@/utils/auth";
-import { QueryDocumentSnapshot } from "firebase-admin/firestore";
-import { DataBase } from "../../../../src/data";
+import { QueryDocumentSnapshot, Timestamp } from "firebase-admin/firestore";
+
 import { FieldValue } from "firebase-admin/firestore";
 import Validator from "validator-checker-js";
 import { ErrorMessages, Messages } from "@serv/declarations/major/Messages";
@@ -31,7 +31,7 @@ router.use(async (req, res, next) => {
       msg: ErrorMessages.UnExistedDoc,
     });
 
-  if (req.user.id == resultData.userId)
+  if (req.user.id != resultData.userId)
     return res.status(HttpStatusCodes.NOT_FOUND).sendData({
       success: false,
       msg: ErrorMessages.UnAuthorized,
@@ -59,7 +59,54 @@ const validator = new Validator({
     ["required"],
   ],
 });
-router.post("/", async (req, res, next) => {
+router.get("/", async (req, res) => {
+  const resultData = req.result.data();
+  return res.sendData({
+    success: true,
+    msg: Messages.DataSuccess,
+    data: {
+      result: {
+        id: req.result.id,
+        ...resultData,
+        startAt: resultData.startAt.toDate(),
+        endAt: resultData.endAt?.toDate(),
+      },
+    },
+  });
+});
+router.post("/end", async (req, res) => {
+  if (req.result.data().endAt)
+    return res.status(HttpStatusCodes.BAD_REQUEST).sendData({
+      success: false,
+      msg: "The end time was set before",
+    });
+  return res.sendData({
+    success: true,
+    msg: Messages.DataUpdated,
+    data: await putEndExam(req),
+  });
+});
+router.use(async (req, res, next) => {
+  const result = req.result;
+  async function getEndState() {
+    if (!result || !result.exists) return false;
+    if (typeof result.data().endAt != "undefined") return true;
+    const startAt: Date = result.data().startAt.toDate() || new Date();
+    if (Date.now() - startAt.getTime() > result.data().time) {
+      await putEndExam(req);
+      return true;
+    }
+    return false;
+  }
+  if (await getEndState())
+    return res.status(HttpStatusCodes.BAD_REQUEST).sendData({
+      success: false,
+      msg: "The end time was set before",
+    });
+  return next();
+});
+
+router.post("/", async (req, res) => {
   const result = req.result;
   const checkRes = validator.passes(req.body);
   if (!checkRes.state) {
@@ -69,17 +116,6 @@ router.post("/", async (req, res, next) => {
       err: checkRes.errors,
     });
   }
-  const exam = await getCollection("Exams").doc(req.result.data().examId).get();
-
-  function getEndState() {
-    if (!result || !result.exists) return false;
-    const startAt: Date = result.data().startAt.toDate() || new Date();
-
-    if (Date.now() - startAt.getTime() > exam.data()!.time) return true;
-    if (typeof result.data().endAt != "undefined") return true;
-    return false;
-  }
-  if (getEndState()) return await endExam(req, res);
 
   const data = checkRes.data as DataBase["Results"];
   result.ref.update(data);
@@ -89,8 +125,16 @@ router.post("/", async (req, res, next) => {
     data,
   });
 });
-async function endExam(req: Request, res: Response) {
+async function putEndExam(req: Request) {
   const result = req.result;
+  const resultData = result.data();
+
+  if (resultData.endAt)
+    return {
+      endAt: resultData.endAt.toDate(),
+      questions: resultData.questions,
+    };
+
   const questions = await Promise.all(
     req.result.data().questions.map(async (data) => {
       const quest = await getCollection("Questions").doc(data.questionId).get();
@@ -108,15 +152,22 @@ async function endExam(req: Request, res: Response) {
       };
     }),
   );
+  const endAt = Timestamp.fromDate(
+    new Date(
+      Math.min(
+        Date.now(),
+        resultData.startAt.toDate().getTime() + resultData.time,
+      ),
+    ),
+  );
   await result.ref.update({
-    endAt: FieldValue.serverTimestamp(),
+    endAt,
     questions: questions,
   });
-  return res.sendData({
-    success: true,
-    msg: Messages.DataUpdated,
-    data: {},
-  });
+  return {
+    endAt,
+    questions: questions,
+  };
 }
-router.post("/end", endExam);
+
 export default router;

@@ -1,4 +1,3 @@
-import { DataBase } from "@/data";
 import classNames from "classnames";
 
 export function Navigation({

@@ -1,15 +1,11 @@
 import PrimaryButton from "@/components/button";
-import { MainCard } from "@/components/card";
 import SelectInput from "@/components/common/inputs/select";
 import { Grid2 } from "@/components/grid";
 import { createCollection } from "@/firebase";
 import queryClient from "@/queryClient";
-import { useGetCourses } from "@/hooks/fireStore";
 import { useQuery } from "@tanstack/react-query";
 import { getDocs, query, where, orderBy } from "firebase/firestore";
 import { useForm } from "react-hook-form";
-import { useAuthState } from "react-firebase-hooks/auth";
-import { auth } from "@/firebase";
 export interface Props {
     levelId: string;
     userId: string;
@@ -65,7 +61,9 @@ export default function PaymentForm({ levelId, userId, onData }: Props) {
                     reset();
                     queryClient.setQueryData(
                         UnpaidCoursesKey(userId, levelId),
-                        courses?.filter((doc) => doc.id != data.id)
+                        courses
+                            ?.filter((doc) => doc.id != data.id)
+                            .sort((a, b) => a.data().order - b.data().order)
                     );
                 })}
                 autoComplete="off"

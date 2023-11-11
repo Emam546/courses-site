@@ -2,7 +2,7 @@ import { hasOwnProperty } from "@/utils";
 import { firestore, auth } from "@/firebase";
 import Validator, { AvailableRules } from "validator-checker-js";
 import { MessagesStore } from "validator-checker-js/dist/Rule";
-import { DataBase } from "@dataBase";
+
 import { isString } from "@/utils/types";
 
 declare module "validator-checker-js/dist/type" {

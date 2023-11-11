@@ -1,7 +1,7 @@
 import { useState } from "react";
 import InfoGetter, { CreateElem } from "../../../InsertCommonData";
 import { Elem as OrgElem } from "../../../InsertCommonData/Elem";
-import { DataBase, WithIdType } from "@/data";
+import { DataBase, DataBase.WithIdType } from "@/data";
 import Link from "next/link";
 import { useCollection } from "react-firebase-hooks/firestore";
 import { auth, createCollection, getDocRef } from "@/firebase";
@@ -17,7 +17,7 @@ import ErrorShower from "../../../common/error";
 import classNames from "classnames";
 import CheckedInput from "../../../common/inputs/checked";
 import { useAuthState } from "react-firebase-hooks/auth";
-export type T = WithIdType<DataBase["Exams"]>;
+export type T = DataBase.WithIdType<DataBase["Exams"]>;
 
 const Elem = CreateElem<T>(({ index, props: { data }, ...props }, ref) => {
     return (

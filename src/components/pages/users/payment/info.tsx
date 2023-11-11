@@ -11,7 +11,7 @@ import { useState } from "react";
 import styles from "../../style.module.scss";
 import { useCollection } from "react-firebase-hooks/firestore";
 import DeleteDialog from "@/components/common/AlertDialog";
-import { DataBase } from "@/data";
+
 import { formateDate } from "@/utils";
 import { faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -74,7 +74,9 @@ function PaymentShower({ payment }: ElemProps) {
                     if (!courses) return;
                     queryClient.setQueriesData(
                         key,
-                        [...courses, course].sort((doc) => doc.data()!.order)
+                        [...courses, course].sort(
+                            (a, b) => a.data()!.order - b.data()!.order
+                        )
                     );
                 }}
                 onClose={function () {

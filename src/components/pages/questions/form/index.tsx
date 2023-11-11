@@ -1,6 +1,6 @@
 import PrimaryButton from "@/components/button";
 import { WrapElem } from "@/components/common/inputs/styles";
-import { WithIdType, WithOrder } from "@/data";
+import { DataBase.WithIdType, WithOrder } from "@/data";
 import { useForm } from "react-hook-form";
 import FinalEditor from "@/components/common/inputs/Editor";
 import { useState } from "react";
@@ -21,7 +21,7 @@ export type DataType = {
     quest: string;
     choices: Array<
         WithOrder<
-            WithIdType<{
+            DataBase.WithIdType<{
                 textContext: string;
             }>
         >

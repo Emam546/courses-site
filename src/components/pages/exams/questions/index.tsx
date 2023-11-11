@@ -1,4 +1,4 @@
-import { DataBase, WithIdType } from "@/data";
+import { DataBase, DataBase.WithIdType } from "@/data";
 import { useGetDoc } from "@/hooks/fireStore";
 import {
     QueryDocumentSnapshot,
@@ -56,9 +56,9 @@ function EndTest({ onEnd }: { onEnd: () => any }) {
 }
 
 interface MainProps {
-    result: WithIdType<DataBase["Results"]>;
+    result: DataBase.WithIdType<DataBase["Results"]>;
     endState: boolean;
-    exam: WithIdType<DataBase["Exams"]>;
+    exam: DataBase.WithIdType<DataBase["Exams"]>;
     onAnswer: (id: string, answer: string, correctAnswer: string) => any;
     onState: (
         id: string,

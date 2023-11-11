@@ -1,6 +1,6 @@
 import SelectInput from "@/components/common/inputs/select";
 import { Grid2 } from "@/components/grid";
-import { DataBase } from "@/data";
+
 import { createCollection } from "@/firebase";
 import { useGetCourses, useGetLevels } from "@/hooks/fireStore";
 import { useQuery } from "@tanstack/react-query";

@@ -14,7 +14,6 @@ import Head from "next/head";
 import { GoToButton } from "@/components/common/inputs/addButton";
 import { useGetDoc } from "@/hooks/fireStore";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { DataBase } from "@/data";
 import { addInfinityQuestions } from "@/components/pages/questions/info";
 import { Timestamp } from "@firebase/firestore";
 function SafeArea({

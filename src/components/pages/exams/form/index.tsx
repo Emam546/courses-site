@@ -4,7 +4,6 @@ import CheckedInput from "@/components/common/inputs/checked";
 import MainInput, { ErrorInputShower } from "@/components/common/inputs/main";
 import TextArea from "@/components/common/inputs/textArea";
 import { Grid2 } from "@/components/grid";
-import { DataBase } from "@/data";
 import { useForm } from "react-hook-form";
 import QuestionAdder, { QuestionType } from "./addQuestions";
 import { useEffect, useState } from "react";
@@ -110,7 +109,10 @@ export default function ExamInfoForm({
                         valueAsNumber: true,
                         required: "You must provide a number",
                         min: 1,
-
+                        validate(value, data) {
+                            if (value > data.questionIds.length)
+                                return `the question number must be lower than or equal ${data.questionIds.length}`;
+                        },
                         disabled: !randomVal,
                     })}
                     id={"num-input"}
@@ -122,7 +124,8 @@ export default function ExamInfoForm({
                     title={"Exam Time"}
                     {...register("time", {
                         valueAsNumber: true,
-                        required: true,
+                        required: "the field is required",
+
                         min: 1,
                     })}
                     id={"num-input"}

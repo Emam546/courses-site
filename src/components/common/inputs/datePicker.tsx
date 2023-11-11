@@ -4,23 +4,19 @@ import {
     DateValidationError,
     FieldSection,
     DatePicker as OrgDatePicker,
-    PickerShortcutChangeImportance,
     UseDateFieldProps,
-    usePickerLayout,
 } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { Dayjs } from "dayjs";
-import React, { ComponentType, useRef, useState } from "react";
+import React, { useState } from "react";
 import { faCalendarDays } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { TextFieldProps } from "@mui/material/TextField";
-import { DateOrTimeViewWithMeridiem } from "@mui/x-date-pickers/internals/models";
 import { formateDate } from "@/utils";
+import classNames from "classnames";
 export type Props = {
     value: Date;
     onChange?: (val: Date) => any;
-} & DatePickerProps<Date> &
-    React.RefAttributes<HTMLDivElement>;
+} & Omit<DatePickerProps<Dayjs>, "value" | "onChange">;
 interface ButtonFieldProps
     extends UseDateFieldProps<Dayjs>,
         BaseSingleInputFieldProps<
@@ -35,9 +31,19 @@ function CustomField(props: ButtonFieldProps) {
     return (
         <div
             ref={props.InputProps?.ref}
-            className="form-control tw-py-0 tw-flex tw-items-center hover:tw-border-gray-900 focus-within:tw-border-gray-900"
+            aria-disabled={props.disabled}
+            className={classNames(
+                "form-control tw-py-0 tw-flex tw-items-center hover:tw-border-gray-900 focus-within:tw-border-gray-900",
+                "aria-disabled:tw-bg-gray-200 aria-disabled:hover:tw-border-transparent aria-disabled:tw-cursor-default"
+            )}
         >
-            <p className="tw-py-2 tw-text-gray-900 tw-m-0 tw-flex-1">
+            <p
+                aria-disabled={props.disabled}
+                className={classNames(
+                    "tw-py-2 tw-text-gray-900 tw-m-0 tw-flex-1",
+                    "aria-disabled:tw-text-gray-800"
+                )}
+            >
                 {formateDate(props.value!.toDate(), "/")}
             </p>
             <button
@@ -51,7 +57,7 @@ function CustomField(props: ButtonFieldProps) {
         </div>
     );
 }
-export default function DatePicker({ value, onChange }: Props) {
+export default function DatePicker({ value, onChange, ...props }: Props) {
     const [open, setOpen] = useState(false);
     return (
         <OrgDatePicker
@@ -66,6 +72,7 @@ export default function DatePicker({ value, onChange }: Props) {
                 field: { setOpen } as any,
             }}
             onChange={(v) => onChange && onChange((v as Dayjs).toDate())}
+            {...props}
         />
     );
 }

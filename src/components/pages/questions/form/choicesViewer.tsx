@@ -1,7 +1,7 @@
 import { UseFormRegister, UseFormRegisterReturn } from "react-hook-form";
 import InfoGetter, { CreateElem } from "../../../InsertCommonData";
 import { Elem as OrgElem } from "../../../InsertCommonData/Elem";
-import { DataBase } from "@/data";
+
 export type ChoiceType = DataBase["Questions"]["choices"][0];
 import draftToHtml from "draftjs-to-html";
 const Elem = CreateElem<{
@@ -51,11 +51,7 @@ export interface Props {
     onChange: (data: ChoiceType[]) => any;
     inputRef: UseFormRegisterReturn<"answer">;
 }
-export default function ChoicesViewer({
-    data,
-    onChange,
-    inputRef,
-}: Props) {
+export default function ChoicesViewer({ data, onChange, inputRef }: Props) {
     return (
         <>
             <InfoGetter

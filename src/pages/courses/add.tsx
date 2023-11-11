@@ -13,7 +13,6 @@ import Head from "next/head";
 import { useGetDoc } from "@/hooks/fireStore";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { GoToButton } from "@/components/common/inputs/addButton";
-import { DataBase } from "@/data";
 
 export function SaveArea({
     level,

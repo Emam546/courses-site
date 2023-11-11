@@ -12,7 +12,6 @@ import {
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { getDocRef } from "@/firebase";
-import { DataBase } from "@/data";
 import { useAuthState } from "react-firebase-hooks/auth";
 export function useCourseLevelData(
     lessonId: string

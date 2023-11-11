@@ -29,9 +29,43 @@ router.use(async (req, res, next) => {
     });
     return;
   }
+  req.courseId = courseId;
   next();
 });
+router.get("/", async (req, res) => {
+  const course = await getCollection("Courses").doc(req.courseId).get();
+  const data = course.data();
 
+  if (!course.exists || !data)
+    return res.status(HttpStatusCodes.NOT_FOUND).sendData({
+      success: false,
+      msg: ErrorMessages.UnExistedDoc,
+    });
+  if (data.hide)
+    return res.status(HttpStatusCodes.NOT_FOUND).sendData({
+      success: false,
+      msg: ErrorMessages.HidedDoc,
+    });
+  const count = await getCollection("Payments")
+    .where("courseId", "==", course.id)
+    .count()
+    .get();
+  return res.sendData({
+    success: true,
+    msg: Messages.DataSuccess,
+    data: {
+      course: {
+        id: course.id,
+        name: data.name,
+        desc: data.desc,
+        price: data.price,
+        studentNum: count.data().count,
+        publishedAt: data.publishedAt,
+        featured: data.featured,
+      },
+    },
+  });
+});
 router.get("/lessons", async (req, res) => {
   const lessons = await getCollection("Lessons")
     .where("courseId", "==", req.courseId)

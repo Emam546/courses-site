@@ -1,6 +1,5 @@
 import Page404 from "@/components/pages/404";
 import QuestionsViewer from "@/components/pages/exams/questions";
-import { DataBase } from "@/data";
 import { useGetDoc } from "@/hooks/fireStore";
 import { QueryDocumentSnapshot } from "firebase/firestore";
 import Head from "next/head";

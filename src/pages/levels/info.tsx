@@ -4,7 +4,6 @@ import AddButton, { GoToButton } from "@/components/common/inputs/addButton";
 import Page404 from "@/components/pages/404";
 import LevelInfoFormGetter from "@/components/pages/courses/info";
 import LevelInfoForm from "@/components/pages/levels/form";
-import { DataBase } from "@/data";
 import { getDocRef } from "@/firebase";
 import {
     DocumentSnapshot,

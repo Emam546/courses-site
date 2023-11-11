@@ -13,13 +13,13 @@ declare global {
 router.use(async (req, res, next) => {
   const { levelId } = req.query;
   if (typeof levelId != "string") {
-    res.status(422).sendData({
+    return res.status(422).sendData({
       success: false,
       msg: ErrorMessages.UnProvidedId,
     });
   }
-
-  next();
+  req.levelId = levelId;
+  return next();
 });
 
 router.get("/courses", async (req, res) => {

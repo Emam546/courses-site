@@ -4,13 +4,10 @@ import AddButton, { GoToButton } from "@/components/common/inputs/addButton";
 import Page404 from "@/components/pages/404";
 import CourseInfoForm from "@/components/pages/courses/form";
 import LessonsInfoGetter from "@/components/pages/lessons/info";
-import { DataBase } from "@/data";
-import { getDocRef } from "@/firebase";
 import { useGetDoc } from "@/hooks/fireStore";
 import { QueryDocumentSnapshot, updateDoc } from "firebase/firestore";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useDocument } from "react-firebase-hooks/firestore";
 interface UpdateForm {
     doc: QueryDocumentSnapshot<DataBase["Courses"]>;
 }

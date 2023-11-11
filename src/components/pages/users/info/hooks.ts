@@ -1,4 +1,3 @@
-import { DataBase } from "@/data";
 import { auth, createCollection, getDocRef } from "@/firebase";
 import { QueryDocumentSnapshot } from "firebase/firestore";
 import { useQuery } from "@tanstack/react-query";

@@ -7,6 +7,7 @@ export function getIdToken(req: Request): string | null {
   ) {
     return req.headers.authorization.split("Bearer ")[1];
   } else if (req.cookies) {
+    if (req.cookies.token) return req.cookies.token;
     return req.cookies.__session;
   } else {
     return null;

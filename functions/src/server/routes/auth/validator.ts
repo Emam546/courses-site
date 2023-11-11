@@ -133,7 +133,7 @@ Validator.register<"passwordStudent">(
       .where("teacherId", "==", teacherId)
       .limit(1)
       .get();
-    if (res.empty) return "the email is not exist";
+    if (res.empty) return undefined;
     const authRes = await getCollectionReference("AuthStudent")
       .doc(res.docs[0].id)
       .get();

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { DataBase } from "@/data";
+
 import { updateDoc } from "firebase/firestore";
 import ErrorShower from "../../../common/error";
 import { QueryDocumentSnapshot } from "firebase/firestore";

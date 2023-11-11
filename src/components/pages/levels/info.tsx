@@ -1,7 +1,7 @@
 import { useState } from "react";
 import InfoGetter, { CreateElem } from "../../InsertCommonData";
 import { Elem as OrgElem } from "../../InsertCommonData/Elem";
-import { DataBase, WithIdType } from "@/data";
+import { DataBase, DataBase.WithIdType } from "@/data";
 import Link from "next/link";
 import { useCollection } from "react-firebase-hooks/firestore";
 import { auth, createCollection, fireStore } from "@/firebase";
@@ -9,7 +9,7 @@ import { deleteDoc, doc, orderBy, query, updateDoc, where } from "firebase/fires
 import DeleteDialog from "../../common/AlertDialog";
 import ErrorShower from "../../common/error";
 import { useAuthState } from "react-firebase-hooks/auth";
-export type T = WithIdType<DataBase["Levels"]>;
+export type T = DataBase.WithIdType<DataBase["Levels"]>;
 
 const Elem = CreateElem<T>(({ index, props: { data }, ...props }, ref) => {
     return (

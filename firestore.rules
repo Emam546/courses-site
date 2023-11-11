@@ -6,7 +6,7 @@ service cloud.firestore {
         return request.auth!=null && request.auth.token.email_verified==true && request.auth.token.role=="teacher";
     }
     function isAuthUser(){
-        return request.auth!=null && request.auth.token.email_verified==true && request.auth.token.role=="student";
+        return request.auth!=null ;
     }
     function UserCanRead(){
         return isAuthUser() && request.auth.uid==resource.data.userId;
@@ -182,7 +182,7 @@ service cloud.firestore {
         return isAuthUser() && (resource==null || id == request.auth.uid);
       }
       function verfiyData(){
-        return isStr("displayName")&& isBool("blocked") && isStr("email")&& isStr("phone") && isStr("levelId") && ownLevelId();
+        return isStr("displayName")&& isBool("blocked") && isStr("email") && isStr("levelId") && ownLevelId();
       }
       
       function verifyDataTeacher(){
