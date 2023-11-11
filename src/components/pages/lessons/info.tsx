@@ -1,7 +1,7 @@
 import { useState } from "react";
 import InfoGetter, { CreateElem } from "../../InsertCommonData";
 import { Elem as OrgElem } from "../../InsertCommonData/Elem";
-import { DataBase, DataBase.WithIdType } from "@/data";
+
 import Link from "next/link";
 import { useCollection } from "react-firebase-hooks/firestore";
 import { auth, createCollection, getDocRef } from "@/firebase";

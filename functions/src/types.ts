@@ -1,5 +1,4 @@
 import { Send } from "express";
-import { DataBase, DataBase.WithIdType } from "@dataBase";
 declare global {
   namespace Express {
     interface Request {

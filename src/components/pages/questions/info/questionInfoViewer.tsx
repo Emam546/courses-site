@@ -4,7 +4,7 @@ import InfoGetter, {
     Props as InfoProps,
 } from "../../../InsertCommonData";
 import { Elem as OrgElem } from "../../../InsertCommonData/Elem";
-import { DataBase, DataBase.WithIdType } from "@/data";
+
 
 import draftToHtml from "draftjs-to-html";
 export type QuestionType = DataBase.WithIdType<DataBase["Questions"]>;

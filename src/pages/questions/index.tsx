@@ -1,14 +1,10 @@
 import { CardTitle, MainCard } from "@/components/card";
 import ErrorShower from "@/components/common/error";
-import AddButton, { GoToButton } from "@/components/common/inputs/addButton";
+import { GoToButton } from "@/components/common/inputs/addButton";
 import Page404 from "@/components/pages/404";
 import QuestionInfoForm from "@/components/pages/questions/form";
 import { getDocRef } from "@/firebase";
-import {
-    DocumentSnapshot,
-    QueryDocumentSnapshot,
-    updateDoc,
-} from "firebase/firestore";
+import { QueryDocumentSnapshot, updateDoc } from "firebase/firestore";
 import { useRouter } from "next/router";
 import { useDocument } from "react-firebase-hooks/firestore";
 import Head from "next/head";

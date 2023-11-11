@@ -1,4 +1,3 @@
-import { DataBase, DataBase.WithIdType } from "@/data";
 import { useGetDoc } from "@/hooks/fireStore";
 import {
     QueryDocumentSnapshot,
@@ -136,7 +135,7 @@ function Main({ result, endState, exam, onState, onAnswer, onEnd }: MainProps) {
                                     : undefined
                             }
                             correctAnswer={
-                                result.questions[curQuest].correctAnswer
+                                result.questions[curQuest].correctAnswer || ""
                             }
                         />
                     )}

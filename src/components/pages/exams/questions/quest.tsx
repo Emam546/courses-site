@@ -1,4 +1,4 @@
-import { DataBase, DataBase.WithIdType } from "@/data";
+
 import draftToHtml from "draftjs-to-html";
 import { QueryDocumentSnapshot } from "firebase/firestore";
 import classNames from "classnames";

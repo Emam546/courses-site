@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { DataBase, DataBase.WithIdType } from "@/data";
 import { createCollection, getDocRef } from "@/firebase";
 import {
     QuerySnapshot,
