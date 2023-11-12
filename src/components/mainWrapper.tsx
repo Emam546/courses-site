@@ -3,7 +3,6 @@ import { useEffect, useRef } from "react";
 import Header from "@/components/header";
 import Login from "./pages/login";
 import { useRouter } from "next/router";
-import LoadingBar from "./loadingBar";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/firebase";
 import EmailVerification from "./pages/emialVerfication";
@@ -43,7 +42,6 @@ function MainApp({ children: children }: { children: React.ReactNode }) {
     }, []);
     return (
         <>
-            <LoadingBar />
             <div
                 className="page-wrapper tw-flex tw-flex-1 tw-items-stretch tw-justify-stretch"
                 id="main-wrapper"

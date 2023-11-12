@@ -1,8 +1,9 @@
 import { Send } from "express";
+import { UserDecodedData } from "./server/routes/auth/utils";
 declare global {
   namespace Express {
     interface Request {
-      user: DataBase.WithIdType<DataBase["Students"]>;
+      user: DataBase.WithIdType<UserDecodedData>;
     }
   }
 }

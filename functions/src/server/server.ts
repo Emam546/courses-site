@@ -21,12 +21,7 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(
-  cookieParser(
-    EnvVars.cookieProps.secret,
-    EnvVars.cookieProps.options as CookieParseOptions,
-  ),
-);
+app.use(cookieParser());
 app.use("/api", router);
 app.use((req, res) => {
   res.status(HttpStatusCodes.NOT_FOUND).sendData({

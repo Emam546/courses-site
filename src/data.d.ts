@@ -111,7 +111,6 @@ declare global {
             emailVerified: boolean;
             email: string;
             phone: string;
-
             createdAt: Timestamp;
         };
         AuthStudent: {
@@ -127,5 +126,6 @@ declare global {
               } & {
                   type: "admin";
               };
+        
     }
 }

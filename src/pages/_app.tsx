@@ -16,6 +16,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import queryClient from "@/queryClient";
 import { NextPage } from "next";
 import ConnectedBar from "@/components/internetConnection";
+import LoadingBar from "@/components/loadingBar";
 
 config.autoAddCss = false;
 
@@ -48,11 +49,12 @@ export default function App({ Component, pageProps }: AppPropsWithLayout) {
 
     return (
         <Provider>
+            <ConnectedBar />
+            <LoadingBar />
             {Component.getLayout ? (
                 Component.getLayout(<Component {...pageProps} />)
             ) : (
                 <>
-                    <ConnectedBar />
                     <MainWrapper>{<Component {...pageProps} />}</MainWrapper>
                 </>
             )}

@@ -27,14 +27,14 @@ export const registerTeacher = onCall(async (data) => {
         err: res.errors,
       } as RegisterResponseData;
     const { email, password, displayName } = res.data;
-    let userRecord = await auth.createUser({
-      email,
-      password,
-      displayName,
-    });
+    let userRecord: UserRecord;
     try {
       userRecord = await auth.getUserByEmail(email);
-
+      if (userRecord.emailVerified)
+        return {
+          success: false,
+          msg: "the email is already exist",
+        };
       userRecord = await auth.updateUser(userRecord.uid, {
         email,
         password,

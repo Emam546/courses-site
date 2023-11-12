@@ -1,23 +1,22 @@
 import "./validator";
-import { auth, getCollectionReference } from "@/firebase";
-import { Router } from "express";
+import { getCollectionReference } from "@/firebase";
+import { Response, Router } from "express";
 import HttpStatusCodes from "@serv/declarations/major/HttpStatusCodes";
 import { FieldValue } from "firebase-admin/firestore";
 import bcrypt from "bcrypt";
 import Validator from "validator-checker-js";
-import { sign } from "@serv/utils/jwt";
+import { decode, sign } from "@serv/utils/jwt";
 import { ErrorMessages } from "@/server/declarations/major/Messages";
-
+import { verifyEmail, UserData, decodeEmail } from "./sender";
+import { authUser } from "./utils";
 const router = Router();
-export function generateToken(
-  id: string,
-  data: {
-    displayname: string;
-    email: string;
-    phone: string;
-    emailVerified: boolean;
-  },
-) {
+export interface UserSingData {
+  displayname: string;
+  email: string;
+  phone: string;
+  emailVerified: boolean;
+}
+export function generateToken(id: string, data: UserSingData) {
   return {
     id,
     role: "student",
@@ -38,47 +37,29 @@ const registerValidator = new Validator({
   levelId: ["required", { existedId: { path: "Levels" } }, "string"],
   phone: ["string"],
   displayName: ["string", "required"],
+  redirectUrl: ["string", "required"],
 });
+async function setSingUp(res: Response, data: UserData) {
+  await verifyEmail(data);
+  res.cookie("verifyToken", sign(data));
+  res.status(HttpStatusCodes.OK).sendData({
+    success: true,
+    msg: "The Email was sent successfully",
+    data: null,
+  });
+}
 router.post("/sing-up", async (req, res) => {
   const checkingRes = await registerValidator.asyncPasses(req.body);
-  if (!checkingRes.state)
-    return res.status(HttpStatusCodes.BAD_REQUEST).sendData({
+  if (!checkingRes.state) {
+    res.status(HttpStatusCodes.BAD_REQUEST).sendData({
       success: false,
       msg: ErrorMessages.InValidData,
       err: checkingRes.errors,
     });
-  const { email, password, displayName, teacherId, levelId, phone } =
-    checkingRes.data;
-  const gData = {
-    displayname: displayName,
-    blocked: false,
-    email: email,
-    phone: phone,
-    createdAt: FieldValue.serverTimestamp(),
-    levelId: levelId,
-    teacherId: teacherId,
-    emailVerified: true,
-  };
-  const userDoc = await getCollectionReference("Students").add(gData);
-  const passwordSalt = bcrypt.genSaltSync();
-  const passwordHash = bcrypt.hashSync(password, passwordSalt);
+    return;
+  }
 
-  await getCollectionReference("AuthStudent").doc(userDoc.id).set({
-    passwordHash,
-    passwordSalt,
-  });
-  const token = sign(generateToken(userDoc.id, gData));
-  await auth.setCustomUserClaims(userDoc.id, { role: "student" });
-  const firebaseToken = await auth.createCustomToken(userDoc.id);
-  res.cookie("token", token);
-  return res.sendData({
-    success: true,
-    msg: "User registered successfully.",
-    data: {
-      user: { ...(await userDoc.get()).data(), id: userDoc.id },
-      firebaseToken,
-    },
-  });
+  await setSingUp(res, checkingRes.data);
 });
 const signInValidator = new Validator({
   email: [
@@ -93,9 +74,20 @@ const signInValidator = new Validator({
   ],
   teacherId: ["string", "required"],
 });
+router.get("/resendEmail", async (req, res) => {
+  const verifyToken = req.cookies.verifyToken;
+  if (!verifyToken)
+    return res.status(HttpStatusCodes.UNAUTHORIZED).sendData({
+      success: false,
+      msg: "UnExisted Verified Token",
+    });
+  const data = decode<UserData>(verifyToken);
+  await setSingUp(res, data);
+});
 export enum AuthMessages {
   BLOCKED = "You have been blocked by the teacher",
 }
+
 router.post("/login", async (req, res) => {
   const checkingRes = await signInValidator.asyncPasses(req.body);
   if (!checkingRes.state)
@@ -123,14 +115,48 @@ router.post("/login", async (req, res) => {
       success: false,
       msg: AuthMessages.BLOCKED,
     });
-  const token = sign(generateToken(userDoc.id, resData));
-  const firebaseToken = await auth.createCustomToken(userDoc.id);
+  return await authUser(res, userDoc.id, userDoc.data());
+});
 
-  res.cookie("token", token);
-  return res.sendData({
-    success: true,
-    msg: "User registered successfully.",
-    data: { user: { id: userDoc.id }, firebaseToken, token },
+router.get("/verify/:emailToken", async (req, res) => {
+  const emailToken = req.params.emailToken;
+  let data: UserData;
+  try {
+    data = decodeEmail(emailToken);
+  } catch (error: any) {
+    return res.status(HttpStatusCodes.BAD_REQUEST).sendData({
+      success: false,
+      msg: error.message,
+    });
+  }
+  const { email, password, displayName, teacherId, levelId, phone } = data;
+  const emailCheck = await signInValidator.validate(email, {
+    emailStudent: { teacherId: teacherId, exist: false },
   });
+  if (emailCheck)
+    return res.status(HttpStatusCodes.BAD_REQUEST).sendData({
+      success: false,
+      msg: "this email is already verified",
+    });
+
+  const gData = {
+    displayname: displayName,
+    blocked: false,
+    email: email,
+    phone: phone,
+    createdAt: FieldValue.serverTimestamp(),
+    levelId: levelId,
+    teacherId: teacherId,
+    emailVerified: true,
+  };
+  const userDoc = await getCollectionReference("Students").add(gData);
+  const passwordSalt = bcrypt.genSaltSync();
+  const passwordHash = bcrypt.hashSync(password, passwordSalt);
+
+  await getCollectionReference("AuthStudent").doc(userDoc.id).set({
+    passwordHash,
+    passwordSalt,
+  });
+  return await authUser(res, userDoc.id, gData);
 });
 export default router;

@@ -65,59 +65,75 @@ export default function SingUp() {
                                                         password: data.password,
                                                     });
                                                 if (!res.data.success) {
+                                                    const msg = res.data.msg;
                                                     const errors = res.data.err;
-                                                    console.error(errors);
-                                                    if (
-                                                        isFireBaseError(errors)
-                                                    ) {
-                                                        const message =
-                                                            getErrorMessage(
-                                                                errors.code
-                                                            );
+                                                    if (errors) {
+                                                        if (
+                                                            isFireBaseError(
+                                                                errors
+                                                            )
+                                                        ) {
+                                                            const message =
+                                                                getErrorMessage(
+                                                                    errors.code
+                                                                );
 
-                                                        if (!message)
+                                                            if (!message)
+                                                                return setError(
+                                                                    "root",
+                                                                    {
+                                                                        message:
+                                                                            errors.message,
+                                                                    }
+                                                                );
                                                             return setError(
-                                                                "root",
+                                                                message.type as keyof FormValues,
                                                                 {
                                                                     message:
-                                                                        errors.message,
+                                                                        message.message,
                                                                 }
                                                             );
-                                                        return setError(
-                                                            message.type as keyof FormValues,
-                                                            {
-                                                                message:
-                                                                    message.message,
-                                                            }
-                                                        );
-                                                    }
-                                                    if (
-                                                        isErrormessage(errors)
-                                                    ) {
-                                                        ObjectEntries(
-                                                            errors
-                                                        ).forEach(
-                                                            ([key, val]) => {
-                                                                if (key == ".")
-                                                                    return setError(
-                                                                        "root",
+                                                        }
+                                                        if (
+                                                            errors &&
+                                                            isErrormessage(
+                                                                errors
+                                                            )
+                                                        ) {
+                                                            ObjectEntries(
+                                                                errors
+                                                            ).forEach(
+                                                                ([
+                                                                    key,
+                                                                    val,
+                                                                ]) => {
+                                                                    if (
+                                                                        key ==
+                                                                        "."
+                                                                    )
+                                                                        return setError(
+                                                                            "root",
+                                                                            {
+                                                                                message:
+                                                                                    val[0]
+                                                                                        .message,
+                                                                            }
+                                                                        );
+                                                                    setError(
+                                                                        key as keyof FormValues,
                                                                         {
                                                                             message:
                                                                                 val[0]
                                                                                     .message,
                                                                         }
                                                                     );
-                                                                setError(
-                                                                    key as keyof FormValues,
-                                                                    {
-                                                                        message:
-                                                                            val[0]
-                                                                                .message,
-                                                                    }
-                                                                );
-                                                            }
-                                                        );
+                                                                }
+                                                            );
+                                                        }
                                                     }
+                                                    setError("root", {
+                                                        message: msg,
+                                                    });
                                                     return;
                                                 }
                                                 await signInWithCustomToken(

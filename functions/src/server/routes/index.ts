@@ -21,8 +21,16 @@ router.use(async (req, res, next) => {
     return res
       .status(HttpStatusCodes.UNAUTHORIZED)
       .sendData({ success: false, msg: ErrorMessages.UnAuthorized });
-  req.user = await decode(token);
-  return next();
+  try {
+    req.user = await decode(token);
+    return next();
+  } catch (error) {
+    res.clearCookie("token");
+    return res.status(HttpStatusCodes.UNAUTHORIZED).sendData({
+      success: false,
+      msg: ErrorMessages.UnAuthorized,
+    });
+  }
 });
 router.use("/student", studentRouter);
 router.use("/course", courseRouter);
