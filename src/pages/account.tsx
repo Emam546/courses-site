@@ -4,12 +4,15 @@ import UploadAction, {
 } from "@/components/pages/account/uploadSection";
 import EmailNotification from "@/components/pages/account/emailnotifications";
 import DeleteAccount from "@/components/pages/account/deleteAccount";
-import { useAppSelector } from "@/store";
+import { useAppDispatch, useAppSelector } from "@/store";
 import Link from "next/link";
 import { updateDoc } from "firebase/firestore";
+import { getDocRef } from "@/firebase";
+import { AuthActions } from "@/store/auth";
 
 const Page = () => {
     const user = useAppSelector((state) => state.auth.user!);
+    const dispatch = useAppDispatch();
     return (
         <>
             <Head>
@@ -47,11 +50,13 @@ const Page = () => {
             <div className="tw-bg-neutral-100 tw-pb-20 tw-pt-10">
                 <div className="tw-container tw-relative tw-px-3 tw-mx-auto py-20 ">
                     <UploadAction
-                        values={user.data()}
+                        values={user}
                         onData={async (data: DateType) => {
-                            await updateDoc(user.ref, {
+                            const ref = getDocRef("Students", user.id);
+                            await updateDoc(ref, {
                                 ...data,
                             });
+                            dispatch(AuthActions.setUser({ ...user, ...data }));
                         }}
                     />
                     <div className="tw-mt-16">

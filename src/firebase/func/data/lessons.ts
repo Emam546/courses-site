@@ -6,7 +6,7 @@ export type LessonCourseType = {
     briefDesc: string;
     publishedAt: string;
 };
-export type LessonType = DataBase.DataBase.WithIdType<
+export type LessonType = DataBase.WithIdType<
     Exclude<DataBase["Lessons"], "addersId">
 >;
 export function getCourseLessons(courseId: string) {

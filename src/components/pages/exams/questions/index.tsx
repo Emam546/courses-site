@@ -53,7 +53,7 @@ function EndTest({ onEnd }: { onEnd: () => any }) {
 interface MainProps {
     result: ResultType;
     endState: boolean;
-    exam: DataBase.DataBase.WithIdType<DataBase["Exams"]>;
+    exam: DataBase.WithIdType<DataBase["Exams"]>;
     onAnswer: (id: string, answer: string) => any;
     onState: (
         id: string,

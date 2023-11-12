@@ -9,7 +9,7 @@ export type ExamsLessonType = {
     repeatable: boolean;
 };
 
-export type ExamType = DataBase.DataBase.WithIdType<
+export type ExamType = DataBase.WithIdType<
     Omit<DataBase["Exams"], "random" | "questionIds"> & {
         num: number;
     }

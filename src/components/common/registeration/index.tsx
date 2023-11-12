@@ -41,7 +41,7 @@ export const LabelElem = React.forwardRef<HTMLDivElement, NormalDicAttributes>(
             >
                 <label
                     htmlFor={id}
-                    className="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white"
+                    className="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 "
                 >
                     {labelText}
                 </label>
@@ -61,7 +61,7 @@ export const NormalInput = React.forwardRef<HTMLInputElement, NormalInputProps>(
             >
                 <input
                     id={id}
-                    className="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 sm:tw-text-sm tw-rounded-lg focus:tw-ring-primary-600 focus:tw-border-primary-600 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-700 dark:tw-border-gray-600 dark:tw-placeholder-gray-400 dark:tw-text-white dark:focus:tw-ring-blue-500 dark:focus:tw-border-blue-500"
+                    className="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 sm:tw-text-sm tw-rounded-lg focus:tw-ring-primary-600 focus:tw-border-primary-600 tw-block tw-w-full tw-p-2.5"
                     {...props}
                     ref={ref}
                 />
@@ -86,7 +86,7 @@ export const SelectInput = React.forwardRef<
         >
             <select
                 id={id}
-                className="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 sm:tw-text-sm tw-rounded-lg focus:tw-ring-primary-600 focus:tw-border-primary-600 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-700 dark:tw-border-gray-600 dark:tw-placeholder-gray-400 dark:tw-text-white dark:focus:tw-ring-blue-500 dark:focus:tw-border-blue-500"
+                className="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 sm:tw-text-sm tw-rounded-lg focus:tw-ring-primary-600 focus:tw-border-primary-600 tw-block tw-w-full tw-p-2.5"
                 ref={ref}
                 {...props}
             >

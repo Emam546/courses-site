@@ -7,13 +7,10 @@ import { ReactElement } from "react";
 
 function Page() {
     const router = useRouter();
-    const dispatch = useAppDispatch();
     return (
         <>
             <Login
                 onLogin={async (user) => {
-                    dispatch(AuthActions.setUser(user));
-
                     router.push("/");
                 }}
             />

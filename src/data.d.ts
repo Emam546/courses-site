@@ -14,7 +14,7 @@ declare global {
         | FailType;
     declare namespace DataBase {
         type WithOrder<T> = { order: number } & T;
-        type DataBase.WithIdType<T> = { id: string } & T;
+        type WithIdType<T> = { id: string } & T;
         type TimeStampToDate<T> = {
             [K in keyof T]: T[K] extends Timestamp ? Date : T[K];
         };

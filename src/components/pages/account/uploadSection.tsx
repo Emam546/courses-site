@@ -7,30 +7,40 @@ import SelectInput from "./common/inputs/selectOption";
 import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useGetLevels } from "@/hooks/firebase";
+import { isValidPhoneNumber } from "react-phone-number-input";
 
-import { validatePhone, validateUserName } from "../singup";
-export type DateType = Omit<
-    DataBase["Users"],
-    "createdAt" | "blocked" | "userName" | "password"
->;
+import { StateType } from "@/store/auth";
+import PhoneNumber from "../singup/phonefield";
+export type DateType = {
+    levelId: string;
+    displayname: string;
+    phone: string;
+};
+type FormValues = NonNullable<StateType["user"]>;
 export interface Props {
-    values: DataBase["Users"];
+    values: FormValues;
     onData: (data: DateType) => any;
 }
 export default function UploadAction({ values, onData }: Props) {
-    const { register, handleSubmit, formState, clearErrors, control } = useForm<
-        DataBase["Users"]
-    >({
-        values,
-    });
+    const { register, handleSubmit, formState, setValue, getValues, control } =
+        useForm<FormValues>({
+            values,
+        });
     const { data: levels } = useGetLevels();
+    register("phone", {
+        required: "phone number is required",
+        validate: (val) => {
+            if (!isValidPhoneNumber(val))
+                return "the phone number is not valid";
+        },
+    });
     return (
         <Section label={"Account"}>
             <form
                 onSubmit={handleSubmit(async (data) => {
                     await onData({
                         levelId: data.levelId,
-                        name: data.name,
+                        displayname: data.displayname,
                         phone: data.phone,
                     });
                 })}
@@ -39,32 +49,34 @@ export default function UploadAction({ values, onData }: Props) {
             >
                 <Grid2Container className="md:tw-gap-x-10 md:tw-gap-y-6">
                     <NormalInput
-                        err={formState.errors.name}
-                        label="Name"
-                        required
-                        {...register("name", { required: true })}
-                    />
-                    <NormalInput
-                        err={formState.errors.userName}
+                        err={formState.errors.displayname}
                         label="User Name"
                         type="text"
-                        required
-                        disabled
-                        {...register("userName", {
+                        {...register("displayname", {
                             required: true,
-                            validate: validateUserName,
+                        })}
+                    />
+                    <NormalInput
+                        err={formState.errors.displayname}
+                        label="Email"
+                        type="email"
+                        {...register("email", {
+                            required: true,
                             disabled: true,
                         })}
                     />
-                    <NormalInput
+                    <PhoneNumber
+                        labelText={"Your phone number"}
                         err={formState.errors.phone}
-                        label="Phone"
-                        type="tel"
-                        required
-                        {...register("phone", {
-                            required: true,
-                            validate: validatePhone,
-                        })}
+                        id="tel"
+                        placeholder="Enter your phone number"
+                        countryCallingCodeEditable={false}
+                        international
+                        value={getValues("phone")}
+                        defaultCountry="EG"
+                        onChange={(val) => {
+                            if (val) setValue("phone", val);
+                        }}
                     />
                     <SelectInput
                         err={formState.errors.levelId}
@@ -76,13 +88,12 @@ export default function UploadAction({ values, onData }: Props) {
                             })) || []
                         }
                         label="Level"
-                        required
                         {...register("levelId", { required: true })}
                     />
                 </Grid2Container>
 
                 <button
-                    className="tw-text-blue-500 hover:tw-text-blue-800 tw-font-medium tw-text-lg tw-mt-6 tw-p-2 tw-block tw-w-fit md:tw-ml-auto"
+                    className="tw-text-blue-500 hover:tw-text-blue-800 tw-font-medium tw-text-lg tw-mt-6 tw-p-2 tw-block tw-w-fit md:tw-ml-auto tw-cursor-pointer"
                     type="submit"
                     disabled={formState.isSubmitSuccessful}
                 >

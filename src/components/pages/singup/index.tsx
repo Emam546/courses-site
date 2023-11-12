@@ -19,11 +19,15 @@ import { StateType } from "@/store/auth";
 import { UserCredential, signInWithCustomToken } from "firebase/auth";
 import { auth } from "@/firebase";
 import PhoneNumber from "./phonefield";
+import Link from "next/link";
+import { isValidPhoneNumber } from "react-phone-number-input";
 
 export interface Props {
     onUser?: (
-        user: NonNullable<StateType["user"]>,
-        credential: UserCredential
+        user: Omit<
+            NonNullable<StateType["user"]>,
+            "id" | "blocked" | "emailVerified"
+        >
     ) => any;
 }
 export interface Form {
@@ -31,31 +35,27 @@ export interface Form {
     password: string;
     confirmPassword: string;
     name: string;
-    userName: string;
     levelId: string;
     email: string;
     rememberMe: boolean;
-}
-const egyptianPhoneNumberPattern = /^\+2(010|011|012|015)[0-9]{8}$/;
-const UserNamePattern = /^[a-zA-Z_]{6,19}$/;
-export async function validateUserName(val: string) {
-    const state = UserNamePattern.test(val);
-    if (!state)
-        return "Invalid userName format. Use lowercase letters and underscores (_), 6-19 characters.";
-
-    return true;
 }
 export default function SingUp({ onUser }: Props) {
     const { register, formState, handleSubmit, setError, setValue, watch } =
         useForm<Form>();
     const { data: levels } = useGetLevels();
-    register("phone", { required: "phone number is required" });
+    register("phone", {
+        required: "phone number is required",
+        validate: (val) => {
+            if (!isValidPhoneNumber(val))
+                return "the phone number is not valid";
+        },
+    });
     return (
-        <section className="dark:tw-bg-gray-900 tw-bg-gray-50">
+        <section className=" tw-bg-gray-50">
             <div className="tw-min-h-screen tw-flex tw-flex-col tw-items-center tw-justify-center tw-px-6 tw-py-8 tw-mx-auto">
-                <div className="tw-w-full tw-bg-white tw-rounded-lg tw-shadow dark:tw-border md:tw-mt-0 sm:tw-max-w-md xl:tw-p-0 dark:tw-bg-gray-800 dark:tw-border-gray-700">
+                <div className="tw-w-full tw-bg-white tw-rounded-lg tw-shadow md:tw-mt-0 sm:tw-max-w-md xl:tw-p-0 ">
                     <div className="tw-p-6 tw-space-y-4 md:tw-space-y-6 sm:tw-p-8">
-                        <h1 className="tw-text-xl tw-font-bold tw-leading-tight tw-tracking-tight tw-text-gray-900 md:tw-text-2xl dark:tw-text-white">
+                        <h1 className="tw-text-xl tw-font-bold tw-leading-tight tw-tracking-tight tw-text-gray-900 md:tw-text-2xl">
                             Sign up
                         </h1>
                         <ErrorInputShower
@@ -71,8 +71,8 @@ export default function SingUp({ onUser }: Props) {
                                         auth,
                                         data.rememberMe
                                     );
-                                    const res = await createStudentCall({
-                                        displayName: data.userName,
+                                    await createStudentCall({
+                                        displayName: data.name,
                                         email: data.email,
                                         levelId: data.levelId,
                                         password: data.password,
@@ -80,11 +80,14 @@ export default function SingUp({ onUser }: Props) {
                                         teacherId: process.env
                                             .NEXT_PUBLIC_TEACHER_ID as string,
                                     });
-                                    const user = await signInWithCustomToken(
-                                        auth,
-                                        res.firebaseToken
-                                    );
-                                    await onUser?.(res.user, user);
+                                    await onUser?.({
+                                        displayname: data.name,
+                                        email: data.email,
+                                        levelId: data.levelId,
+                                        phone: data.phone,
+                                        teacherId: process.env
+                                            .NEXT_PUBLIC_TEACHER_ID as string,
+                                    });
                                 } catch (err) {
                                     if (
                                         hasOwnProperty(err, "errors") &&
@@ -158,10 +161,9 @@ export default function SingUp({ onUser }: Props) {
                                 labelText={"Your Name"}
                                 type="text"
                                 id="userName"
-                                err={formState.errors.userName}
-                                {...register("userName", {
+                                err={formState.errors.name}
+                                {...register("name", {
                                     required: true,
-                                    validate: validateUserName,
                                 })}
                             />
                             <NormalInput
@@ -196,7 +198,7 @@ export default function SingUp({ onUser }: Props) {
                                             id="remember"
                                             aria-describedby="remember"
                                             type="checkbox"
-                                            className="tw-w-4 tw-h-4 tw-border tw-border-gray-300 tw-rounded tw-bg-gray-50 focus:tw-ring-3 focus:tw-ring-primary-300 dark:tw-bg-gray-700 dark:tw-border-gray-600 dark:focus:tw-ring-primary-600 dark:tw-ring-offset-gray-800"
+                                            className="tw-w-4 tw-h-4 tw-border tw-border-gray-300 tw-rounded tw-bg-gray-50 focus:tw-ring-3 focus:tw-ring-primary-300"
                                             {...register("rememberMe")}
                                             defaultChecked={true}
                                         />
@@ -204,7 +206,7 @@ export default function SingUp({ onUser }: Props) {
                                     <div className="tw-ml-3 tw-text-sm">
                                         <label
                                             htmlFor="remember"
-                                            className="tw-text-gray-500 dark:tw-text-gray-300"
+                                            className="tw-text-gray-500"
                                         >
                                             Remember me
                                         </label>
@@ -218,20 +220,20 @@ export default function SingUp({ onUser }: Props) {
                                     formState.isValidating
                                 }
                                 className={classNames(
-                                    "tw-w-full tw-text-white tw-bg-primary-600 hover:tw-bg-primary-700 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-primary-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center dark:tw-bg-primary-600 dark:hover:tw-bg-primary-700 dark:focus:tw-ring-primary-800",
+                                    "tw-w-full tw-text-white tw-bg-primary-600 hover:tw-bg-primary-700 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-primary-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center ",
                                     "disabled:tw-bg-primary-400 hover:tw-bg-primary-400"
                                 )}
                             >
                                 Sign up
                             </button>
-                            <p className="tw-text-sm tw-font-light tw-text-gray-500 dark:tw-text-gray-400">
+                            <p className="tw-text-sm tw-font-light tw-text-gray-500 ">
                                 Do you have an account?{" "}
-                                <a
+                                <Link
                                     href="/sing-up"
-                                    className="tw-font-medium tw-text-primary-600 hover:tw-underline dark:tw-text-primary-500"
+                                    className="tw-font-medium tw-text-primary-600 hover:tw-underline"
                                 >
                                     Sign in
-                                </a>
+                                </Link>
                             </p>
                         </form>
                     </div>

@@ -35,11 +35,11 @@ export default function LogIn({ onLogin }: Props) {
         useForm<FormValues>();
     changeTitle("Login");
     return (
-        <section className="dark:tw-bg-gray-900 tw-bg-gray-50">
+        <section className=" tw-bg-gray-50">
             <div className="tw-min-h-screen tw-flex tw-flex-col tw-items-center tw-justify-center tw-px-6 tw-py-8 tw-mx-auto md:tw-h-screen lg:tw-py-0">
-                <div className="tw-w-full tw-bg-white tw-rounded-lg tw-shadow dark:tw-border md:tw-mt-0 sm:tw-max-w-md xl:tw-p-0 dark:tw-bg-gray-800 dark:tw-border-gray-700">
+                <div className="tw-w-full tw-bg-white tw-rounded-lg tw-shadow  md:tw-mt-0 sm:tw-max-w-md xl:tw-p-0 ">
                     <div className="tw-p-6 tw-space-y-4 md:tw-space-y-6 sm:tw-p-8">
-                        <h1 className="tw-text-xl tw-font-bold tw-leading-tight tw-tracking-tight tw-text-gray-900 md:tw-text-2xl dark:tw-text-white">
+                        <h1 className="tw-text-xl tw-font-bold tw-leading-tight tw-tracking-tight tw-text-gray-900 md:tw-text-2xl ">
                             Sign in to your account
                         </h1>
                         <ErrorInputShower
@@ -122,7 +122,7 @@ export default function LogIn({ onLogin }: Props) {
                                             id="remember"
                                             aria-describedby="remember"
                                             type="checkbox"
-                                            className="tw-w-4 tw-h-4 tw-border tw-border-gray-300 tw-rounded tw-bg-gray-50 focus:tw-ring-3 focus:tw-ring-primary-300 dark:tw-bg-gray-700 dark:tw-border-gray-600 dark:focus:tw-ring-primary-600 dark:tw-ring-offset-gray-800"
+                                            className="tw-w-4 tw-h-4 tw-border tw-border-gray-300 tw-rounded tw-bg-gray-50 focus:tw-ring-3 focus:tw-ring-primary-300"
                                             {...register("rememberMe")}
                                             defaultChecked={true}
                                         />
@@ -130,7 +130,7 @@ export default function LogIn({ onLogin }: Props) {
                                     <div className="tw-ml-3 tw-text-sm">
                                         <label
                                             htmlFor="remember"
-                                            className="tw-text-gray-500 dark:tw-text-gray-300"
+                                            className="tw-text-gray-500 "
                                         >
                                             Remember me
                                         </label>
@@ -144,17 +144,17 @@ export default function LogIn({ onLogin }: Props) {
                                     formState.isValidating
                                 }
                                 className={classNames(
-                                    "tw-w-full tw-text-white tw-bg-primary-600 hover:tw-bg-primary-700 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-primary-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center dark:tw-bg-primary-600 dark:hover:tw-bg-primary-700 dark:focus:tw-ring-primary-800",
+                                    "tw-w-full tw-text-white tw-bg-primary-600 hover:tw-bg-primary-700 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-primary-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center ",
                                     "disabled:tw-bg-primary-400 hover:tw-bg-primary-400"
                                 )}
                             >
                                 Login
                             </button>
-                            <p className="tw-text-sm tw-font-light tw-text-gray-500 dark:tw-text-gray-400">
+                            <p className="tw-text-sm tw-font-light tw-text-gray-500 ">
                                 Don’t have an account yet?{" "}
                                 <Link
                                     href="/sign-up"
-                                    className="tw-font-medium tw-text-primary-600 hover:tw-underline dark:tw-text-primary-500"
+                                    className="tw-font-medium tw-text-primary-600 hover:tw-underline "
                                 >
                                     Sign up
                                 </Link>

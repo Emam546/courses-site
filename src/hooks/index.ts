@@ -26,3 +26,27 @@ export function useChangeTitle(title: string) {
         window.document.title = title;
     }, [title]);
 }
+export function useConnected(): ReturnType<typeof useState<boolean>> {
+    const [isOnline, setIsOnline] = useState(
+        typeof navigator != "undefined" ? navigator.onLine : true
+    );
+
+    useEffect(() => {
+        function onlineHandler() {
+            setIsOnline(true);
+        }
+
+        function offlineHandler() {
+            setIsOnline(false);
+        }
+
+        window.addEventListener("online", onlineHandler);
+        window.addEventListener("offline", offlineHandler);
+
+        return () => {
+            window.removeEventListener("online", onlineHandler);
+            window.removeEventListener("offline", offlineHandler);
+        };
+    }, []);
+    return [isOnline, setIsOnline] as ReturnType<typeof useState<boolean>>;
+}

@@ -27,10 +27,10 @@ export default function LoadingBar() {
         <div
             className={classNames(
                 style["loading-bar"],
-                "fixed top-0 left-0 w-full h-[4px] z-[10000]"
+                "tw-fixed tw-top-0 tw-left-0 tw-w-full tw-h-[4px] tw-z-[10000]"
             )}
         >
-            <div className="h-full"></div>
+            <div className="tw-h-full"></div>
         </div>
     );
 }

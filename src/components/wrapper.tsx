@@ -43,6 +43,7 @@ export function useLoadUserData(
 export function ProvideUser({ children }: { children: ReactNode }) {
     const [user, loading, error] = useAuthState(auth);
     const dispatch = useAppDispatch();
+    const userG = useAppSelector((state) => state.auth.user);
     const {
         data: userData,
         isLoading: LoadingUser,
@@ -53,6 +54,13 @@ export function ProvideUser({ children }: { children: ReactNode }) {
             dispatch(AuthActions.setUser(data));
         },
     });
+    useEffect(() => {
+        if (!user) {
+            dispatch(AuthActions.setUser(undefined));
+            return;
+        }
+        if (userData) dispatch(AuthActions.setUser(userData));
+    }, [user, userData]);
     if (error || errorUser) return <ErrorShower err={error || errorUser} />;
     if (loading || (LoadingUser && user)) return <Loader />;
     if (!user || !userData)
@@ -61,6 +69,7 @@ export function ProvideUser({ children }: { children: ReactNode }) {
                 <Login />
             </div>
         );
+    if (!userG) return <Loader />;
     // if (!user.emailVerified)
     //     return (
     //         <div className="tw-flex-1">

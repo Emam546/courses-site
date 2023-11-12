@@ -1,7 +1,7 @@
 import { instance } from "..";
 
 export type CourseLevelType = DataBase.KeyToString<
-    DataBase.DataBase.WithIdType<
+    DataBase.WithIdType<
         Omit<DataBase["Courses"], "teacherId" | "levelId" | "createdAt">
     >,
     "publishedAt"

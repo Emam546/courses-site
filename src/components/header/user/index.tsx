@@ -75,9 +75,8 @@ export default function UserComponent() {
                             <button
                                 onClick={async (e) => {
                                     e.preventDefault();
-                                    await signOut(auth);
-                                    dispatch(AuthActions.setUser(undefined));
                                     await router.push("/login");
+                                    await signOut(auth);
                                 }}
                             >
                                 Log Out

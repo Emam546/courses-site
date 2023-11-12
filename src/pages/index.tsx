@@ -73,7 +73,7 @@ export function useGetCourses(levelId?: string) {
     });
 }
 interface PageParams {
-    level: DataBase.DataBase.WithIdType<DataBase["Levels"]>;
+    level: DataBase.WithIdType<DataBase["Levels"]>;
     courses: CourseLevelType[];
 }
 export function Page({ courses, level }: PageParams) {

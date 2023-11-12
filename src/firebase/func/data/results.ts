@@ -1,13 +1,13 @@
 import { instance } from "..";
 
 export type ResultsExamsType = DataBase.KeyToString<
-    DataBase.DataBase.WithIdType<
+    DataBase.WithIdType<
         Omit<DataBase["Results"], "examId" | "userId" | "teacherId">
     >,
     "startAt" | "endAt"
 >;
 export type ResultType = DataBase.KeyToString<
-    DataBase.DataBase.WithIdType<DataBase["Results"]>,
+    DataBase.WithIdType<DataBase["Results"]>,
     "startAt" | "endAt"
 >;
 export function getResultsExam(examId: string) {

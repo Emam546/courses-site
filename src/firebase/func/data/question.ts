@@ -1,5 +1,5 @@
 import { instance } from "..";
-export type QuestionType = DataBase.DataBase.WithIdType<
+export type QuestionType = DataBase.WithIdType<
     Omit<DataBase["Questions"], "answer" | "shuffle"> & {
         searchId: string;
     }

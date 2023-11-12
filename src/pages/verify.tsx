@@ -1,4 +1,4 @@
-import EmailVerification from "@/components/pages/emialVerfication";
+import EmailVerification from "@/components/pages/emailVerfication";
 import { NextPageWithLayout } from "./_app";
 import Head from "next/head";
 

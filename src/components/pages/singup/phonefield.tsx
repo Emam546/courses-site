@@ -25,9 +25,7 @@ const PhoneNumber = ({ id, err, labelText, className, ...props }: Props) => {
                 className="tw-bg-gray-50 tw-border tw-border-gray-300
             tw-text-gray-900 sm:tw-text-sm tw-rounded-lg
             focus-within:tw-ring-primary-600 focus-within:tw-border-primary-600 tw-block
-            tw-w-full tw-p-2.5 dark:tw-bg-gray-700 dark:tw-border-gray-600
-            dark:tw-placeholder-gray-400 dark:tw-text-white
-            dark:focus-within:tw-ring-blue-500 dark:focus-within:tw-border-blue-500"
+            tw-w-full tw-p-2.5"
             >
                 <PhoneInput
                     international
