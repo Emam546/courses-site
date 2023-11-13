@@ -12,7 +12,7 @@ import { useGetDoc } from "@/hooks/fireStore";
 import { Timestamp } from "firebase/firestore";
 import TextArea from "@/components/common/inputs/textArea";
 import { isRawDraftContentStateEmpty } from "@/utils/draftjs";
-import { EditorState } from "react-draft-wysiwyg";
+import { EditorState } from "draft-js";
 import { convertToRaw } from "draft-js";
 export type DataType = {
     name: string;
