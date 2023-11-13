@@ -5,9 +5,10 @@ import PhoneInput, {
     Props as MainProps,
 } from "react-phone-number-input";
 import { FieldError } from "react-hook-form";
-import { LabelElem } from "@/components/common/registeration";
+import { LabelElem } from "../styles";
 import classNames from "classnames";
 import style from "./style.module.scss";
+import { ErrorInputShower } from "@/components/common/registeration";
 type Props = {
     err?: FieldError;
     id: string;
@@ -17,26 +18,17 @@ const PhoneNumber = ({ id, err, labelText, className, ...props }: Props) => {
     return (
         <LabelElem
             id={id}
-            labelText={labelText}
-            err={err}
+            label={labelText}
         >
-            <div
-                className="tw-bg-gray-50 tw-border tw-border-gray-300
-            tw-text-gray-900 sm:tw-text-sm tw-rounded-lg
-            focus-within:tw-ring-primary-600 focus-within:tw-border-primary-600 tw-block
-            tw-w-full tw-p-2.5"
-            >
+            <div className="focus:tw-outline-none tw-bg-neutral-100 tw-px-4 tw-py-3 tw-block tw-w-full disabled:tw-bg-neutral-300">
                 <PhoneInput
                     international
                     countryCallingCodeEditable={false}
-                    className={classNames(
-                        "tw-pl-2",
-                        className,
-                        style["phone-input"]
-                    )}
+                    className={classNames(className, style["phone-input"])}
                     {...props}
                 />
             </div>
+            <ErrorInputShower err={err} />
         </LabelElem>
     );
 };

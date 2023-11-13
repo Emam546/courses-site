@@ -4,23 +4,21 @@ import Section from "./section";
 import { useRouter } from "next/router";
 import DeleteDialog from "@/components/common/deleteDailog";
 import { useMutation } from "@tanstack/react-query";
-import { deleteDoc } from "firebase/firestore";
-import { useAppDispatch, useAppSelector } from "@/store";
-import { AuthActions } from "@/store/auth";
+import { deleteAccount } from "@/firebase/func/data/student";
+import { useLogOut } from "@/hooks/auth";
 function AccountDeleteDialog() {
-    const user = useAppSelector((state) => state.auth.user!);
-    const dispatch = useAppDispatch();
     const [open, setOpen] = useState(false);
-    const query = useMutation({
+    const logout = useLogOut();
+    const router = useRouter();
+
+    const deleteAccountMutate = useMutation({
         mutationFn: async () => {
-            await deleteDoc(user.ref);
+            await deleteAccount();
+            await logout();
+            await router.push("/login");
         },
-        onSuccess() {
-            dispatch(AuthActions.setUser(undefined));
-            route.push("/login");
-        },
+        onSuccess() {},
     });
-    const route = useRouter();
 
     return (
         <div>
@@ -42,14 +40,14 @@ function AccountDeleteDialog() {
                     deny: "Keep My Account",
                 }}
                 onAccept={async () => {
-                    await query.mutateAsync();
+                    await deleteAccountMutate.mutateAsync();
                     setOpen(false);
                 }}
                 onClose={() => {
                     setOpen(false);
                 }}
                 open={open}
-                submitting={query.isLoading}
+                submitting={deleteAccountMutate.isLoading}
             />
         </div>
     );

@@ -6,10 +6,9 @@ import ClassNames from "classnames";
 import Link from "next/link";
 import Head from "next/head";
 import { CourseLevelType, getLevelCourses } from "@/firebase/func/data/course";
-import { useGetDoc } from "@/hooks/firebase";
-import Page404 from "@/components/pages/404";
 import { wrapRequest, ErrorMessage } from "@/utils/wrapRequest";
 import { ErrorMessageCom } from "@/components/handelErrorMessage";
+import { LevelType, getLevel } from "@/firebase/func/data/level";
 
 export function Course({
     data,
@@ -62,6 +61,16 @@ export function Course({
         </div>
     );
 }
+export function useGetLevel(levelId?: string) {
+    return useQuery({
+        enabled: typeof levelId == "string",
+        queryKey: ["Levels", levelId],
+        queryFn: async () => {
+            return await wrapRequest(getLevel(levelId as string));
+        },
+        onError(err: ErrorMessage) {},
+    });
+}
 export function useGetCourses(levelId?: string) {
     return useQuery({
         enabled: typeof levelId == "string",
@@ -73,7 +82,7 @@ export function useGetCourses(levelId?: string) {
     });
 }
 interface PageParams {
-    level: DataBase.WithIdType<DataBase["Levels"]>;
+    level: LevelType;
     courses: CourseLevelType[];
 }
 export function Page({ courses, level }: PageParams) {
@@ -124,18 +133,14 @@ export default function SafeArea() {
         isLoading: isLevelLoading,
         isError: isLevelError,
         error: levelError,
-    } = useGetDoc("Levels", user.levelId);
+    } = useGetLevel(user.levelId);
     if (isLoading || isLevelLoading) return <Loader />;
-    if (error) return <ErrorMessageCom error={error} />;
+    if (error || levelError) return <ErrorMessageCom error={error} />;
     if (isLevelError) return <ErrorShower err={levelError} />;
-    if (!level.exists()) return <Page404 message="the Level is not exist" />;
     return (
         <Page
             courses={data.courses}
-            level={{
-                id: level.id,
-                ...level.data(),
-            }}
+            level={level.level}
         />
     );
 }

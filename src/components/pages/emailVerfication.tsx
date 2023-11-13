@@ -1,8 +1,7 @@
-import { auth } from "@/firebase";
 import { resendEmail, verifyEmail } from "@/firebase/func/data/verify";
+import { useLogIn } from "@/hooks/auth";
 import { ErrorMessage, wrapRequest } from "@/utils/wrapRequest";
 import { useMutation } from "@tanstack/react-query";
-import { signInWithCustomToken } from "firebase/auth";
 import { useRouter } from "next/router";
 import { useLayoutEffect, useState } from "react";
 function useSendEmailVerification() {
@@ -18,11 +17,12 @@ export default function EmailVerification() {
     const sendEmail = useSendEmailVerification();
     const [error, setError] = useState<string>();
     const router = useRouter();
+    const login = useLogIn();
     useLayoutEffect(() => {
         if (typeof router.query.token != "string") return;
         wrapRequest(verifyEmail(router.query.token))
-            .then(async (val) => {
-                await signInWithCustomToken(auth, val.firebaseToken);
+            .then((data) => {
+                login(data.user);
                 router.push("/");
             })
             .catch((err) => {

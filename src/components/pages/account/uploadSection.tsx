@@ -10,7 +10,7 @@ import { useGetLevels } from "@/hooks/firebase";
 import { isValidPhoneNumber } from "react-phone-number-input";
 
 import { StateType } from "@/store/auth";
-import PhoneNumber from "../singup/phonefield";
+import PhoneNumber from "./common/inputs/phone";
 export type DateType = {
     levelId: string;
     displayname: string;
@@ -26,7 +26,9 @@ export default function UploadAction({ values, onData }: Props) {
         useForm<FormValues>({
             values,
         });
-    const { data: levels } = useGetLevels();
+    const { data: levels } = useGetLevels(
+        process.env.NEXT_PUBLIC_TEACHER_ID as string
+    );
     register("phone", {
         required: "phone number is required",
         validate: (val) => {
@@ -82,7 +84,7 @@ export default function UploadAction({ values, onData }: Props) {
                         err={formState.errors.levelId}
                         control={control}
                         options={
-                            levels?.docs.map((doc) => ({
+                            levels?.map((doc) => ({
                                 label: doc.data().name,
                                 val: doc.id,
                             })) || []

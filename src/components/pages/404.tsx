@@ -1,22 +1,23 @@
 import Head from "next/head";
-import Link from "next/link";
-import React, { useEffect } from "react";
+import React from "react";
+import classNames from "classnames";
+import { title } from "process";
 export interface Props {
     message?: React.ReactNode;
     children?: React.ReactNode;
     state?: string;
+    title?: string;
 }
 export default function Page404({ message, children, state }: Props) {
     return (
         <>
             <Head>
-                <title>{state}</title>
+                <title>{title || state}</title>
             </Head>
             <section
-                className="hero-section set-bg"
-                style={{
-                    backgroundImage: `url(/img/bg.jpg)`,
-                }}
+                className={classNames(
+                    "hero-section set-bg tw-bg-[url('/img/bg.jpg')] tw-h-screen"
+                )}
             >
                 <div className="container">
                     <div className="hero-text text-white">

@@ -12,10 +12,8 @@ export interface PropsWithOutOptions
 
 const NormalInput = React.forwardRef<HTMLInputElement, PropsWithOutOptions>(
     ({ label, err, ...props }, ref) => {
-        const containerRef = useRef<HTMLDivElement>(null);
         return (
             <LabelElem
-                ref={containerRef}
                 label={label}
             >
                 <div className="relative tw-mb-1">

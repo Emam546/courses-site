@@ -1,28 +1,19 @@
-import { auth } from "@/firebase";
-import { FieldError, Form, useForm } from "react-hook-form";
+import { FieldError, useForm } from "react-hook-form";
 import {
     ErrorInputShower,
     NormalInput,
 } from "@/components/common/registeration";
 import Link from "next/link";
-import {
-    setRememberMeState,
-    isFireBaseError,
-    getErrorMessage,
-    isErrormessage,
-} from "@/utils/firebase";
-import { UserCredential, signInWithCustomToken } from "firebase/auth";
+import { isErrormessage } from "@/utils/firebase";
 import classNames from "classnames";
 import { changeTitle } from "@/hooks";
-import { SingInStudentCall } from "@/firebase/func";
+import { SingInStudentCall } from "@/firebase/func/auth";
 import { useRouter } from "next/router";
 import { ObjectEntries, hasOwnProperty } from "@/utils";
 import { StateType } from "@/store/auth";
+import { ErrorStates, isErrorMessage } from "@/utils/wrapRequest";
 export interface Props {
-    onLogin?: (
-        user: NonNullable<StateType["user"]>,
-        credential: UserCredential
-    ) => any;
+    onLogin?: (user: NonNullable<StateType["user"]>) => any;
 }
 export interface FormValues {
     email: string;
@@ -33,6 +24,39 @@ export interface FormValues {
 export default function LogIn({ onLogin }: Props) {
     const { register, formState, handleSubmit, setError } =
         useForm<FormValues>();
+    async function submit(data: FormValues) {
+        try {
+            // await setRememberMeState(auth, data.rememberMe);
+            const res = await SingInStudentCall({
+                email: data.email,
+                password: data.password,
+                teacherId: process.env.NEXT_PUBLIC_TEACHER_ID as string,
+            });
+            onLogin?.(res.user);
+        } catch (err: unknown) {
+            if (hasOwnProperty(err, "errors") && isErrormessage(err.errors)) {
+                ObjectEntries(err.errors).forEach(([key, val]) => {
+                    setError(key as keyof FormValues, {
+                        message: val[0].message,
+                    });
+                });
+                return;
+            }
+            if (isErrorMessage(err)) {
+                switch (err.state) {
+                    case ErrorStates.TEACHER_BLOCK:
+                        await router.push("/states/blocked");
+                        break;
+
+                    default:
+                        setError("root", {
+                            message: err.message as string,
+                        });
+                }
+            }
+        }
+    }
+    const router = useRouter();
     changeTitle("Login");
     return (
         <section className=" tw-bg-gray-50">
@@ -49,52 +73,7 @@ export default function LogIn({ onLogin }: Props) {
                         <form
                             className="tw-space-y-4 md:tw-space-y-6"
                             action="#"
-                            onSubmit={handleSubmit(async (data) => {
-                                try {
-                                    await setRememberMeState(
-                                        auth,
-                                        data.rememberMe
-                                    );
-                                    const res = await SingInStudentCall({
-                                        email: data.email,
-                                        password: data.password,
-                                        teacherId: process.env
-                                            .NEXT_PUBLIC_TEACHER_ID as string,
-                                    });
-
-                                    const user = await signInWithCustomToken(
-                                        auth,
-                                        res.firebaseToken
-                                    );
-                                    onLogin?.(res.user, user);
-                                } catch (err) {
-                                    if (
-                                        hasOwnProperty(err, "errors") &&
-                                        isErrormessage(err.errors)
-                                    ) {
-                                        ObjectEntries(err.errors).forEach(
-                                            ([key, val]) => {
-                                                setError(
-                                                    key as keyof FormValues,
-                                                    {
-                                                        message: val[0].message,
-                                                    }
-                                                );
-                                            }
-                                        );
-                                        return;
-                                    }
-                                    if (!isFireBaseError(err)) return;
-                                    const message = getErrorMessage(err.code);
-                                    if (!message)
-                                        return setError("root", {
-                                            message: err.message as string,
-                                        });
-                                    setError(message.type as keyof FormValues, {
-                                        message: message.message,
-                                    });
-                                }
-                            })}
+                            onSubmit={handleSubmit(submit)}
                         >
                             <NormalInput
                                 labelText={"User Name"}

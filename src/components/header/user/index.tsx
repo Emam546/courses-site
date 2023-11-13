@@ -1,20 +1,18 @@
-import { useAppDispatch, useAppSelector } from "@/store";
+import { useAppSelector } from "@/store";
 import { faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { assertIsNode } from "@/utils";
 import classNames from "classnames";
 import Link from "next/link";
-import React, { useEffect, useRef, useState } from "react";
-import { AuthActions } from "@/store/auth";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
-import { signOut } from "firebase/auth";
-import { auth } from "@/firebase";
+import { useLogOut } from "@/hooks/auth";
 export default function UserComponent() {
     const user = useAppSelector((state) => state.auth.user);
     const [expand, setExpand] = useState(false);
-    const dispatch = useAppDispatch();
     const container = useRef<HTMLDivElement>(null);
     const router = useRouter();
+    const logout = useLogOut();
     useEffect(() => {
         if (!container.current) return;
         function Listener(ev: MouseEvent) {
@@ -74,9 +72,8 @@ export default function UserComponent() {
                         <li className="tw-py-2">
                             <button
                                 onClick={async (e) => {
-                                    e.preventDefault();
                                     await router.push("/login");
-                                    await signOut(auth);
+                                    await logout();
                                 }}
                             >
                                 Log Out

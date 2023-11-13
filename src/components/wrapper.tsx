@@ -1,81 +1,58 @@
 import React, { ReactNode, useEffect } from "react";
 import Header from "./header";
 import Loader from "./loader";
-import { auth, getDocRef } from "@/firebase";
 import Footer from "./footer";
-import { useAuthState } from "react-firebase-hooks/auth";
 import Login from "./pages/login";
-import { getDoc } from "firebase/firestore";
-import { AuthActions, StateType } from "@/store/auth";
-import { User } from "firebase/auth";
+import { StateType } from "@/store/auth";
 import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 import ErrorShower from "./error";
 import { useAppDispatch, useAppSelector } from "@/store";
-const loadUserData = async (id: string) => {
-    const doc = await getDoc(getDocRef("Students", id));
-    if (!doc.exists()) return null;
-    const data = doc.data();
-    return {
-        id: doc.id,
-        blocked: data.blocked,
-        displayname: data.displayname,
-        email: data.email,
-        levelId: data.levelId,
-        phone: data.phone,
-        teacherId: data.teacherId,
-        emailVerified: data.emailVerified,
-    };
-};
-export function useLoadUserData(
-    user?: User | null,
-    options?: UseQueryOptions<StateType["user"] | null>
-) {
-    return useQuery<StateType["user"] | null>({
-        queryKey: ["Users", user?.uid],
+import { useRouter } from "next/router";
+import { wrapRequest } from "@/utils/wrapRequest";
+import { getStudent } from "@/firebase/func/data/student";
+import { useLogIn } from "@/hooks/auth";
+
+export function useLoadUserData(options?: UseQueryOptions<StateType["user"]>) {
+    return useQuery<StateType["user"]>({
+        queryKey: ["User"],
         queryFn: async () => {
-            if (!user) return null;
-            return await loadUserData(user.uid);
+            return (await wrapRequest(getStudent())).user;
         },
-        enabled: user != undefined && user != null,
         ...options,
     });
 }
 export function ProvideUser({ children }: { children: ReactNode }) {
-    const [user, loading, error] = useAuthState(auth);
     const dispatch = useAppDispatch();
-    const userG = useAppSelector((state) => state.auth.user);
+    const user = useAppSelector((state) => state.auth.user);
+    const login = useLogIn();
+    const router = useRouter();
     const {
         data: userData,
         isLoading: LoadingUser,
         error: errorUser,
-    } = useLoadUserData(user, {
-        onSuccess(data) {
-            if (data === undefined || data === null) return;
-            dispatch(AuthActions.setUser(data));
+    } = useLoadUserData({
+        onSuccess(user) {
+            if (user) login(user);
         },
     });
     useEffect(() => {
-        if (!user) {
-            dispatch(AuthActions.setUser(undefined));
-            return;
-        }
-        if (userData) dispatch(AuthActions.setUser(userData));
-    }, [user, userData]);
-    if (error || errorUser) return <ErrorShower err={error || errorUser} />;
-    if (loading || (LoadingUser && user)) return <Loader />;
-    if (!user || !userData)
+        if (user?.blocked) router.push("/states/blocked");
+    }, [user]);
+    if (errorUser) return <ErrorShower err={errorUser} />;
+    if (LoadingUser) return <Loader />;
+    if (!userData)
         return (
             <div className="tw-flex-1">
-                <Login />
+                <Login
+                    onLogin={(user) => {
+                        login(user);
+                    }}
+                />
             </div>
         );
-    if (!userG) return <Loader />;
-    // if (!user.emailVerified)
-    //     return (
-    //         <div className="tw-flex-1">
-    //             <EmailVerification />
-    //         </div>
-    //     );
+    if (!user) return <Loader />;
+    if (user.blocked) return <Loader />;
+
     return <>{children}</>;
 }
 export default function MainComponentsProvider({

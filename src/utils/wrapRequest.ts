@@ -1,12 +1,16 @@
 import { AxiosError, AxiosResponse } from "axios";
-import { objectValues } from ".";
+import { hasOwnProperty, objectValues } from ".";
 export enum ErrorStates {
     UnPaidCourse = "unpaid Course",
     UnProvidedId = "UnProvided Id",
     UnAuthorized = "UnAuthorized",
     UnExistedDoc = "unExisted Document",
-    HidedDoc = "UnAuthorized",
+    HidedDoc = "The Course is not available",
     InValidData = "InValidData",
+    ExamTimeOut = "ExamTimeOut",
+    // AUTHINTICATION
+    TEACHER_BLOCK = "You have been blocked by the teacher",
+
     UnknownRequest = "unknownRequest",
 }
 export function CheckMessage(message: string): ErrorStates {
@@ -15,7 +19,9 @@ export function CheckMessage(message: string): ErrorStates {
     return ErrorStates.UnknownRequest;
 }
 export type ErrorMessage = { message: string; state: ErrorStates };
-
+export function isErrorMessage(val: unknown): val is ErrorMessage {
+    return hasOwnProperty(val, "message") && hasOwnProperty(val, "state");
+}
 export function wrapRequest<T>(prom: Promise<AxiosResponse<ResponseData<T>>>) {
     return new Promise<T>((res, rej) => {
         prom.then((val) => {

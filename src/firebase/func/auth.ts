@@ -19,7 +19,6 @@ export const createStudentCall = async (data: {
 };
 export interface LoginResult {
     user: DataBase.WithIdType<DataBase["Students"]>;
-    firebaseToken: string;
 }
 export const SingInStudentCall = async (data: {
     email: string;
@@ -28,5 +27,10 @@ export const SingInStudentCall = async (data: {
 }) => {
     return await wrapRequest(
         instance.post<ResponseData<LoginResult>>("getData/api/auth/login", data)
+    );
+};
+export const logout = async () => {
+    return await wrapRequest(
+        instance.get<ResponseData<null>>("getData/api/auth/logout")
     );
 };

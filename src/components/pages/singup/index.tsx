@@ -6,18 +6,15 @@ import {
 } from "@/components/common/registeration";
 
 import { useGetLevels } from "@/hooks/firebase";
-import { createStudentCall } from "@/firebase/func";
+import { createStudentCall } from "@/firebase/func/auth";
 import {
     getErrorMessage,
     isErrormessage,
     isFireBaseError,
-    setRememberMeState,
 } from "@/utils/firebase";
 import { ObjectEntries, hasOwnProperty } from "@/utils";
 import classNames from "classnames";
 import { StateType } from "@/store/auth";
-import { UserCredential, signInWithCustomToken } from "firebase/auth";
-import { auth } from "@/firebase";
 import PhoneNumber from "./phonefield";
 import Link from "next/link";
 import { isValidPhoneNumber } from "react-phone-number-input";
@@ -26,7 +23,7 @@ export interface Props {
     onUser?: (
         user: Omit<
             NonNullable<StateType["user"]>,
-            "id" | "blocked" | "emailVerified"
+            "id" | "blocked" | "emailVerified" | "createdAt"
         >
     ) => any;
 }
@@ -40,9 +37,11 @@ export interface Form {
     rememberMe: boolean;
 }
 export default function SingUp({ onUser }: Props) {
-    const { register, formState, handleSubmit, setError, setValue, watch } =
+    const { register, formState, handleSubmit, setError, setValue } =
         useForm<Form>();
-    const { data: levels } = useGetLevels();
+    const { data: levels } = useGetLevels(
+        process.env.NEXT_PUBLIC_TEACHER_ID as string
+    );
     register("phone", {
         required: "phone number is required",
         validate: (val) => {
@@ -67,10 +66,6 @@ export default function SingUp({ onUser }: Props) {
                             action="#"
                             onSubmit={handleSubmit(async (data) => {
                                 try {
-                                    await setRememberMeState(
-                                        auth,
-                                        data.rememberMe
-                                    );
                                     await createStudentCall({
                                         displayName: data.name,
                                         email: data.email,
@@ -123,7 +118,7 @@ export default function SingUp({ onUser }: Props) {
                                 })}
                             >
                                 <option value="">Choose Level</option>
-                                {levels?.docs.map((doc) => {
+                                {levels?.map((doc) => {
                                     return (
                                         <option
                                             value={doc.id}
