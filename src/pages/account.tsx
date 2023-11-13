@@ -8,7 +8,7 @@ import DeleteAccount from "@/components/pages/account/deleteAccount";
 import { useAppDispatch, useAppSelector } from "@/store";
 import Link from "next/link";
 import { AuthActions } from "@/store/auth";
-import { ProvideUser } from "@/components/wrapper";
+import { ProviderUser } from "@/components/wrapper";
 import { useGetLevels } from "@/hooks/firebase";
 import { ErrorMessageCom } from "@/components/handelErrorMessage";
 import Loader from "@/components/loader";
@@ -22,7 +22,7 @@ const Page = ({ levels }: { levels: UploadProps["levels"] }) => {
             <Head>
                 <title>Account Settings</title>
             </Head>
-            <ProvideUser>
+            <ProviderUser>
                 <div
                     className="page-info-section tw-pb-40"
                     style={{
@@ -72,7 +72,7 @@ const Page = ({ levels }: { levels: UploadProps["levels"] }) => {
                         </div>
                     </div>
                 </div>
-            </ProvideUser>
+            </ProviderUser>
         </>
     );
 };
@@ -86,8 +86,8 @@ export default function SafeArea() {
     if (error) return <ErrorMessageCom error={error} />;
     if (isLoading) return <Loader />;
     return (
-        <ProvideUser>
+        <ProviderUser>
             <Page levels={levels} />
-        </ProvideUser>
+        </ProviderUser>
     );
 }

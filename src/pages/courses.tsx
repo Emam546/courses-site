@@ -14,31 +14,7 @@ import {
     ErrorMessageCom,
     PageNotExisted,
 } from "@/components/handelErrorMessage";
-
-function Lesson({ data, index }: { index: number; data: LessonCourseType }) {
-    return (
-        <div className="mix col-lg-3 col-md-4 col-sm-6 finance">
-            <Link href={`/lessons?id=${data.id}`}>
-                <div className="course-item">
-                    <div
-                        className="course-thumb"
-                        style={{
-                            backgroundImage: `url('img/courses/${
-                                (index % 8) + 1
-                            }.jpg')`,
-                        }}
-                    />
-                    <div className="course-info">
-                        <div className="course-text ">
-                            <h5>{data.name}</h5>
-                            <p>{data.briefDesc}</p>
-                        </div>
-                    </div>
-                </div>
-            </Link>
-        </div>
-    );
-}
+import MinShower, { ItemType } from "@/components/common/itemsShower/min";
 
 export interface PageParams {
     doc: CourseType;
@@ -87,26 +63,22 @@ export function Page({
             </section>
 
             {/* categories section */}
-            <section className="course-section spad tw-pb-20">
-                {lessons.length > 0 ? (
-                    <div className="course-warp">
-                        <div className="row course-items-area">
-                            {lessons.map((data, i) => {
-                                return (
-                                    <Lesson
-                                        data={data}
-                                        index={i}
-                                        key={data.id}
-                                    />
-                                );
-                            })}
-                        </div>
-                    </div>
-                ) : (
-                    <p className="tw-text-lg tw-text-center tw-px-2">
-                        There is no lessons so far
-                    </p>
-                )}
+            <section className="course-section spad tw-pb-20 tw-min-h-[20rem]">
+                <div className="course-wrap">
+                    {lessons.length > 0 ? (
+                        <MinShower
+                            items={lessons.map((val) => ({
+                                desc: val.briefDesc,
+                                ...val,
+                                link: `/lessons?id=${val.id}`,
+                            }))}
+                        />
+                    ) : (
+                        <p className="tw-text-lg tw-text-center tw-px-2">
+                            There is no lessons so far
+                        </p>
+                    )}
+                </div>
             </section>
         </>
     );

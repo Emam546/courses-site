@@ -17,6 +17,15 @@ export function getLevelCourses(levelId: string) {
         params: { levelId },
     });
 }
+export function getFeaturedCourses(teacherId: string) {
+    return instance.get<
+        ResponseData<{
+            courses: Array<CourseLevelType>;
+        }>
+    >("getData/api/teacher/featuredCourses", {
+        params: { teacherId },
+    });
+}
 export function getCourse(courseId: string) {
     return instance.get<
         ResponseData<{

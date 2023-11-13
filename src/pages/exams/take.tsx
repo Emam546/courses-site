@@ -4,7 +4,7 @@ import Loader from "@/components/loader";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { NextPageWithLayout } from "../_app";
-import { ProvideUser } from "@/components/wrapper";
+import { ProviderUser } from "@/components/wrapper";
 import { useGetExam } from ".";
 import { ResultType } from "@/firebase/func/data/results";
 import { ExamType } from "@/firebase/func/data/exam";
@@ -39,12 +39,12 @@ function SafeArea() {
         return <ErrorMessageCom error={queryResult.error || queryExam.error} />;
     if (queryResult.isLoading || queryExam.isLoading) return <Loader />;
     return (
-        <ProvideUser>
+        <ProviderUser>
             <Page
                 doc={queryResult.data.result}
                 exam={queryExam.data.exam}
             />
-        </ProvideUser>
+        </ProviderUser>
     );
 }
 const FinalPage: NextPageWithLayout = () => {

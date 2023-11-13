@@ -424,6 +424,7 @@ ol {
 
 .search-section.ss-other-page {
 	margin-top: -85px;
+	padding-bottom: 85px;
 }
 
 .search-section.ss-other-page .search-warp {
@@ -448,7 +449,7 @@ ol {
 .search-section.ss-other-page .section-title h2 span {
 	display: inline-block;
 	background: #d82a4e;
-	padding: 20px 60px 10px;
+	padding: 15px 60px 15px;
 }
 
 .search-section.ss-other-page .course-search-form {

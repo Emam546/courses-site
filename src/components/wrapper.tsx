@@ -23,26 +23,13 @@ export function useLoadUserData(
         ...(options as any),
     });
 }
-export function ProvideUser({ children }: { children: ReactNode }) {
+export function ProviderUser({ children }: { children: ReactNode }) {
     const user = useAppSelector((state) => state.auth.user);
     const login = useLogIn();
     const router = useRouter();
-    const { isLoading: LoadingUser, error: errorUser } = useLoadUserData({
-        onSuccess(user) {
-            if (user) login(user);
-        },
-    });
     useEffect(() => {
         if (user?.blocked) router.push("/states/blocked");
     }, [user]);
-
-    if (errorUser && errorUser.state != ErrorStates.UnAuthorized)
-        return (
-            <HeaderFooter>
-                <ErrorShower err={errorUser} />;
-            </HeaderFooter>
-        );
-    if (LoadingUser) return <Loader />;
     if (!user)
         return (
             <div className="tw-flex-1">
@@ -54,7 +41,6 @@ export function ProvideUser({ children }: { children: ReactNode }) {
             </div>
         );
     if (user.blocked) return <Loader />;
-
     return <>{children}</>;
 }
 export function HeaderFooter({ children }: { children: React.ReactNode }) {
@@ -74,5 +60,18 @@ export default function MainComponentsProvider({
     useEffect(() => {
         require("bootstrap/dist/js/bootstrap.min");
     }, []);
+    const login = useLogIn();
+    const { isLoading: LoadingUser, error: errorUser } = useLoadUserData({
+        onSuccess(user) {
+            if (user) login(user);
+        },
+    });
+    if (errorUser && errorUser.state != ErrorStates.UnAuthorized)
+        return (
+            <HeaderFooter>
+                <ErrorShower err={errorUser} />;
+            </HeaderFooter>
+        );
+    if (LoadingUser) return <Loader />;
     return <HeaderFooter>{children}</HeaderFooter>;
 }

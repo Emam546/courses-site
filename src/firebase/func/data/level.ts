@@ -1,15 +1,21 @@
 import { instance } from "..";
 
-export type LevelType = Omit<DataBase["Levels"], "teacherId" | "createdAt">;
+export type LevelType = Omit<DataBase["Levels"], "teacherId">;
+export type LevelsType = DataBase.WithIdType<LevelType>;
+export type LevelsTypeProm = LevelsType & { courseCount: number };
 
-export function getLevels(teacherId: string) {
+export function getLevels<State extends true | undefined>(
+    teacherId: string,
+    courseNum: State
+) {
     return instance.get<
         ResponseData<{
-            levels: DataBase.WithIdType<LevelType>[];
+            levels: State extends true ? LevelsTypeProm[] : LevelsType[];
         }>
     >("getData/api/teacher/levels", {
         params: {
             teacherId,
+            courseNum,
         },
     });
 }
