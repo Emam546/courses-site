@@ -1,5 +1,5 @@
 import { getLevels } from "@/firebase/func/data/level";
-import { wrapRequest } from "@/utils/wrapRequest";
+import { wrapRequest, ErrorMessage } from "@/utils/wrapRequest";
 import { useQuery } from "@tanstack/react-query";
 
 export function useGetLevels(teacherId: string) {
@@ -8,5 +8,6 @@ export function useGetLevels(teacherId: string) {
         queryFn: async () => {
             return (await wrapRequest(getLevels(teacherId))).levels;
         },
+        onError(err: ErrorMessage) {},
     });
 }

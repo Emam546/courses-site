@@ -14,6 +14,7 @@ import {
     ErrorMessageCom,
     PageNotExisted,
 } from "@/components/handelErrorMessage";
+import { ProvideUser } from "@/components/wrapper";
 
 function Page({
     doc,
@@ -113,10 +114,12 @@ export default function SafeArea() {
         return <Loader />;
 
     return (
-        <Page
-            lesson={queryLesson.data.lesson}
-            doc={queryExam.data.exam}
-            course={queryCourse.data.course}
-        />
+        <ProvideUser>
+            <Page
+                lesson={queryLesson.data.lesson}
+                doc={queryExam.data.exam}
+                course={queryCourse.data.course}
+            />
+        </ProvideUser>
     );
 }

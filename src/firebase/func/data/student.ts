@@ -10,10 +10,16 @@ export function getStudent() {
     >("getData/api/student");
 }
 
-
 export const deleteAccount = async () => {
     return await instance.delete<ResponseData<null>>(
         "getData/api/student/delete"
     );
 };
-
+export type StudentUpdatedData = {
+    levelId?: string;
+    displayname?: string;
+    phone?: string;
+};
+export const updateStudent = async (data: StudentUpdatedData) => {
+    return await instance.post<ResponseData<null>>("getData/api/student", data);
+};

@@ -1,6 +1,3 @@
-import Head from "next/head";
-import React, { ReactElement } from "react";
-
 import { useAppSelector } from "@/store";
 import Page404 from "@/components/pages/404";
 
@@ -26,7 +23,5 @@ function Page() {
         </>
     );
 }
-Page.getLayout = function getLayout(page: ReactElement) {
-    return <>{page}</>;
-};
+
 export default Page;

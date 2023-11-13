@@ -6,31 +6,28 @@ import Login from "./pages/login";
 import { StateType } from "@/store/auth";
 import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 import ErrorShower from "./error";
-import { useAppDispatch, useAppSelector } from "@/store";
+import { useAppSelector } from "@/store";
 import { useRouter } from "next/router";
-import { wrapRequest } from "@/utils/wrapRequest";
+import { ErrorMessage, ErrorStates, wrapRequest } from "@/utils/wrapRequest";
 import { getStudent } from "@/firebase/func/data/student";
 import { useLogIn } from "@/hooks/auth";
 
-export function useLoadUserData(options?: UseQueryOptions<StateType["user"]>) {
-    return useQuery<StateType["user"]>({
+export function useLoadUserData(
+    options?: UseQueryOptions<StateType["user"], ErrorMessage>
+) {
+    return useQuery<StateType["user"], ErrorMessage>({
         queryKey: ["User"],
         queryFn: async () => {
             return (await wrapRequest(getStudent())).user;
         },
-        ...options,
+        ...(options as any),
     });
 }
 export function ProvideUser({ children }: { children: ReactNode }) {
-    const dispatch = useAppDispatch();
     const user = useAppSelector((state) => state.auth.user);
     const login = useLogIn();
     const router = useRouter();
-    const {
-        data: userData,
-        isLoading: LoadingUser,
-        error: errorUser,
-    } = useLoadUserData({
+    const { isLoading: LoadingUser, error: errorUser } = useLoadUserData({
         onSuccess(user) {
             if (user) login(user);
         },
@@ -38,9 +35,15 @@ export function ProvideUser({ children }: { children: ReactNode }) {
     useEffect(() => {
         if (user?.blocked) router.push("/states/blocked");
     }, [user]);
-    if (errorUser) return <ErrorShower err={errorUser} />;
+
+    if (errorUser && errorUser.state != ErrorStates.UnAuthorized)
+        return (
+            <HeaderFooter>
+                <ErrorShower err={errorUser} />;
+            </HeaderFooter>
+        );
     if (LoadingUser) return <Loader />;
-    if (!userData)
+    if (!user)
         return (
             <div className="tw-flex-1">
                 <Login
@@ -50,10 +53,18 @@ export function ProvideUser({ children }: { children: ReactNode }) {
                 />
             </div>
         );
-    if (!user) return <Loader />;
     if (user.blocked) return <Loader />;
 
     return <>{children}</>;
+}
+export function HeaderFooter({ children }: { children: React.ReactNode }) {
+    return (
+        <>
+            <Header />
+            {children}
+            <Footer />
+        </>
+    );
 }
 export default function MainComponentsProvider({
     children,
@@ -63,11 +74,5 @@ export default function MainComponentsProvider({
     useEffect(() => {
         require("bootstrap/dist/js/bootstrap.min");
     }, []);
-    return (
-        <ProvideUser>
-            <Header />
-            {children}
-            <Footer />
-        </ProvideUser>
-    );
+    return <HeaderFooter>{children}</HeaderFooter>;
 }

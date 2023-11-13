@@ -13,7 +13,11 @@ import { CourseType } from "@/firebase/func/data/course";
 import { useGetCourse } from "./courses";
 import { ExamsLessonType, getExamLesson } from "@/firebase/func/data/exam";
 import { ErrorMessage, wrapRequest } from "@/utils/wrapRequest";
-import { ErrorMessageCom, PageNotExisted } from "@/components/handelErrorMessage";
+import {
+    ErrorMessageCom,
+    PageNotExisted,
+} from "@/components/handelErrorMessage";
+import { ProvideUser } from "@/components/wrapper";
 
 function Page({
     doc,
@@ -139,8 +143,7 @@ export default function SafeArea() {
     const queryLesson = useGetLesson(id as string);
     const queryExams = useGetExams(id as string);
     const queryCourse = useGetCourse(queryLesson.data?.lesson.courseId);
-    if (typeof id != "string")
-        return <PageNotExisted />;
+    if (typeof id != "string") return <PageNotExisted />;
     if (queryLesson.error || queryCourse.error || queryExams.error)
         return (
             <ErrorMessageCom
@@ -152,10 +155,12 @@ export default function SafeArea() {
     if (queryLesson.isLoading || queryCourse.isLoading || queryExams.isLoading)
         return <Loader />;
     return (
-        <Page
-            exams={queryExams.data.exams}
-            course={queryCourse.data.course}
-            doc={queryLesson.data.lesson}
-        />
+        <ProvideUser>
+            <Page
+                exams={queryExams.data.exams}
+                course={queryCourse.data.course}
+                doc={queryLesson.data.lesson}
+            />
+        </ProvideUser>
     );
 }

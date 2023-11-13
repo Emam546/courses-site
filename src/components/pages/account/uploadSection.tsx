@@ -6,29 +6,25 @@ import { useForm } from "react-hook-form";
 import SelectInput from "./common/inputs/selectOption";
 import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useGetLevels } from "@/hooks/firebase";
 import { isValidPhoneNumber } from "react-phone-number-input";
 
 import { StateType } from "@/store/auth";
 import PhoneNumber from "./common/inputs/phone";
-export type DateType = {
-    levelId: string;
-    displayname: string;
-    phone: string;
-};
+import { LevelType } from "@/firebase/func/data/level";
+import { StudentUpdatedData } from "@/firebase/func/data/student";
+export type DateType = StudentUpdatedData;
 type FormValues = NonNullable<StateType["user"]>;
 export interface Props {
     values: FormValues;
+    levels: DataBase.WithIdType<LevelType>[];
     onData: (data: DateType) => any;
 }
-export default function UploadAction({ values, onData }: Props) {
+export default function UploadAction({ values, levels, onData }: Props) {
     const { register, handleSubmit, formState, setValue, getValues, control } =
         useForm<FormValues>({
             values,
         });
-    const { data: levels } = useGetLevels(
-        process.env.NEXT_PUBLIC_TEACHER_ID as string
-    );
+
     register("phone", {
         required: "phone number is required",
         validate: (val) => {
@@ -85,7 +81,7 @@ export default function UploadAction({ values, onData }: Props) {
                         control={control}
                         options={
                             levels?.map((doc) => ({
-                                label: doc.data().name,
+                                label: doc.name,
                                 val: doc.id,
                             })) || []
                         }
