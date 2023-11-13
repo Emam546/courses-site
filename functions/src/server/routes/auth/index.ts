@@ -39,10 +39,10 @@ const registerValidator = new Validator({
   displayName: ["string", "required"],
   redirectUrl: ["string", "required"],
 });
-async function setSingUp(res: Response, data: UserData) {
+async function setSendEmail(res: Response, data: UserData) {
   await verifyEmail(data);
   res.cookie("verifyToken", sign(data));
-  res.status(HttpStatusCodes.OK).sendData({
+  return res.status(HttpStatusCodes.OK).sendData({
     success: true,
     msg: "The Email was sent successfully",
     data: null,
@@ -59,7 +59,7 @@ router.post("/sing-up", async (req, res) => {
     return;
   }
 
-  await setSingUp(res, checkingRes.data);
+  await setSendEmail(res, checkingRes.data);
 });
 const signInValidator = new Validator({
   email: [
@@ -82,7 +82,7 @@ router.get("/resendEmail", async (req, res) => {
       msg: "UnExisted Verified Token",
     });
   const data = decode<UserData>(verifyToken);
-  await setSingUp(res, data);
+  return await setSendEmail(res, data);
 });
 
 router.post("/login", async (req, res) => {
@@ -117,6 +117,7 @@ router.post("/login", async (req, res) => {
 
 router.get("/verify/:emailToken", async (req, res) => {
   const emailToken = req.params.emailToken;
+  res.clearCookie("verifyToken");
   let data: UserData;
   try {
     data = decodeEmail(emailToken);
@@ -135,7 +136,7 @@ router.get("/verify/:emailToken", async (req, res) => {
       success: false,
       msg: "this email is already verified",
     });
-
+  
   const gData = {
     displayname: displayName,
     blocked: false,

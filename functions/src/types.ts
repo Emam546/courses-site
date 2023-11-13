@@ -3,7 +3,7 @@ import { UserDecodedData } from "./server/routes/auth/utils";
 declare global {
   namespace Express {
     interface Request {
-      user: DataBase.WithIdType<UserDecodedData>;
+      user: UserDecodedData;
     }
   }
 }

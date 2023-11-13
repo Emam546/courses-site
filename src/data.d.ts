@@ -6,13 +6,13 @@ declare global {
     }
 
     export interface DataBase {
-        Levels: WithOrder<{
+        Levels: DataBase.WithOrder<{
             name: string;
             desc: string;
             hide: boolean;
             teacherId: string;
         }>;
-        Courses: WithOrder<{
+        Courses: DataBase.WithOrder<{
             name: string;
             desc: string;
             hide: boolean;
@@ -26,7 +26,7 @@ declare global {
             createdAt: Timestamp;
             publishedAt: Timestamp;
         }>;
-        Lessons: WithOrder<{
+        Lessons: DataBase.WithOrder<{
             name: string;
             briefDesc: string;
             desc: string;
@@ -43,7 +43,7 @@ declare global {
                 hide: boolean;
             };
         }>;
-        Exams: WithOrder<
+        Exams: DataBase.WithOrder<
             {
                 name: string;
                 desc: string;
@@ -69,7 +69,7 @@ declare global {
         Questions: {
             quest: string;
             choices: Array<
-                WithOrder<
+                DataBase.WithOrder<
                     DataBase.WithIdType<{
                         textContext: string;
                     }>
@@ -126,6 +126,5 @@ declare global {
               } & {
                   type: "admin";
               };
-        
     }
 }

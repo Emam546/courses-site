@@ -21,7 +21,6 @@ router.use(async (req, res, next) => {
   req.levelId = levelId;
   return next();
 });
-
 router.get("/", async (req, res) => {
   const level = await getCollection("Levels").doc(req.levelId).get();
   const data = level.data();
@@ -34,7 +33,7 @@ router.get("/", async (req, res) => {
     success: true,
     msg: Messages.DataSuccess,
     data: {
-      courses: {
+      level: {
         id: level.id,
         name: data.name,
         desc: data.desc,

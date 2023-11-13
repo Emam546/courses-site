@@ -26,7 +26,6 @@ router.get("/levels", async (req, res) => {
   const levels = await getCollection("Levels")
     .where("teacherId", "==", req.teacherId)
     .where("hide", "==", false)
-    .orderBy("createdAt")
     .get();
 
   res.status(200).sendData({
