@@ -112,7 +112,10 @@ router.post("/login", async (req, res) => {
       success: false,
       msg: ErrorMessages.TEACHER_BLOCK,
     });
-  return await authUser(res, userDoc.id, userDoc.data());
+  return await authUser(res, userDoc.id, {
+    id: userDoc.id,
+    ...userDoc.data(),
+  });
 });
 
 router.get("/verify/:emailToken", async (req, res) => {
@@ -136,7 +139,7 @@ router.get("/verify/:emailToken", async (req, res) => {
       success: false,
       msg: "this email is already verified",
     });
-  
+
   const gData = {
     displayname: displayName,
     blocked: false,
@@ -155,10 +158,11 @@ router.get("/verify/:emailToken", async (req, res) => {
     passwordHash,
     passwordSalt,
   });
-  return await authUser(res, userDoc.id, gData);
+  return await authUser(res, userDoc.id, { ...gData, id: userDoc.id });
 });
 router.get("/logout", async (req, res) => {
-  res.clearCookie("token");
+  res.clearCookie("accessToken");
+  res.clearCookie("refreshToken");
   res.sendData({
     success: true,
     data: null,

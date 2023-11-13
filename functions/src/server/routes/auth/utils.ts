@@ -24,12 +24,15 @@ export function generateToken(
   };
 }
 export function SetTokens(res: Response, id: string, data: UserDecodedData) {
-  const accessToken = sign(generateToken(id, data), {
-    expiresIn: EnvVars.jwt.accessTokenExp,
-  });
-  res.cookie("accessToken", accessToken, {
-    maxAge: EnvVars.jwt.accessTokenExp,
-  });
+  res.cookie(
+    "accessToken",
+    sign(generateToken(id, data), {
+      expiresIn: EnvVars.jwt.accessTokenExp,
+    }),
+    {
+      maxAge: 5000,
+    },
+  );
 
   res.cookie(
     "refreshToken",

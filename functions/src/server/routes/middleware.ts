@@ -5,21 +5,12 @@ import { decode } from "@serv/utils/jwt";
 import { SetTokens, UserRefreshData } from "./auth/utils";
 import { getCollection } from "@/firebase";
 export const Auth: RequestHandler = async (req, res, next) => {
-  const accessToken = req.cookies.accessToken;
-  if (typeof accessToken != "string")
-    return res
-      .status(HttpStatusCodes.UNAUTHORIZED)
-      .sendData({ success: false, msg: ErrorMessages.UnAuthorized });
   try {
-    req.user = decode(accessToken);
+    req.user = decode(req.cookies.accessToken);
     return next();
   } catch (error) {
-    const refreshToken = req.cookies.refreshToken;
-    if (typeof accessToken != "string")
-      return res
-        .status(HttpStatusCodes.UNAUTHORIZED)
-        .sendData({ success: false, msg: ErrorMessages.UnAuthorized });
     try {
+      const refreshToken = req.cookies.refreshToken;
       const { id } = decode<UserRefreshData>(refreshToken);
       const doc = await getCollection("Students").doc(id).get();
       const data = doc.data();
@@ -28,7 +19,7 @@ export const Auth: RequestHandler = async (req, res, next) => {
           success: false,
           msg: ErrorMessages.UnAuthorized,
         });
-      SetTokens(res, id, data);
+      SetTokens(res, id, { ...data, id });
       req.user = { id, ...data };
       next();
     } catch (err) {
