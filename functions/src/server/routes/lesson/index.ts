@@ -2,9 +2,9 @@ import { getCollection } from "@/firebase";
 import { checkPaidCourseUser } from "@/utils/auth";
 import { Router } from "express";
 import { QueryDocumentSnapshot } from "firebase-admin/firestore";
-
+import videoRouter from "./video";
 import { ErrorMessages, Messages } from "@serv/declarations/major/Messages";
-import HttpStatusCodes from "../declarations/major/HttpStatusCodes";
+import HttpStatusCodes from "@serv/declarations/major/HttpStatusCodes";
 const router = Router();
 declare global {
   namespace Express {
@@ -96,4 +96,5 @@ router.get("/exams", async (req, res) => {
     },
   });
 });
+router.use("/video", videoRouter);
 export default router;

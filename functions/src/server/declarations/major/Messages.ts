@@ -6,6 +6,8 @@ export enum ErrorMessages {
   HidedDoc = "The Course is not available",
   InValidData = "InValidData",
   ExamTimeOut = "ExamTimeOut",
+  // AUTHINTICATION
+  TEACHER_BLOCK = "You have been blocked by the teacher",
 }
 export enum Messages {
   DataSuccess = "Success",

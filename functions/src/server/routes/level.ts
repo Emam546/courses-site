@@ -22,6 +22,28 @@ router.use(async (req, res, next) => {
   return next();
 });
 
+router.get("/", async (req, res) => {
+  const level = await getCollection("Levels").doc(req.levelId).get();
+  const data = level.data();
+  if (!data)
+    return res.status(200).sendData({
+      success: false,
+      msg: ErrorMessages.UnExistedDoc,
+    });
+  return res.status(200).sendData({
+    success: true,
+    msg: Messages.DataSuccess,
+    data: {
+      courses: {
+        id: level.id,
+        name: data.name,
+        desc: data.desc,
+        teacherId: data.teacherId,
+      },
+    },
+  });
+});
+
 router.get("/courses", async (req, res) => {
   const lessons = await getCollection("Courses")
     .where("levelId", "==", req.levelId)

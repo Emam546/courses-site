@@ -6,7 +6,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import bcrypt from "bcrypt";
 import Validator from "validator-checker-js";
 import { decode, sign } from "@serv/utils/jwt";
-import { ErrorMessages } from "@/server/declarations/major/Messages";
+import { ErrorMessages, Messages } from "@/server/declarations/major/Messages";
 import { verifyEmail, UserData, decodeEmail } from "./sender";
 import { authUser } from "./utils";
 const router = Router();
@@ -84,9 +84,6 @@ router.get("/resendEmail", async (req, res) => {
   const data = decode<UserData>(verifyToken);
   await setSingUp(res, data);
 });
-export enum AuthMessages {
-  BLOCKED = "You have been blocked by the teacher",
-}
 
 router.post("/login", async (req, res) => {
   const checkingRes = await signInValidator.asyncPasses(req.body);
@@ -113,7 +110,7 @@ router.post("/login", async (req, res) => {
   if (resData.blocked)
     return res.status(HttpStatusCodes.FORBIDDEN).sendData({
       success: false,
-      msg: AuthMessages.BLOCKED,
+      msg: ErrorMessages.TEACHER_BLOCK,
     });
   return await authUser(res, userDoc.id, userDoc.data());
 });
@@ -158,5 +155,13 @@ router.get("/verify/:emailToken", async (req, res) => {
     passwordSalt,
   });
   return await authUser(res, userDoc.id, gData);
+});
+router.get("/logout", async (req, res) => {
+  res.clearCookie("token");
+  res.sendData({
+    success: true,
+    data: null,
+    msg: Messages.DataSuccess,
+  });
 });
 export default router;

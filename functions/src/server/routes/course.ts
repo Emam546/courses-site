@@ -1,8 +1,8 @@
 import { getCollection } from "@/firebase";
-import { checkPaidCourseUser } from "@/utils/auth";
 import { Router, Request, Express } from "express";
 import { ErrorMessages, Messages } from "@serv/declarations/major/Messages";
 import HttpStatusCodes from "../declarations/major/HttpStatusCodes";
+import { Auth } from "./middleware";
 const router = Router();
 declare global {
   namespace Express {
@@ -21,14 +21,7 @@ router.use(async (req, res, next) => {
     });
     return;
   }
-  const state = await checkPaidCourseUser(req.user.id, courseId);
-  if (!state) {
-    res.status(HttpStatusCodes.PAYMENT_REQUIRED).sendData({
-      success: false,
-      msg: ErrorMessages.UnPaidCourse,
-    });
-    return;
-  }
+
   req.courseId = courseId;
   next();
 });
@@ -66,6 +59,7 @@ router.get("/", async (req, res) => {
     },
   });
 });
+
 router.get("/lessons", async (req, res) => {
   const lessons = await getCollection("Lessons")
     .where("courseId", "==", req.courseId)
@@ -88,6 +82,33 @@ router.get("/lessons", async (req, res) => {
           order: data.order,
         };
       }),
+    },
+  });
+});
+
+router.get("/payment", Auth, async (req, res) => {
+  const docs = await getCollection("Payments")
+    .where("userId", "==", req.user.id)
+    .where("courseId", "==", req.courseId)
+    .limit(1)
+    .get();
+  const doc = docs.docs[0];
+  if (!doc)
+    return res.sendData({
+      success: true,
+      msg: Messages.DataSuccess,
+      data: {
+        payment: null,
+      },
+    });
+  return res.sendData({
+    success: true,
+    msg: Messages.DataSuccess,
+    data: {
+      payment: {
+        id: doc.id,
+        ...doc.data(),
+      },
     },
   });
 });
