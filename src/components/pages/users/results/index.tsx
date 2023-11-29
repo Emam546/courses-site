@@ -118,7 +118,7 @@ export default function UserResultGenerator({ userId }: Props) {
         <>
             <ErrorShower
                 loading={false}
-                error={(queryCount.error || queryResults.error) as any}
+                error={queryCount.error || queryResults.error}
             />
             {results && count != undefined && (
                 <div>
@@ -166,7 +166,7 @@ export default function UserResultGenerator({ userId }: Props) {
                             </div>
                         </>
                     )}
-                    {count == 0 && <p>There is no results so far</p>}
+                    {count == 0 && <p className="tw-mb-0">There is no results so far</p>}
                 </div>
             )}
         </>

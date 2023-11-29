@@ -7,26 +7,26 @@ import {
 import router, { useRouter } from "next/router";
 import Page404 from "@/components/pages/404";
 import ExamInfoForm from "@/components/pages/exams/form";
-import { CardTitle, MainCard } from "@/components/card";
+import { BigCard, CardTitle, MainCard } from "@/components/card";
 import ErrorShower from "@/components/common/error";
-import { useGetDoc } from "@/hooks/fireStore";
+import { useDocument, useGetDoc } from "@/hooks/fireStore";
 import Head from "next/head";
 import { useAuthState } from "react-firebase-hooks/auth";
-function SafeArea({
-    lesson,
-}: {
-    lesson: QueryDocumentSnapshot<DataBase["Lessons"]>;
-}) {
+import { GoToButton } from "@/components/common/inputs/addButton";
+export interface Props {
+    lesson: DataBase.WithIdType<DataBase["Lessons"]>;
+}
+function Page({ lesson }: Props) {
     const [teacher] = useAuthState(auth);
     return (
-        <MainCard>
+        <>
             <Head>
                 <title>Add Exam</title>
             </Head>
-            {lesson && (
+            <BigCard>
                 <>
                     <CardTitle>Adding Exam</CardTitle>
-                    <CardTitle>Lesson:{lesson.data()?.name}</CardTitle>
+                    <CardTitle>Lesson:{lesson.name}</CardTitle>
                     <MainCard>
                         <ExamInfoForm
                             onData={async (data) => {
@@ -38,7 +38,7 @@ function SafeArea({
                                     lessonId: lesson.id,
                                     teacherId: teacher!.uid,
                                     order: Date.now(),
-                                    courseId: lesson.data()?.courseId,
+                                    courseId: lesson.courseId,
                                 });
                                 router.push(`/lessons?id=${lesson.id}`);
                             }}
@@ -47,28 +47,32 @@ function SafeArea({
                         />
                     </MainCard>
                 </>
-            )}
-        </MainCard>
+            </BigCard>
+            <div className="py-3">
+                <GoToButton
+                    label="Go To Lesson"
+                    href={`/lessons?id=${lesson.id}`}
+                />
+            </div>
+        </>
     );
 }
-export default function AddExams() {
+export default function SafeArea() {
     const router = useRouter();
     const { lessonId } = router.query;
-    const {
-        data: lesson,
-        isLoading,
-        isError,
-        error,
-    } = useGetDoc("Lessons", lessonId as string);
+    const [lesson, isLoading, error] = useDocument(
+        "Lessons",
+        lessonId as string
+    );
     if (typeof lessonId != "string")
         return <Page404 message="You must provide The page id with url" />;
-    if (isLoading || isError)
+    if (isLoading || error)
         return (
             <ErrorShower
                 loading={isLoading}
-                error={error as any}
+                error={error}
             />
         );
     if (!lesson.exists()) return <Page404 message="The lesson is not exist" />;
-    return <SafeArea lesson={lesson} />;
+    return <Page lesson={{ id: lesson.id, ...lesson.data() }} />;
 }

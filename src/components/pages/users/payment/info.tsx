@@ -136,7 +136,7 @@ export default function PaymentInfoGenerator({ userId }: Props) {
                         </table>
                     )}
                     {payments.empty && (
-                        <p>The user has no payment actions so far</p>
+                        <p className="tw-mb-0">The user has no payment actions so far</p>
                     )}
                 </>
             )}

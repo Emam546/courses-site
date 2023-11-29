@@ -7,18 +7,16 @@ import {
 import router, { useRouter } from "next/router";
 import Page404 from "@/components/pages/404";
 import CourseInfoForm from "@/components/pages/courses/form";
-import { CardTitle, MainCard } from "@/components/card";
+import { BigCard, CardTitle, MainCard } from "@/components/card";
 import ErrorShower from "@/components/common/error";
 import Head from "next/head";
-import { useGetDoc } from "@/hooks/fireStore";
+import { useDocument } from "@/hooks/fireStore";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { GoToButton } from "@/components/common/inputs/addButton";
-
-export function SaveArea({
-    level,
-}: {
-    level: QueryDocumentSnapshot<DataBase["Levels"]>;
-}) {
+export interface Props {
+    level: DataBase.WithIdType<DataBase["Levels"]>;
+}
+export function SaveArea({ level }: Props) {
     const [teacher] = useAuthState(auth);
     return (
         <>
@@ -26,9 +24,9 @@ export function SaveArea({
                 <title>Add Course</title>
             </Head>
 
-            <MainCard>
-                <CardTitle>Adding Course</CardTitle>
-                <CardTitle>Level:{level.data().name}</CardTitle>
+            <BigCard>
+                <CardTitle className="tw-mb-2">Adding Course</CardTitle>
+                <CardTitle>Level:{level.name}</CardTitle>
                 <MainCard>
                     <CourseInfoForm
                         onData={async (data) => {
@@ -46,7 +44,7 @@ export function SaveArea({
                         buttonName="Submit"
                     />
                 </MainCard>
-            </MainCard>
+            </BigCard>
 
             <div className="tw-mt-3">
                 <GoToButton
@@ -60,21 +58,16 @@ export function SaveArea({
 export default function AddCourses() {
     const router = useRouter();
     const { levelId } = router.query;
-    const {
-        data: level,
-        isLoading,
-        error,
-        isError,
-    } = useGetDoc("Levels", levelId as string);
+    const [level, isLoading, error] = useDocument("Levels", levelId as string);
 
     if (typeof levelId != "string") return <Page404 />;
-    if (isLoading || isError)
+    if (isLoading || error)
         return (
             <ErrorShower
                 loading={isLoading}
-                error={error as any}
+                error={error}
             />
         );
     if (!level.exists()) return <Page404 message="The level is not exist" />;
-    return <SaveArea level={level} />;
+    return <SaveArea level={{ id: levelId, ...level.data() }} />;
 }

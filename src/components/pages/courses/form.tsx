@@ -16,10 +16,9 @@ export type DataType = {
     hide: boolean;
     featured: boolean;
     price: {
-        num: string;
+        num: number;
         currency: string;
     };
-    createdAt: Timestamp;
     publishedAt: Timestamp;
 };
 export interface Props {
@@ -35,8 +34,13 @@ export default function CourseInfoForm({
     const { register, handleSubmit, formState, getValues, setValue } =
         useForm<DataType>({
             defaultValues: {
-                publishedAt: Timestamp.fromDate(new Date()),
-                ...defaultData,
+                publishedAt:
+                    defaultData?.publishedAt || Timestamp.fromDate(new Date()),
+                price: defaultData?.price,
+                desc: defaultData?.desc,
+                featured: defaultData?.featured,
+                hide: defaultData?.hide,
+                name: defaultData?.name,
             },
         });
     register("publishedAt", { required: "You must Provide" });

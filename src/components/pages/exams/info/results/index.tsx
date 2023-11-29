@@ -161,7 +161,9 @@ export default function ExamResultGenerator({ examId }: Props) {
                             </div>
                         </>
                     )}
-                    {count == 0 && <p>There is no results so far</p>}
+                    {count == 0 && (
+                        <p className="tw-mb-0">There is no results so far</p>
+                    )}
                 </div>
             )}
         </>

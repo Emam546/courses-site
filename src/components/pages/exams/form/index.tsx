@@ -1,5 +1,4 @@
 import PrimaryButton from "@/components/button";
-import { MainCard } from "@/components/card";
 import CheckedInput from "@/components/common/inputs/checked";
 import MainInput, { ErrorInputShower } from "@/components/common/inputs/main";
 import TextArea from "@/components/common/inputs/textArea";
@@ -42,9 +41,15 @@ export default function ExamInfoForm({
 }: Props) {
     const { register, handleSubmit, formState, watch, setValue, getValues } =
         useForm<DataType>({
-            defaultValues: defaultData && {
-                ...defaultData,
-                time: defaultData.time / (1000 * 60),
+            defaultValues: {
+                time: defaultData && defaultData?.time / (1000 * 60),
+                desc: defaultData?.desc,
+                hide: defaultData?.hide,
+                name: defaultData?.name,
+                num: defaultData?.num,
+                random: defaultData?.random,
+                shuffle: defaultData?.shuffle,
+                questionIds: defaultData?.questionIds,
             },
         });
     const [questionData, setQuestionData] = useState<QuestionType[]>([]);

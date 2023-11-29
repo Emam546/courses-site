@@ -24,11 +24,12 @@ import { useDebounceState } from "@/hooks";
 import { ErrorInputShower } from "@/components/common/inputs/main";
 import PrimaryButton from "@/components/button";
 import queryClient from "@/queryClient";
-import { QueryDocumentSnapshot } from "@google-cloud/firestore";
+import { QueryDocumentSnapshot } from "firebase/firestore";
+import { FirestoreError } from "firebase/firestore";
 export type QuestionType = DataBase.WithIdType<DataBase["Questions"]>;
 const limitNum = 10;
 export interface Props {
-    lessonId: string;
+    lesson: DataBase.WithIdType<DataBase["Lessons"]>;
 }
 const queryKeyInfinity = (lessonId: string) => [
     "infinity",
@@ -215,11 +216,11 @@ export function SearchForm({
         </form>
     );
 }
-export default function QuestionsInfoGetter({ lessonId }: Props) {
+export default function QuestionsInfoGetter({ lesson }: Props) {
     const [searchParam, setSearchparams] = useState<string>();
     const searchState = searchParam != "" && searchParam != undefined;
     const { data: dataSearch } = useSearchQuestion(
-        lessonId,
+        lesson.id,
         searchParam ? parseInt(searchParam) : 0,
         {
             enabled: searchState,
@@ -233,7 +234,7 @@ export default function QuestionsInfoGetter({ lessonId }: Props) {
         fetchNextPage,
         error,
         data,
-    } = useInfiniteQuestions(lessonId, { enabled: !searchState });
+    } = useInfiniteQuestions(lesson.id, { enabled: !searchState });
 
     const questionContainer = useRef<HTMLDivElement>(null);
     useEffect(() => {
@@ -266,10 +267,6 @@ export default function QuestionsInfoGetter({ lessonId }: Props) {
 
     return (
         <>
-            <ErrorShower
-                error={error as any}
-                loading={isInitialLoading}
-            />
             {typeof questions != "undefined" && (
                 <div className="tw-mb-4">
                     <SearchForm onSearch={setSearchparams} />
@@ -316,10 +313,14 @@ export default function QuestionsInfoGetter({ lessonId }: Props) {
                 </>
             )}
             <ErrorShower loading={isLoading && !isLoading} />
+            <ErrorShower
+                error={error as FirestoreError}
+                loading={isInitialLoading}
+            />
             <DeleteDialog
                 onAccept={async () => {
                     await deleteDoc(getDocRef("Questions", curDel!.id));
-                    deleteInfinityQuestions(curDel!.id, lessonId);
+                    deleteInfinityQuestions(curDel!.id, lesson.id);
                     setCurDel(undefined);
                 }}
                 onClose={function () {

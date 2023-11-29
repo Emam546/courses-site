@@ -1,5 +1,5 @@
 import { auth, createCollection, getDocRef } from "@/firebase";
-import { QueryDocumentSnapshot } from "firebase/firestore";
+import { FirestoreError, QueryDocumentSnapshot } from "firebase/firestore";
 import { useQuery } from "@tanstack/react-query";
 import {
     QuerySnapshot,
@@ -12,7 +12,7 @@ import {
     where,
 } from "firebase/firestore";
 import { useAuthState } from "react-firebase-hooks/auth";
-const perPage = 30;
+export const perPage = 30;
 
 export function useGetUsersCount({
     courseId,
@@ -23,7 +23,7 @@ export function useGetUsersCount({
 }) {
     const [teacher] = useAuthState(auth);
     return useQuery({
-        queryKey: ["Students", "count", levelId, courseId],
+        queryKey: ["Students", "count", courseId || levelId],
         queryFn: async () => {
             if (courseId) {
                 return (
@@ -54,9 +54,10 @@ export function useGetUsersCount({
                 )
             ).data().count;
         },
+        onError(err: FirestoreError) {},
     });
 }
-export function useGetUser({
+export function useGetUsers({
     courseId,
     levelId,
     page,
@@ -67,7 +68,7 @@ export function useGetUser({
 }) {
     const [teacher] = useAuthState(auth);
     return useQuery({
-        queryKey: ["Students", "page", page, levelId, courseId],
+        queryKey: ["Students", "page", page, courseId || levelId],
 
         queryFn: async (): Promise<
             QueryDocumentSnapshot<DataBase["Students"]>[]
@@ -88,7 +89,7 @@ export function useGetUser({
                             return await getDoc(
                                 getDocRef(
                                     "Students",
-                                    teacher!.uid + pay.data().userId
+                                    pay.data().userId
                                 )
                             );
                         })
@@ -120,5 +121,6 @@ export function useGetUser({
                 )
             ).docs.slice(perPage * page, perPage * page + perPage);
         },
+        onError(err: FirestoreError) {},
     });
 }

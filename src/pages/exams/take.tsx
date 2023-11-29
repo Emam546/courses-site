@@ -1,53 +1,59 @@
 import Page404 from "@/components/pages/404";
 import QuestionsViewer from "@/components/pages/exams/questions";
-import { useGetDoc } from "@/hooks/fireStore";
+import { useDocument, useGetDoc } from "@/hooks/fireStore";
 import { QueryDocumentSnapshot } from "firebase/firestore";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import ErrorShower from "@/components/common/error";
-
-function SafeArea({
-    doc,
-}: {
-    doc: QueryDocumentSnapshot<DataBase["Results"]>;
-}) {
-    const { data: exam } = useGetDoc("Exams", doc.data().examId);
-
+export interface Props {
+    exam: DataBase.WithIdType<DataBase["Exams"]>;
+    result: DataBase.WithIdType<DataBase["Results"]>;
+}
+function Page({ exam, result }: Props) {
     return (
         <>
             <Head>
-                <title>{exam?.data()?.name || "loading ..."}</title>
+                <title>{exam.name}</title>
             </Head>
-            {exam?.exists() && (
-                <QuestionsViewer
-                    resultId={doc.id}
-                    exam={exam}
-                />
-            )}
+            <QuestionsViewer
+                result={result}
+                exam={exam}
+            />
         </>
     );
 }
 
-function Main() {
+function SafeArea() {
     const router = useRouter();
     const { id } = router.query;
-    const queryResult = useGetDoc("Results", id as string);
+    const [result, isLoading, error] = useDocument("Results", id as string);
+    const [exam, isLoading2, error2] = useDocument(
+        "Exams",
+        result?.data()?.examId
+    );
     if (typeof id != "string")
         return <Page404 message="The Lesson id is not exist" />;
-    if (queryResult.isLoading || queryResult.isError)
+    if (error || error2)
         return (
             <ErrorShower
-                error={queryResult.error as any}
-                loading={queryResult.isLoading}
+                loading={false}
+                error={error || error2}
             />
         );
+    if (isLoading || isLoading2) return <ErrorShower loading />;
 
-    if (!queryResult.data.exists())
-        return <Page404 message="The Lesson is not exist" />;
+    if (!result.exists()) return <Page404 message="The Result is not exist" />;
+    if (!exam.exists()) return <Page404 message="The Exam is not exist" />;
 
-    return <SafeArea doc={queryResult.data} />;
+    return (
+        <Page
+            result={{ ...result.data(), id: result.id }}
+            exam={{
+                ...exam.data(),
+                id: exam.id,
+            }}
+        />
+    );
 }
-const Page = () => {
-    return <Main />;
-};
-export default Page;
+
+export default SafeArea;

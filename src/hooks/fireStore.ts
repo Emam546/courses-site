@@ -1,8 +1,10 @@
 import { auth, createCollection, getDocRef } from "@/firebase";
 import queryClient from "@/queryClient";
 import { useQuery } from "@tanstack/react-query";
+import { FirebaseError } from "firebase/app";
 import {
     DocumentSnapshot,
+    FirestoreError,
     Query,
     getCountFromServer,
     getDoc,
@@ -65,14 +67,42 @@ export function useGetCourses(levelId?: string) {
     });
 }
 export function useGetDoc<T extends keyof DataBase>(path: T, id?: string) {
-    return useQuery<DocumentSnapshot<DataBase[T]>>({
+    return useQuery<DocumentSnapshot<DataBase[T]>, FirestoreError>({
         queryKey: [path, id],
         enabled: typeof id == "string",
         queryFn: async () => {
             return await getDoc(getDocRef<T>(path, id as string));
         },
+        onError(err: FirestoreError) {},
     });
 }
+export function useDocument<T extends keyof DataBase>(
+    path: T,
+    id?: string
+):
+    | [DocumentSnapshot<DataBase[T]>, false, null]
+    | [null, false, FirestoreError]
+    | [null, true, null] {
+    const [loading, setLoading] = useState(true);
+    const [data, setData] = useState<DocumentSnapshot<DataBase[T]> | null>(
+        null
+    );
+    const [error, setError] = useState<FirestoreError | null>(null);
+    useEffect(() => {
+        if (!id) return;
+        setLoading(true);
+        getDoc(getDocRef(path, id))
+            .then((data) => {
+                setData(data);
+            })
+            .catch((err) => setError(err))
+            .finally(() => {
+                setLoading(false);
+            });
+    }, [path, id]);
+    return [data, loading, error] as any;
+}
+
 export function updateDocCache<T extends keyof DataBase>(
     path: T,
     val: DocumentSnapshot<DataBase[T]>,

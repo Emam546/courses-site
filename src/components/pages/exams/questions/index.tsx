@@ -220,40 +220,25 @@ function Main({ result, endState, exam, onState, onAnswer, onEnd }: MainProps) {
     );
 }
 export interface Props {
-    resultId: string;
-    exam: QueryDocumentSnapshot<DataBase["Exams"]>;
+    result: DataBase.WithIdType<DataBase["Results"]>;
+    exam: DataBase.WithIdType<DataBase["Exams"]>;
 }
-export default function QuestionsViewer({ resultId, exam }: Props) {
+export default function QuestionsViewer({ result, exam }: Props) {
     const router = useRouter();
-    const [result, isLoading, error] = useDocument(
-        getDocRef("Results", resultId)
-    );
     useLayoutEffect(() => {
-        if (!router.query.quest && result) {
+        if (!router.query.quest) {
             router.replace(
-                `/exams/take?id=${result.id}&quest=${
-                    result.data()?.questions[0].questionId
-                }`
+                `/exams/take?id=${result.id}&quest=${result.questions[0].questionId}`
             );
         }
     }, [result?.id]);
-    if (isLoading)
-        return (
-            <ErrorShower
-                loading
-                error={error}
-            />
-        );
-    if (!result?.exists()) return <div>The Exam is not exist</div>;
 
-    const handleNavigateWithoutHistory = () => {
-        router.replace("/new-page"); // Use the replace method with the new URL
-    };
+
     return (
         <Main
             endState
-            exam={{ ...exam.data(), id: exam.id }}
-            result={{ ...result.data(), id: resultId }}
+            exam={exam}
+            result={result}
             onAnswer={async (id, answer, correctAnswer) => {}}
             onState={async (id, state) => {}}
             onEnd={async () => {}}

@@ -1,4 +1,4 @@
-import { CardTitle, MainCard } from "@/components/card";
+import { BigCard, CardTitle, MainCard } from "@/components/card";
 import { useRouter } from "next/router";
 import { addDoc } from "firebase/firestore";
 import { auth, createCollection } from "@/firebase";
@@ -16,7 +16,7 @@ export default function Page() {
             <Head>
                 <title>Add Level</title>
             </Head>
-            <MainCard>
+            <BigCard>
                 <CardTitle>Add Level</CardTitle>
                 <MainCard>
                     <LevelInfoForm
@@ -32,7 +32,7 @@ export default function Page() {
                         buttonName="Submit"
                     />
                 </MainCard>
-            </MainCard>
+            </BigCard>
             <div className="tw-mt-3">
                 <GoToButton
                     label="Go To Levels"

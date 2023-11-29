@@ -3,6 +3,10 @@ declare global {
     namespace DataBase {
         export type WithIdType<T> = { id: string } & T;
         export type WithOrder<T> = { order: number } & T;
+        export interface Price {
+            num: number;
+            currency: string;
+        }
     }
 
     export interface DataBase {
@@ -19,10 +23,7 @@ declare global {
             levelId: string;
             teacherId: string;
             featured: boolean;
-            price: {
-                num: string;
-                currency: string;
-            };
+            price: DataBase.Price;
             createdAt: Timestamp;
             publishedAt: Timestamp;
         }>;
@@ -36,12 +37,14 @@ declare global {
             publishedAt: Timestamp;
             teacherId: string;
             adderIds: Record<string, ["editor"]>;
-            video?: {
-                type: "youtube";
-                id: string;
-            } & {
-                hide: boolean;
-            };
+            video?:
+                | ({
+                      type: "youtube";
+                      id: string;
+                  } & {
+                      hide: boolean;
+                  })
+                | null;
         }>;
         Exams: DataBase.WithOrder<
             {
@@ -123,6 +126,7 @@ declare global {
                   userId: string;
                   courseId: string;
                   teacherId: string;
+                  price: DataBase.Price;
               } & {
                   type: "admin";
               };

@@ -1,88 +1,83 @@
-import { CardTitle, MainCard } from "@/components/card";
+import { BigCard, CardTitle, MainCard } from "@/components/card";
 import ErrorShower from "@/components/common/error";
 import AddButton, { GoToButton } from "@/components/common/inputs/addButton";
 import Page404 from "@/components/pages/404";
 import ExamsInfoGetter from "@/components/pages/exams/info";
 import LessonGetDataForm from "@/components/pages/lessons/form";
 import { getDocRef } from "@/firebase";
-import { QueryDocumentSnapshot, updateDoc } from "firebase/firestore";
+import { useDocument } from "@/hooks/fireStore";
+import { updateDoc } from "firebase/firestore";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useDocument } from "react-firebase-hooks/firestore";
-interface UpdateForm {
-    doc: QueryDocumentSnapshot<DataBase["Lessons"]>;
+import { useState } from "react";
+
+export interface Props {
+    doc: DataBase.WithIdType<DataBase["Lessons"]>;
 }
-function UpdateForm({ doc }: UpdateForm) {
+function Page({ doc: initData }: Props) {
+    const [doc, setDoc] = useState(initData);
     return (
         <>
-            <CardTitle>Update Lesson Data</CardTitle>
-            <MainCard>
-                <LessonGetDataForm
-                    courseId={doc.data()!.courseId}
-                    defaultData={doc.data()}
-                    onData={async (data) => {
-                        await updateDoc(doc.ref, {
-                            ...data,
-                        });
-                        alert("the document updated successfully");
-                    }}
-                    buttonName={"Update"}
-                />
-            </MainCard>
-        </>
-    );
-}
-function SafeArea({ id }: { id: string }) {
-    const [doc, loading, error] = useDocument(
-        getDocRef("Lessons", id as string)
-    );
-    if (doc && !doc.exists())
-        return <Page404 message="The Course id is not exist" />;
-    return (
-        <div className="tw-flex-1 tw-flex tw-flex-col tw-items-stretch">
             <Head>
-                <title>{doc?.data().name}</title>
+                <title>{doc.name}</title>
             </Head>
-            <div className="tw-flex-1">
-                <ErrorShower
-                    loading={loading}
-                    error={error}
-                />
+            <BigCard>
+                <CardTitle>Update Lesson Data</CardTitle>
                 <MainCard>
-                    {doc && <UpdateForm doc={doc} />}
-                    <>
-                        <CardTitle>Exams</CardTitle>
-                        <MainCard>
-                            <ExamsInfoGetter lessonId={id} />
-                        </MainCard>
-                    </>
+                    <LessonGetDataForm
+                        courseId={doc.courseId}
+                        defaultData={doc}
+                        onData={async (data) => {
+                            await updateDoc(getDocRef("Lessons", doc.id), {
+                                ...data,
+                            });
+                            setDoc({ ...doc, ...data });
+                            alert("the Document updated successfully");
+                        }}
+                        buttonName={"Update"}
+                    />
                 </MainCard>
-            </div>
+                <CardTitle>Exams</CardTitle>
+                <MainCard>
+                    <ExamsInfoGetter lessonId={doc.id} />
+                </MainCard>
+            </BigCard>
             <div className="py-3">
                 <AddButton
                     label="Add Exams"
-                    href={`/exams/add?lessonId=${id}`}
+                    href={`/exams/add?lessonId=${doc.id}`}
                 />
                 <AddButton
                     label="Add questions"
-                    href={`/questions/add?lessonId=${id}`}
+                    href={`/questions/add?lessonId=${doc.id}`}
                 />
                 <GoToButton
                     label="Go To questions"
-                    href={`/lessons/questions?id=${id}`}
+                    href={`/lessons/questions?id=${doc.id}`}
                 />
                 <GoToButton
                     label="Go To The Course"
-                    href={`/courses?id=${doc?.data().courseId}`}
+                    href={`/courses?id=${doc.courseId}`}
                 />
             </div>
-        </div>
+        </>
     );
 }
-export default function Page() {
+export default function SafeArea() {
     const router = useRouter();
     const id = router.query.id;
+    const [doc, loading, error] = useDocument("Lessons", id as string);
     if (typeof id != "string")
         return <Page404 message="You must provide The page id with url" />;
-    return <SafeArea id={id} />;
+    if (loading || error)
+        return (
+            <ErrorShower
+                loading={loading}
+                error={error}
+            />
+        );
+    if (doc && !doc.exists())
+        return <Page404 message="The Course id is not exist" />;
+
+    return <Page doc={{ id, ...doc.data() }} />;
 }

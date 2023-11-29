@@ -1,4 +1,5 @@
 import PrimaryButton from "@/components/button";
+import BudgetInput from "@/components/common/inputs/budget";
 import SelectInput from "@/components/common/inputs/select";
 import { Grid2 } from "@/components/grid";
 import { createCollection } from "@/firebase";
@@ -9,7 +10,7 @@ import { useForm } from "react-hook-form";
 export interface Props {
     levelId: string;
     userId: string;
-    onData: (id: string) => any;
+    onData: (data: FormData) => any;
 }
 export const UnpaidCoursesKey = (userId: string, levelId?: string) => [
     "Courses",
@@ -17,6 +18,10 @@ export const UnpaidCoursesKey = (userId: string, levelId?: string) => [
     userId,
     levelId,
 ];
+export interface FormData {
+    id: string;
+    price: DataBase.Price;
+}
 export function useUnAddedCourses({
     levelId,
     userId,
@@ -51,13 +56,13 @@ export function useUnAddedCourses({
 }
 export default function PaymentForm({ levelId, userId, onData }: Props) {
     const { data: courses } = useUnAddedCourses({ levelId, userId });
-    const { handleSubmit, register, reset } = useForm<{ id: string }>();
+    const { handleSubmit, register, reset, formState } = useForm<FormData>();
 
     return (
         <>
             <form
                 onSubmit={handleSubmit(async (data) => {
-                    await onData(data.id);
+                    await onData(data);
                     reset();
                     queryClient.setQueryData(
                         UnpaidCoursesKey(userId, levelId),
@@ -86,10 +91,32 @@ export default function PaymentForm({ levelId, userId, onData }: Props) {
                             );
                         })}
                     </SelectInput>
-                    <div className="tw-flex tw-justify-end tw-items-end">
-                        <PrimaryButton type="submit">Activate</PrimaryButton>
-                    </div>
+                    <BudgetInput
+                        label={"The amount paid"}
+                        priceProps={{
+                            ...register("price.num", {
+                                required:
+                                    "Please set the course price or set it to 0",
+                                valueAsNumber: true,
+                                min: 0,
+                            }),
+                            placeholder: "eg.120",
+                            type: "number",
+                        }}
+                        unitProps={{
+                            ...register("price.currency", {
+                                required: "Please select a currency",
+                            })
+                        }}
+                        err={
+                            formState.errors.price?.num ||
+                            formState.errors.price?.currency
+                        }
+                    />
                 </Grid2>
+                <div className="tw-flex tw-justify-end tw-items-end tw-mt-5">
+                    <PrimaryButton type="submit">Activate</PrimaryButton>
+                </div>
             </form>
         </>
     );

@@ -91,7 +91,7 @@ export default function CourseInfoGetter({ levelId }: Props) {
                 </>
             )}
             {courses && courses.size == 0 && (
-                <p>There is no Courses so far please add some Courses</p>
+                <p className="tw-mb-0">There is no Courses so far please add some Courses</p>
             )}
             <DeleteDialog
                 onAccept={async () => {

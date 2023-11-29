@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "./global.scss";
 .login-screen {
     $p: hsl(213deg 85% 97%);
     $s: hsl(233deg 36% 38%);

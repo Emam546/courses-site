@@ -1,7 +1,7 @@
 import { FirestoreError } from "firebase/firestore";
 import React from "react";
 export interface Props {
-    error?: FirestoreError;
+    error?: FirestoreError|null;
     loading: boolean;
 }
 export default function ErrorShower({ error, loading }: Props) {

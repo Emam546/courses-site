@@ -1,3 +1,4 @@
+import { BigCard } from "@/components/card";
 import UsersInfoGenerator from "@/components/pages/users/info";
 import Head from "next/head";
 import React from "react";
@@ -8,9 +9,9 @@ export default function Page() {
             <Head>
                 <title>Users</title>
             </Head>
-            <div className="tw-flex-1">
+            <BigCard>
                 <UsersInfoGenerator />
-            </div>
+            </BigCard>
         </div>
     );
 }

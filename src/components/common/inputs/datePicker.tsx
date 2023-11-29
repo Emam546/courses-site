@@ -33,27 +33,33 @@ function CustomField(props: ButtonFieldProps) {
             ref={props.InputProps?.ref}
             aria-disabled={props.disabled}
             className={classNames(
-                "form-control tw-py-0 tw-flex tw-items-center hover:tw-border-gray-900 focus-within:tw-border-gray-900",
+                "form-control tw-py-0 hover:tw-border-gray-900 focus-within:tw-border-gray-900",
                 "aria-disabled:tw-bg-gray-200 aria-disabled:hover:tw-border-transparent aria-disabled:tw-cursor-default"
             )}
+            style={{
+                paddingTop: 0,
+                paddingBottom: 0,
+            }}
         >
-            <p
-                aria-disabled={props.disabled}
-                className={classNames(
-                    "tw-py-2 tw-text-gray-900 tw-m-0 tw-flex-1",
-                    "aria-disabled:tw-text-gray-800"
-                )}
-            >
-                {formateDate(props.value!.toDate(), "/")}
-            </p>
-            <button
-                disabled={props.disabled}
-                onClick={() => props.setOpen?.(true)}
-                type="button"
-                className="tw-border-none tw-text-gray-400 tw-text-xl"
-            >
-                <FontAwesomeIcon icon={faCalendarDays} />
-            </button>
+            <div className="tw-flex tw-items-center">
+                <p
+                    aria-disabled={props.disabled}
+                    className={classNames(
+                        "tw-py-2 tw-text-gray-900 tw-m-0 tw-flex-1",
+                        "aria-disabled:tw-text-gray-800"
+                    )}
+                >
+                    {formateDate(props.value!.toDate(), "/")}
+                </p>
+                <button
+                    disabled={props.disabled}
+                    onClick={() => props.setOpen?.(true)}
+                    type="button"
+                    className="tw-border-none tw-p-2 tw-text-gray-400 tw-bg-inherit tw-text-xl"
+                >
+                    <FontAwesomeIcon icon={faCalendarDays} />
+                </button>
+            </div>
         </div>
     );
 }

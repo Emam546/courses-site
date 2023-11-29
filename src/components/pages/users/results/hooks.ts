@@ -1,8 +1,8 @@
 import { auth, createCollection } from "@/firebase";
 import queryClient from "@/queryClient";
-import { QuerySnapshot } from "@google-cloud/firestore";
 import { useQuery } from "@tanstack/react-query";
 import {
+    FirestoreError,
     getCountFromServer,
     getDocs,
     limit,
@@ -28,6 +28,7 @@ export function useGetResultsCount({ userId }: { userId?: string }) {
                 )
             ).data().count;
         },
+        onError(err: FirestoreError) {},
     });
 }
 export function clearResults(userId: string) {
@@ -45,7 +46,6 @@ export function useGetResults({
     userId: string;
     page: number;
 }) {
-    const [teacher] = useAuthState(auth);
     return useQuery({
         queryKey: ["Results", "userId", userId, "page", page],
         queryFn: async () => {
@@ -60,5 +60,6 @@ export function useGetResults({
                 )
             ).docs.slice(page * perPage, perPage * page + perPage);
         },
+        onError(err: FirestoreError) {},
     });
 }

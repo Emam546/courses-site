@@ -13,6 +13,12 @@ export function MainCard({
         </div>
     );
 }
+export function BigCard({
+    children,
+    className,
+}: React.HTMLAttributes<HTMLDivElement>) {
+    return <div className={classNames("tw-flex-1", className)}>{children}</div>;
+}
 export type CardTitleProps = React.DetailedHTMLProps<
     React.HTMLAttributes<HTMLHeadingElement>,
     HTMLHeadingElement
@@ -20,7 +26,10 @@ export type CardTitleProps = React.DetailedHTMLProps<
 export function CardTitle({ ...props }: CardTitleProps) {
     return (
         <h5
-            className={classNames("card-title fw-semibold", props.className)}
+            className={classNames(
+                "card-title fw-semibold tw-mb-2",
+                props.className
+            )}
             {...props}
         />
     );

@@ -19,19 +19,17 @@ export type Props = {
 export default function BudgetInput({
     label,
     priceProps,
-    unitProps: unit,
+    unitProps,
     err,
 }: Props) {
     return (
         <WrapElem label={label}>
-            <div className="tw-flex tw-justify-stretch">
-                <div>
-                    <StyledInput {...(priceProps as any)} />
+            <div className="tw-flex tw-justify-stretch tw-gap-2">
+                <div className="tw-flex-1">
+                    <StyledInput {...priceProps} />
                 </div>
                 <div>
-                    <StyledSelect
-                        {...({ defaultValue: "EGP", ...unit } as any)}
-                    >
+                    <StyledSelect {...{ defaultValue: "EGP", ...unitProps }}>
                         {currencies.map(({ code, name }) => {
                             return (
                                 <option

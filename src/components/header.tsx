@@ -12,29 +12,27 @@ export default function Header({ OnOpen }: Props) {
             <nav className="navbar navbar-expand-lg navbar-light">
                 <ul className="navbar-nav">
                     <li className="nav-item d-block d-xl-none">
-                        <a
-                            className="nav-link  nav-icon-hover"
+                        <button
+                            className="nav-link  nav-icon-hover tw-bg-transparent tw-border-none"
                             id="headerCollapse"
                             onClick={(e) => {
-                                e.preventDefault();
                                 OnOpen && OnOpen();
                             }}
-                            href=""
                         >
                             <i className="ti ti-menu-2" />
-                        </a>
+                        </button>
                     </li>
                     <li className="nav-item">
-                        <a
-                            className="nav-link nav-icon-hover"
+                        <button
+                            type="button"
+                            className="nav-link nav-icon-hover tw-bg-transparent tw-border-none"
                             onClick={(e) => {
                                 e.preventDefault();
                             }}
-                            href=""
                         >
                             <i className="ti ti-bell-ringing" />
                             <div className="notification bg-primary rounded-circle" />
-                        </a>
+                        </button>
                     </li>
                 </ul>
                 <div

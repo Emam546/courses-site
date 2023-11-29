@@ -1,9 +1,8 @@
-import { CardTitle, MainCard } from "@/components/card";
+import { BigCard, CardTitle, MainCard } from "@/components/card";
 import { useRouter } from "next/router";
 import { addDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { auth, createCollection, getDocRef } from "@/firebase";
 import UserInfoForm from "@/components/pages/users/form";
-import { useDocument } from "react-firebase-hooks/firestore";
 import Page404 from "@/components/pages/404";
 import ErrorShower from "@/components/common/error";
 import PaymentForm from "@/components/pages/users/payment/form";
@@ -11,36 +10,32 @@ import PaymentInfoGenerator from "@/components/pages/users/payment/info";
 import UserResultGenerator from "@/components/pages/users/results";
 import Head from "next/head";
 import { useAuthState } from "react-firebase-hooks/auth";
-
-function SafeArea({ id }: { id: string }) {
-    const [doc, loading, error] = useDocument(getDocRef("Students", id));
+import { useDocument } from "@/hooks/fireStore";
+import { useState } from "react";
+export interface Props {
+    doc: DataBase.WithIdType<DataBase["Students"]>;
+}
+function Page({ doc: initData }: Props) {
     const [teacher] = useAuthState(auth);
-    if (doc && !doc.exists())
-        return <Page404 message="The Level id is not exist" />;
-    if (!doc)
-        return (
-            <ErrorShower
-                loading={loading}
-                error={error}
-            />
-        );
+    const [doc, setDoc] = useState(initData);
     return (
         <>
             <Head>
-                <title>User:{doc.data().displayname}</title>
+                <title>User:{doc.displayname}</title>
             </Head>
-            <MainCard>
+            <BigCard>
                 <>
                     <CardTitle>Update User</CardTitle>
                     <MainCard>
                         <UserInfoForm
                             onData={async (data) => {
-                                await updateDoc(doc.ref, {
+                                await updateDoc(getDocRef("Students", doc.id), {
                                     ...data,
                                 });
+                                setDoc({ ...doc, ...data });
                                 alert("Document updated successfully");
                             }}
-                            defaultData={doc.data()}
+                            defaultData={doc}
                         />
                     </MainCard>
                 </>
@@ -48,17 +43,18 @@ function SafeArea({ id }: { id: string }) {
                     <CardTitle>Activate Course</CardTitle>
                     <MainCard>
                         <PaymentForm
-                            onData={async (id) => {
+                            onData={async ({ id, price }) => {
                                 await addDoc(createCollection("Payments"), {
                                     activatedAt: serverTimestamp(),
                                     type: "admin",
                                     courseId: id,
                                     userId: doc.id,
                                     teacherId: teacher!.uid,
+                                    price,
                                 });
                             }}
                             userId={doc.id}
-                            levelId={doc.data().levelId}
+                            levelId={doc.levelId}
                         />
                     </MainCard>
                 </>
@@ -74,14 +70,24 @@ function SafeArea({ id }: { id: string }) {
                         <UserResultGenerator userId={doc.id} />
                     </MainCard>
                 </>
-            </MainCard>
+            </BigCard>
         </>
     );
 }
-export default function Page() {
+export default function SafeArea() {
     const id = useRouter().query.id;
+    const [doc, loading, error] = useDocument("Students", id as string);
+
     if (typeof id != "string")
         return <Page404 message="You must provide the page id" />;
+    if (error || loading)
+        return (
+            <ErrorShower
+                loading={loading}
+                error={error}
+            />
+        );
+    if (!doc.exists()) return <Page404 message="The Level id is not exist" />;
 
-    return <SafeArea id={id} />;
+    return <Page doc={{ ...doc.data(), id: doc.id }} />;
 }

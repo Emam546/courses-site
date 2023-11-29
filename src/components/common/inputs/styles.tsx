@@ -1,9 +1,6 @@
 import classNames from "classnames";
 import React from "react";
-export type InputProps = React.DetailedHTMLProps<
-    React.InputHTMLAttributes<HTMLInputElement>,
-    HTMLInputElement
->;
+export type InputProps = React.InputHTMLAttributes<HTMLInputElement>;
 export const StyledInput = React.forwardRef<HTMLInputElement, InputProps>(
     ({ className, ...props }, ref) => {
         return (
@@ -18,10 +15,8 @@ export const StyledInput = React.forwardRef<HTMLInputElement, InputProps>(
         );
     }
 );
-export type SelectedInputProps = React.DetailedHTMLProps<
-    React.SelectHTMLAttributes<HTMLSelectElement>,
-    HTMLSelectElement
->;
+export type SelectedInputProps = React.SelectHTMLAttributes<HTMLSelectElement>;
+
 export const StyledSelect = React.forwardRef<
     HTMLSelectElement,
     SelectedInputProps

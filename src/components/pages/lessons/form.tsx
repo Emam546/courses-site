@@ -14,6 +14,9 @@ import TextArea from "@/components/common/inputs/textArea";
 import { isRawDraftContentStateEmpty } from "@/utils/draftjs";
 import { EditorState } from "draft-js";
 import { convertToRaw } from "draft-js";
+import React from "react";
+import ReactPlayer from "react-player/youtube";
+
 export type DataType = {
     name: string;
     briefDesc: string;
@@ -24,7 +27,7 @@ export type DataType = {
         type: "youtube";
         id: string;
         hide: boolean;
-    };
+    } | null;
 };
 function extractVideoId(youtubeUrl: string) {
     // Regular expression pattern to match YouTube video IDs
@@ -61,11 +64,19 @@ export default function LessonGetDataForm({
     const { register, handleSubmit, formState, getValues, watch, setValue } =
         useForm<DataType>({
             defaultValues: {
-                publishedAt: Timestamp.fromDate(new Date()),
-                desc: JSON.stringify(
-                    convertToRaw(EditorState.createEmpty().getCurrentContent())
-                ),
-                ...defaultData,
+                publishedAt:
+                    defaultData?.publishedAt || Timestamp.fromDate(new Date()),
+                desc:
+                    defaultData?.desc ||
+                    JSON.stringify(
+                        convertToRaw(
+                            EditorState.createEmpty().getCurrentContent()
+                        )
+                    ),
+                briefDesc: defaultData?.briefDesc,
+                hide: defaultData?.hide,
+                name: defaultData?.name,
+                video: defaultData?.video,
             },
         });
 
@@ -74,18 +85,19 @@ export default function LessonGetDataForm({
         isLoading,
         error,
     } = useGetDoc("Courses", courseId);
-    const video = watch("video");
+    const videoId = watch("video.id");
     register("publishedAt", {
         required: "You must provide a date",
     });
     register("desc", {
         validate: validateDesc,
     });
+    const videoState = typeof videoId == "string" && videoId != "";
     return (
         <>
             <ErrorShower
                 loading={isLoading}
-                error={error as any}
+                error={error}
             />
 
             {courseData && (
@@ -94,7 +106,8 @@ export default function LessonGetDataForm({
                         <form
                             autoComplete="off"
                             onSubmit={handleSubmit(async (data) => {
-                                if (!data.video?.id) delete data.video;
+                                if (!data.video?.id) data.video = null;
+                                console.log(data);
                                 await onData(data);
                             })}
                         >
@@ -167,42 +180,38 @@ export default function LessonGetDataForm({
                                 Upload Video
                             </CardTitle>
                             <div className="tw-space-y-3">
-                                <CheckedInput
-                                    title="Hide the video"
-                                    disabled={video == undefined}
-                                    {...register("video.hide", {
-                                        disabled: video == undefined,
-                                    })}
-                                />
+                                {videoState && ( // Only loads the YouTube player
+                                    <div className="tw-flex tw-justify-center tw-my-5 tw-max-w-xl tw-mx-auto">
+                                        <ReactPlayer
+                                            width={"100%"}
+                                            url={`https://www.youtube.com/watch?v=${videoId}`}
+                                        />
+                                    </div>
+                                )}
                                 <MainInput
-                                    title={"Video Url"}
+                                    title={"Youtube Video Url"}
                                     id={"video-id"}
                                     defaultValue={
-                                        video?.id &&
-                                        `https://www.youtube.com/watch?v=${video.id}`
+                                        videoState
+                                            ? `https://www.youtube.com/watch?v=${videoId}`
+                                            : ""
                                     }
                                     onChange={(e) => {
                                         const id = extractVideoId(
                                             e.currentTarget.value
                                         );
-                                        if (!id) return;
-                                        alert("Video Updated successfully");
-                                        setValue("video", {
-                                            type: "youtube",
-                                            hide: false,
-                                            id,
-                                        });
+                                        if (!id)
+                                            return setValue("video.id", "");
+                                        setValue("video.id", id);
+                                        setValue("video.type", "youtube");
                                     }}
                                 />
-                                {video?.id != undefined && <p>Id:{video.id}</p>}
-                                {video?.id != undefined && (
-                                    <a
-                                        href={`https://www.youtube.com/watch?v=${video.id}`}
-                                        target="_blank"
-                                    >
-                                        {`https://www.youtube.com/watch?v=${video.id}`}
-                                    </a>
-                                )}
+                                <CheckedInput
+                                    title="Hide the video"
+                                    {...register("video.hide", {
+                                        disabled: !videoState,
+                                    })}
+                                />
                             </div>
                             <div className="tw-flex tw-justify-end tw-mt-3">
                                 <PrimaryButton

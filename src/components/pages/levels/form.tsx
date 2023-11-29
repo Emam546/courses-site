@@ -21,7 +21,11 @@ export default function LevelInfoForm({
     onData,
 }: Props) {
     const { register, handleSubmit, formState } = useForm<DataType>({
-        defaultValues: { ...defaultData },
+        defaultValues: {
+            desc: defaultData?.desc,
+            hide: defaultData?.hide,
+            name: defaultData?.name,
+        },
     });
     return (
         <form

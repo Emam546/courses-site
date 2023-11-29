@@ -2,7 +2,6 @@
 import classNames from "classnames";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
 import SimpleBar from "simplebar-react";
 
 interface HeaderNavProps {
@@ -76,6 +75,10 @@ export default function SideBar({ onClose: onToggle }: Props) {
                     <nav className="sidebar-nav">
                         <ul id="sidebarnav">
                             <HeaderNav title="Home" />
+                            <LinkElem
+                                href="/"
+                                title="Dashboard"
+                            />
                             <LinkElem
                                 href="/levels"
                                 title="Organize Data"

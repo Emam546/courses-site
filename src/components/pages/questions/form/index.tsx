@@ -1,6 +1,5 @@
 import PrimaryButton from "@/components/button";
 import { WrapElem } from "@/components/common/inputs/styles";
-import { DataBase.WithIdType, WithOrder } from "@/data";
 import { useForm } from "react-hook-form";
 import FinalEditor from "@/components/common/inputs/Editor";
 import { useState } from "react";
@@ -20,7 +19,7 @@ import { isRawDraftContentStateEmpty } from "@/utils/draftjs";
 export type DataType = {
     quest: string;
     choices: Array<
-        WithOrder<
+        DataBase.WithOrder<
             DataBase.WithIdType<{
                 textContext: string;
             }>
@@ -155,7 +154,6 @@ export default function QuestionGetDataForm({
             </WrapElem>
             <div className="tw-mt-3">
                 <CheckedInput
-                    
                     title="Shuffle Choices"
                     id="shuffle-input"
                     {...register("shuffle")}
