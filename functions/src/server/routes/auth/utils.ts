@@ -30,7 +30,7 @@ export function SetTokens(res: Response, id: string, data: UserDecodedData) {
       expiresIn: EnvVars.jwt.accessTokenExp,
     }),
     {
-      maxAge: 5000,
+      maxAge: EnvVars.jwt.accessTokenExp,
     },
   );
 

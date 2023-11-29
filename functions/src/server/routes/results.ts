@@ -1,9 +1,8 @@
-import { Router, Request, Response } from "express";
+import { Router, Request } from "express";
 import { getCollection } from "@/firebase";
 import { checkPaidCourseUser } from "@/utils/auth";
 import { QueryDocumentSnapshot, Timestamp } from "firebase-admin/firestore";
 
-import { FieldValue } from "firebase-admin/firestore";
 import Validator from "validator-checker-js";
 import { ErrorMessages, Messages } from "@serv/declarations/major/Messages";
 import HttpStatusCodes from "../declarations/major/HttpStatusCodes";
@@ -36,7 +35,7 @@ router.use(async (req, res, next) => {
       success: false,
       msg: ErrorMessages.UnAuthorized,
     });
-  const state = await checkPaidCourseUser(req.user.id, resultData.courseId);
+  const state = await checkPaidCourseUser(resultData.courseId, req.user.id);
 
   if (!state) {
     return res.status(HttpStatusCodes.PAYMENT_REQUIRED).sendData({

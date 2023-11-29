@@ -4,10 +4,9 @@ import * as logger from "firebase-functions/logger";
 import "express-async-errors";
 import HttpStatusCodes from "@serv/declarations/major/HttpStatusCodes";
 import { RouteError } from "@serv/declarations/classes";
-import cookieParser, { CookieParseOptions } from "cookie-parser";
+import cookieParser from "cookie-parser";
 import router from "@serv/routes";
 import cors from "cors";
-import EnvVars from "./declarations/major/EnvVars";
 const app = express();
 app.use((req, res, next) => {
   res.sendData = res.json;

@@ -33,7 +33,8 @@ router.use(async (req, res, next) => {
       success: false,
       msg: ErrorMessages.HidedDoc,
     });
-  const state = await checkPaidCourseUser(req.user.id, lessonData.courseId);
+
+  const state = await checkPaidCourseUser(lessonData.courseId, req.user.id);
 
   if (!state) {
     res.status(HttpStatusCodes.PAYMENT_REQUIRED).sendData({
@@ -63,7 +64,7 @@ router.get("/", async (req, res) => {
         courseId: data.courseId,
         desc: data.desc,
         briefDesc: data.briefDesc,
-        vide: data.video,
+        video: data.video?.hide == true ? undefined : data.video,
         publishedAt: data.publishedAt,
         teacherId: data.teacherId,
       },

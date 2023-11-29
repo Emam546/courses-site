@@ -6,6 +6,7 @@ import { FieldValue, QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { shuffle } from "@/utils";
 import { ErrorMessages, Messages } from "@serv/declarations/major/Messages";
 import HttpStatusCodes from "../declarations/major/HttpStatusCodes";
+import { Auth } from "./middleware";
 const router = Router();
 
 function createExamQuestions(
@@ -56,7 +57,7 @@ router.use(async (req, res, next) => {
       msg: ErrorMessages.UnExistedDoc,
     });
 
-  const state = await checkPaidCourseUser(req.user.id, examData.courseId);
+  const state = await checkPaidCourseUser(examData.courseId, req.user.id);
   if (examData.hide)
     return res.status(HttpStatusCodes.LOCKED).sendData({
       success: false,
@@ -96,7 +97,7 @@ router.get("/", (req, res) => {
     },
   });
 });
-router.get("/results", async (req, res) => {
+router.get("/results", Auth, async (req, res) => {
   const results = await getCollection("Results")
     .where("examId", "==", req.exam.id)
     .where("userId", "==", req.user.id)
@@ -111,7 +112,7 @@ router.get("/results", async (req, res) => {
     },
   });
 });
-router.post("/create", async (req, res) => {
+router.post("/create", Auth, async (req, res) => {
   const exam = req.exam;
   const examData = exam.data();
 
