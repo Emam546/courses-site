@@ -10,12 +10,13 @@ import examsRouter from "./exams";
 import resultsRouter from "./results";
 import videoRouter from "./video";
 
-import { Auth, EncodeUser } from "./middleware";
+import { Auth, EncodeUser, isBlocked } from "./middleware";
 
 const router = Router();
 router.use("/auth", authRouter);
 router.use("/video", videoRouter);
 router.use(EncodeUser);
+router.use(isBlocked);
 router.use("/teacher", teacherRouter);
 router.use("/level", levelsRouter);
 router.use("/course", courseRouter);

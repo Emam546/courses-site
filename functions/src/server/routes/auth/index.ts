@@ -112,7 +112,7 @@ router.post("/login", async (req, res) => {
       success: false,
       msg: ErrorMessages.TEACHER_BLOCK,
     });
-  return await authUser(res, userDoc.id, {
+  return await authUser(res, {
     id: userDoc.id,
     ...userDoc.data(),
   });
@@ -145,7 +145,7 @@ router.get("/verify/:emailToken", async (req, res) => {
     blocked: false,
     email: email,
     phone: phone,
-    createdAt: FieldValue.serverTimestamp(),
+    createdAt: FieldValue.serverTimestamp() as any,
     levelId: levelId,
     teacherId: teacherId,
     emailVerified: true,
@@ -158,7 +158,7 @@ router.get("/verify/:emailToken", async (req, res) => {
     passwordHash,
     passwordSalt,
   });
-  return await authUser(res, userDoc.id, { ...gData, id: userDoc.id });
+  return await authUser(res, { ...gData, id: userDoc.id });
 });
 router.get("/logout", async (req, res) => {
   res.clearCookie("accessToken");

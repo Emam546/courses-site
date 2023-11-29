@@ -15,19 +15,44 @@ export const EncodeUser: RequestHandler = async (req, res, next) => {
       const doc = await getCollection("Students").doc(id).get();
       const data = doc.data();
       if (!data || !doc.exists) return next();
-      SetTokens(res, id, { ...data, id });
-      req.user = { id, ...data };
+
+      req.user = await SetTokens(res, { ...data, id });
       next();
     } catch (err) {
       return next();
     }
   }
 };
+export const isBlocked: RequestHandler = async (req, res, next) => {
+  if (req.user) {
+    if (req.user.blocked)
+      return res.status(HttpStatusCodes.FORBIDDEN).sendData({
+        success: false,
+        msg: ErrorMessages.TEACHER_BLOCK,
+      });
+    if (req.user.teacherBlockState)
+      return res.status(HttpStatusCodes.FORBIDDEN).sendData({
+        success: false,
+        msg: ErrorMessages.CreatorBlocked,
+      });
+  }
+  return next();
+};
 export const Auth: RequestHandler = async (req, res, next) => {
   if (!req.user)
     return res.status(HttpStatusCodes.UNAUTHORIZED).sendData({
       success: false,
       msg: ErrorMessages.UnAuthorized,
+    });
+  if (req.user.blocked)
+    return res.status(HttpStatusCodes.FORBIDDEN).sendData({
+      success: false,
+      msg: ErrorMessages.TEACHER_BLOCK,
+    });
+  if (req.user.teacherBlockState)
+    return res.status(HttpStatusCodes.FORBIDDEN).sendData({
+      success: false,
+      msg: ErrorMessages.CreatorBlocked,
     });
   return next();
 };
