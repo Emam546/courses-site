@@ -72,6 +72,11 @@ service cloud.firestore {
     function checkHideOption(){
       return resource!=null && resource.data.get("hide",true)==false
     }
+
+    function checkPrice(){
+      let price=request.resource.data.price;
+      return  price.num is int && price.num >= 0 && price.currency is string;
+    }
     match /Levels/{id}{
       function verfiedData(){
           return isStr("name") && isStr("desc") && isBool("hide") && isStr('teacherId') && isInt("order");
@@ -82,11 +87,6 @@ service cloud.firestore {
       allow delete:if teacherOwnsDoc();
     }
     match /Courses/{id}{
-      function checkPrice(){
-        let price=request.resource.data.price;
-        return  price.num is int && price.num>=0 && price.currency is string;
-      }
-      
       function verfiedData(){
         return isStr("name") && isStr("desc")&&
         isStr('teacherId')&& isBool("hide") && isBool("featured")
@@ -213,10 +213,10 @@ service cloud.firestore {
         return isAdminType();
       }
       function verfiedData(){
-        return checkCourseId() && istimeStamp("activatedAt")&& isStr("userId") && checkType();
+        return checkCourseId() && istimeStamp("activatedAt")&& isStr("userId") && checkType() && checkPrice();
       }
       allow read:if teacherOwnsDoc() || UserCanRead();
-      allow create:if hasTeacherId()&& verifyFields(["courseId","teacherId","type"],["userId","activatedAt"])&& verfiedData() ;
+      allow create:if hasTeacherId()&& verifyFields(["courseId","teacherId","type","price"],["userId","activatedAt"])&& verfiedData() ;
       allow update:if false;
       allow delete:if teacherOwnsDoc();
     }

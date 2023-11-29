@@ -10,5 +10,9 @@ export function createPaymentAdmin(
         courseId,
         activatedAt: firestore.firestore.FieldValue.serverTimestamp(),
         type: "admin",
+        price:{
+            num:120,
+            currency:"EGP"
+        }
     };
 }
