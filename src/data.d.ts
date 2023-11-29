@@ -1,15 +1,16 @@
 import { Timestamp } from "firebase/firestore";
 declare global {
     namespace DataBase {
-        export type WithIdType<T> = { id: string } & T;
-        export type WithOrder<T> = { order: number } & T;
-        export interface Price {
+        type WithIdType<T> = { id: string } & T;
+        type WithOrder<T> = { order: number } & T;
+        interface Price {
             num: number;
             currency: string;
         }
+        type Roles = "admin" | "assistant" | "creator";
     }
 
-    export interface DataBase {
+    interface DataBase {
         Levels: DataBase.WithOrder<{
             name: string;
             desc: string;
@@ -102,6 +103,8 @@ declare global {
             endAt?: Timestamp;
         };
         Teacher: {
+            type: DataBase.Roles;
+            blocked: boolean;
             createdAt: Timestamp;
             contactPhone?: string;
             contactEmail?: string;
@@ -111,11 +114,12 @@ declare global {
             levelId: string;
             blocked: boolean;
             displayname: string;
-            emailVerified: boolean;
-            email: string;
-            phone: string;
+            phone?: string;
             createdAt: Timestamp;
-        };
+        } & (
+            | { emailVerified: boolean; email: string }
+            | { userName: string; emailVerified?: boolean; email?: string }
+        );
         AuthStudent: {
             passwordHash: string;
             passwordSalt: string;

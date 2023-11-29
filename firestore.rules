@@ -2,20 +2,20 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    function isAuthTeacher(){
-        return request.auth!=null && request.auth.token.email_verified==true && request.auth.token.role=="teacher";
-    }
     function isAuthUser(){
-        return request.auth!=null ;
+        return request.auth!=null && request.auth.token.email_verified==true;
     }
-    function UserCanRead(){
-        return isAuthUser() && request.auth.uid==resource.data.userId;
+    function isAdmin(){
+        return isAuthUser() && request.auth.token.type=="admin";
+    }
+    function isCreator(){
+        return isAuthUser() && (request.auth.token.type=="admin" || request.auth.token.type=="creator");
     }
     function hasTeacherId(){
-      return isAuthTeacher() && request.resource.data.get("teacherId", request.auth.uid) == request.auth.uid;
+      return isAuthUser() && request.resource.data.get("teacherId", request.auth.uid) == request.auth.uid;
     }
     function teacherOwnsDoc(){
-      return isAuthTeacher() && (resource==null || resource.data.get("teacherId", request.auth.uid) == request.auth.uid);
+      return isAuthUser() && (resource==null || resource.data.get("teacherId", request.auth.uid) == request.auth.uid);
     }
 
     function verifyFields(required, optional) {
@@ -82,9 +82,9 @@ service cloud.firestore {
           return isStr("name") && isStr("desc") && isBool("hide") && isStr('teacherId') && isInt("order");
       }
       allow read:if checkHideOption()|| teacherOwnsDoc();
-      allow create:if hasTeacherId()&& verifyFields(['name', 'desc', 'teacherId',"order","hide"],[])&& verfiedData();
-      allow update:if teacherOwnsDoc()&& allowFields(['name', 'desc',"order","hide"])&& verfiedData();
-      allow delete:if teacherOwnsDoc();
+      allow create:if isCreator() && hasTeacherId() && verifyFields(['name', 'desc', 'teacherId',"order","hide"],[])&& verfiedData();
+      allow update:if isCreator() && teacherOwnsDoc()&& allowFields(['name', 'desc',"order","hide"])&& verfiedData();
+      allow delete:if isCreator() && teacherOwnsDoc();
     }
     match /Courses/{id}{
       function verfiedData(){
@@ -93,9 +93,9 @@ service cloud.firestore {
         && isInt("order")&& checkLevelId() && checkPrice() && isEqualTime("createdAt") && istimeStamp("publishedAt");
       }
       allow read:if checkHideOption()|| teacherOwnsDoc();
-      allow create:if hasTeacherId()&& verifyFields(['name', 'desc', 'teacherId',"levelId","hide","order","featured","createdAt","publishedAt","price"],[]) && verfiedData();
-      allow update:if teacherOwnsDoc()&& allowFields(['name', 'desc',"hide","order","featured","publishedAt","price"])&& verfiedData();
-      allow delete:if teacherOwnsDoc();
+      allow create:if isCreator() && hasTeacherId()&& verifyFields(['name', 'desc', 'teacherId',"levelId","hide","order","featured","createdAt","publishedAt","price"],[]) && verfiedData();
+      allow update:if isCreator() && teacherOwnsDoc()&& allowFields(['name', 'desc',"hide","order","featured","publishedAt","price"])&& verfiedData();
+      allow delete:if isCreator() && teacherOwnsDoc();
     }
     match /Lessons/{id}{
       function checkVideo(){
@@ -104,7 +104,7 @@ service cloud.firestore {
         return val==null || (val.type in list && val.id is string && val.hide is bool);
       }
       function canRead(){
-        return isAuthTeacher() && resource.data.adderIds[request.auth.uid]!=null;
+        return isAuthUser() && resource.data.adderIds[request.auth.uid]!=null;
       }
       function verfiedData(){
         return isStr("name") && isStr("desc")&& isStr("briefDesc") &&
@@ -112,9 +112,9 @@ service cloud.firestore {
         isInt("order")&& checkCourseId()&& checkVideo()&& isMap("adderIds") && isEqualTime("createdAt") && istimeStamp("publishedAt");
       }
       allow read:if teacherOwnsDoc()|| canRead();
-      allow create:if hasTeacherId()&& verifyFields(['name', 'desc', 'teacherId',"courseId","briefDesc","publishedAt","hide","order","createdAt","adderIds"],["video"])&& verfiedData() ;
-      allow update:if teacherOwnsDoc()&& allowFields(['name', 'desc',"hide","briefDesc","publishedAt","order","adderIds","video"])&& verfiedData();
-      allow delete:if teacherOwnsDoc();
+      allow create:if isCreator() && hasTeacherId()&& verifyFields(['name', 'desc', 'teacherId',"courseId","briefDesc","publishedAt","hide","order","createdAt","adderIds"],["video"])&& verfiedData() ;
+      allow update:if isCreator() && teacherOwnsDoc()&& allowFields(['name', 'desc',"hide","briefDesc","publishedAt","order","adderIds","video"])&& verfiedData();
+      allow delete:if isCreator() && teacherOwnsDoc();
     }
     match /Exams/{id}{
       function checkRandom(){
@@ -146,10 +146,10 @@ service cloud.firestore {
         let lessonId=data.data.lessonId;
         let teacherId=request.auth.uid;
         let lesson=get(/databases/$(database)/documents/Lessons/$(lessonId)).data;
-        return isAuthTeacher() && (lesson.teacherId==teacherId || (lesson.adderIds[teacherId] != null && "editor" in lesson.adderIds[teacherId]))
+        return isAuthUser() && (lesson.teacherId==teacherId || (lesson.adderIds[teacherId] != null && "editor" in lesson.adderIds[teacherId]))
       }
       function checkCreatorId(){
-        return isAuthTeacher() && (resource!=null || request.resource.data.creatorId==request.auth.uid);
+        return isAuthUser() && (resource!=null || request.resource.data.creatorId==request.auth.uid);
       }
       function checkChoices(){
         return isList("choices") && request.resource.data.choices.size()>1;
@@ -178,29 +178,21 @@ service cloud.firestore {
               get(/databases/$(database)/documents/Levels/$(levelId)).data.teacherId==teacherId
           );
       }
-      function studentOwnsDoc(){
-        return isAuthUser() && (resource==null || id == request.auth.uid);
-      }
       function verfiyData(){
         return isStr("displayName")&& isBool("blocked") && isStr("email") && isStr("levelId") && ownLevelId();
       }
       
       function verifyDataTeacher(){
-        return teacherOwnsDoc() && allowFields(["levelId","blocked"]) && verfiyData();
+        return allowFields(["levelId","blocked"]) && verfiyData();
       }
-      function verifyDataUser(){
-        return studentOwnsDoc() && allowFields(["displayName","email","phone","levelId"]) && verfiyData();
-      }
-      allow read:if studentOwnsDoc() || teacherOwnsDoc();
-      allow create:if false;
-      allow update:if verifyDataTeacher()|| verifyDataUser();
+
+      allow read:if isCreator() || teacherOwnsDoc();
+      allow create:if isCreator();
+      allow update:if isCreator() && teacherOwnsDoc() && verifyDataTeacher();
       allow delete:if teacherOwnsDoc();
     }
     match /Results/{id}{
-      function UserCanRead(){
-        return isAuthUser() && resource.data.userId==request.auth.uid && resource.data.endAt!=null;
-      }
-      allow read:if teacherOwnsDoc() || UserCanRead();
+      allow read:if teacherOwnsDoc();
       allow create:if false;
       allow update:if false;
       allow delete:if teacherOwnsDoc();
@@ -215,8 +207,8 @@ service cloud.firestore {
       function verfiedData(){
         return checkCourseId() && istimeStamp("activatedAt")&& isStr("userId") && checkType() && checkPrice();
       }
-      allow read:if teacherOwnsDoc() || UserCanRead();
-      allow create:if hasTeacherId()&& verifyFields(["courseId","teacherId","type","price"],["userId","activatedAt"])&& verfiedData() ;
+      allow read:if teacherOwnsDoc();
+      allow create:if hasTeacherId() && verifyFields(["courseId","teacherId","type","price"],["userId","activatedAt"])&& verfiedData() ;
       allow update:if false;
       allow delete:if teacherOwnsDoc();
     }
