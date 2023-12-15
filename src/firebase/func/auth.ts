@@ -20,11 +20,19 @@ export const createStudentCall = async (data: {
 export interface LoginResult {
     user: DataBase.WithIdType<DataBase["Students"]>;
 }
-export const SingInStudentCall = async (data: {
-    email: string;
-    password: string;
-    teacherId: string;
-}) => {
+export const SingInStudentCall = async (
+    data:
+        | {
+              email: string;
+              password: string;
+              teacherId: string;
+          }
+        | {
+              userName: string;
+              password: string;
+              teacherId: string;
+          }
+) => {
     return await wrapRequest(
         instance.post<ResponseData<LoginResult>>("getData/api/auth/login", data)
     );
