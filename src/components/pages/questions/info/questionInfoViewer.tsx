@@ -5,7 +5,6 @@ import InfoGetter, {
 } from "../../../InsertCommonData";
 import { Elem as OrgElem } from "../../../InsertCommonData/Elem";
 
-
 import draftToHtml from "draftjs-to-html";
 export type QuestionType = DataBase.WithIdType<DataBase["Questions"]>;
 const Elem = CreateElem<QuestionType>(
@@ -19,7 +18,7 @@ const Elem = CreateElem<QuestionType>(
                     className="tw-text-inherit hover:tw-text-inherit hover:tw-opacity-70"
                     href={`/questions?id=${data.id}`}
                 >
-                    <div className="tw-px-3">
+                    <div className="tw-px-3 tw-border-0 tw-pb-5 tw-pt-2 tw-border-b tw-border-solid tw-border-black">
                         <div>
                             <p className="tw-text-sm tw-text-end tw-m-0 tw-leading-3">
                                 {data.createdAt.toDate().getTime()}

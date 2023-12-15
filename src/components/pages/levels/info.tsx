@@ -3,11 +3,9 @@ import InfoGetter, { CreateElem } from "../../InsertCommonData";
 import { Elem as OrgElem } from "../../InsertCommonData/Elem";
 
 import Link from "next/link";
-import { useCollection } from "react-firebase-hooks/firestore";
-import { auth, createCollection, fireStore } from "@/firebase";
-import { deleteDoc, doc, orderBy, query, updateDoc, where } from "firebase/firestore";
+import { auth, fireStore, getDocRef } from "@/firebase";
+import { deleteDoc, doc, updateDoc } from "firebase/firestore";
 import DeleteDialog from "../../common/AlertDialog";
-import ErrorShower from "../../common/error";
 import { useAuthState } from "react-firebase-hooks/auth";
 export type T = DataBase.WithIdType<DataBase["Levels"]>;
 
@@ -21,55 +19,69 @@ const Elem = CreateElem<T>(({ index, props: { data }, ...props }, ref) => {
         </OrgElem>
     );
 });
-
-export default function LevelsInfoGetter() {
-    const [teacher] = useAuthState(auth);
+export interface Props {
+    levels: DataBase.WithIdType<DataBase["Levels"]>[];
+    isNotCreator?: boolean;
+}
+export default function LevelsInfoGetter({
+    levels: initLevels,
+    isNotCreator,
+}: Props) {
     const [curDel, setCurDel] = useState<T>();
-    const [levels, loading, error] = useCollection(
-        query(
-            createCollection("Levels"),
-            where("teacherId", "==", teacher!.uid),
-            orderBy("order")
-        )
-    );
+    const [levels, setLevels] = useState(initLevels);
 
     return (
         <>
-            <ErrorShower
-                loading={loading}
-                error={error}
-            />
-            {levels && (
-                <>
-                    {levels.size > 0 && (
-                        <InfoGetter
-                            Elem={Elem}
-                            data={levels.docs.map((doc) => ({
-                                id: doc.id,
-                                ...doc.data(),
-                            }))}
-                            onDeleteElem={(elem) => setCurDel(elem)}
-                            onResort={async (indexes) => {
-                                await Promise.all(
-                                    indexes.map(async (newi, ci) =>
-                                        updateDoc(levels.docs[ci].ref, {
-                                            order: newi,
-                                        })
-                                    )
-                                );
-                            }}
-                        />
-                    )}
-                    {levels.size == 0 && (
-                        <p>There is no levels so far please add some levels</p>
-                    )}
-                </>
-            )}
+            <>
+                {levels.length > 0 && (
+                    <InfoGetter
+                        Elem={Elem}
+                        data={levels}
+                        onDeleteElem={
+                            isNotCreator ? undefined : (elem) => setCurDel(elem)
+                        }
+                        onResort={
+                            isNotCreator
+                                ? undefined
+                                : async (indexes) => {
+                                      await Promise.all(
+                                          indexes.map(async (newi, ci) => {
+                                              updateDoc(
+                                                  getDocRef(
+                                                      "Levels",
+                                                      levels[ci].id
+                                                  ),
+                                                  {
+                                                      order: newi,
+                                                  }
+                                              );
+                                          })
+                                      );
+                                      setLevels(
+                                          indexes
+                                              .map((newi, ci) => ({
+                                                  ...levels[ci],
+                                                  order: newi,
+                                              }))
+                                              .sort((a, b) => a.order - b.order)
+                                      );
+                                  }
+                        }
+                    />
+                )}
+                {levels.length == 0 && (
+                    <p className="tw-mb-0">
+                        There is no levels so far please add some levels
+                    </p>
+                )}
+            </>
 
             <DeleteDialog
                 onAccept={async () => {
-                    if (curDel)
+                    if (curDel) {
                         await deleteDoc(doc(fireStore, "Levels", curDel.id));
+                        setLevels(levels.filter((val) => val.id != curDel.id));
+                    }
                     setCurDel(undefined);
                 }}
                 onClose={function () {

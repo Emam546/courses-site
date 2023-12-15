@@ -12,14 +12,14 @@ export interface RegisterRequestData {
   password: string;
   displayName: string;
 }
-const validator = new Validator({
+const registerValidator = new Validator({
   email: ["email", "required"],
   password: ["string", "alpha_num", { min: 5 }, "required"],
   displayName: ["string", "required"],
 });
 export const registerTeacher = onCall(async (data) => {
   try {
-    const res = await validator.asyncPasses(data);
+    const res = await registerValidator.asyncPasses(data);
     if (!res.state)
       return {
         success: false,
@@ -49,9 +49,13 @@ export const registerTeacher = onCall(async (data) => {
     }
     // Create the user in Firebase Authentication
 
-    await auth.setCustomUserClaims(userRecord.uid, { role: "teacher" });
+    await auth.setCustomUserClaims(userRecord.uid, { type: "assistant" });
     await getCollectionReference("Teacher").doc(userRecord.uid).set({
       createdAt: FieldValue.serverTimestamp(),
+      blocked: null,
+      type: "assistant",
+      email: email,
+      displayName: displayName,
     });
     const customToken = await auth.createCustomToken(userRecord.uid);
     return {
@@ -68,6 +72,9 @@ export const registerTeacher = onCall(async (data) => {
     } as RegisterResponseData;
   }
 });
+export interface GetInfoRequestData {
+  teacherId: string;
+}
 const teacher = getDocument("Teacher");
 export const onTeacherDelete = teacher.onDelete(async (doc) => {
   const levels = await getCollectionReference("Levels")
@@ -79,6 +86,16 @@ export const onTeacherDelete = teacher.onDelete(async (doc) => {
     .where("teacherId", "==", doc.id)
     .get();
   await Promise.all(res.docs.map((doc) => doc.ref.delete()));
+});
+export const onTeacherUpdate = teacher.onUpdate(async (doc) => {
+  const newData = doc.after.data();
+  await auth.updateUser(doc.after.id, {
+    displayName: newData.displayName,
+    photoURL: newData.photoUrl || null,
+    phoneNumber: newData.phone || null,
+  });
+  if (newData.type != doc.before.data().type)
+    await auth.setCustomUserClaims(doc.after.id, { type: newData.type });
 });
 export async function deleteTeacher(user: UserRecord) {
   await getCollectionReference("Teacher").doc(user.uid).delete();

@@ -34,14 +34,14 @@ function CustomField(props: ButtonFieldProps) {
             aria-disabled={props.disabled}
             className={classNames(
                 "form-control tw-py-0 hover:tw-border-gray-900 focus-within:tw-border-gray-900",
-                "aria-disabled:tw-bg-gray-200 aria-disabled:hover:tw-border-transparent aria-disabled:tw-cursor-default"
+                "aria-disabled:tw-bg-[#EAEFF4] aria-disabled:hover:tw-border-transparent aria-disabled:tw-cursor-default"
             )}
             style={{
                 paddingTop: 0,
                 paddingBottom: 0,
             }}
         >
-            <div className="tw-flex tw-items-center">
+            <div className="tw-flex tw-items-center tw-h-9">
                 <p
                     aria-disabled={props.disabled}
                     className={classNames(

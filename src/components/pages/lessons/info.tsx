@@ -53,8 +53,9 @@ const Elem = CreateElem<T>(({ index, props: { data }, ...props }, ref) => {
 });
 export interface Props {
     courseId: string;
+    isNotCreator?: boolean;
 }
-export default function LessonsInfoGetter({ courseId }: Props) {
+export default function LessonsInfoGetter({ courseId, isNotCreator }: Props) {
     const collectionLesson = createCollection("Lessons");
     const [curDel, setCurDel] = useState<T>();
     const [teacher] = useAuthState(auth);
@@ -63,7 +64,6 @@ export default function LessonsInfoGetter({ courseId }: Props) {
             collectionLesson,
             where("courseId", "==", courseId),
             where("teacherId", "==", teacher!.uid),
-
             orderBy("order")
         )
     );
@@ -82,16 +82,22 @@ export default function LessonsInfoGetter({ courseId }: Props) {
                             id: doc.id,
                             ...doc.data(),
                         }))}
-                        onDeleteElem={(elem) => setCurDel(elem)}
-                        onResort={async (indexes) => {
-                            await Promise.all(
-                                indexes.map(async (newi, ci) =>
-                                    updateDoc(courses.docs[ci].ref, {
-                                        order: newi,
-                                    })
-                                )
-                            );
-                        }}
+                        onDeleteElem={
+                            isNotCreator ? undefined : (elem) => setCurDel(elem)
+                        }
+                        onResort={
+                            isNotCreator
+                                ? undefined
+                                : async (indexes) => {
+                                      await Promise.all(
+                                          indexes.map(async (newi, ci) =>
+                                              updateDoc(courses.docs[ci].ref, {
+                                                  order: newi,
+                                              })
+                                          )
+                                      );
+                                  }
+                        }
                     />
                 </>
             )}

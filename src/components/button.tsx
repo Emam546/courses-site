@@ -15,3 +15,18 @@ export default function PrimaryButton({
         />
     );
 }
+
+export function SuccessButton({
+    className,
+    ...props
+}: React.DetailedHTMLProps<
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
+    HTMLButtonElement
+>) {
+    return (
+        <button
+            className={classNames("btn btn-success", className)}
+            {...props}
+        />
+    );
+}

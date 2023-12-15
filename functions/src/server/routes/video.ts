@@ -11,12 +11,14 @@ const validator = new Validator({
 
 router.post("/get", async (req, res) => {
   const checkState = validator.passes(req.body);
-  if (!checkState.state)
-    return res.status(HttpStatusCodes.BAD_REQUEST).sendData({
+  if (!checkState.state) {
+    res.status(HttpStatusCodes.BAD_REQUEST).sendData({
       success: false,
       msg: ErrorMessages.InValidData,
       err: checkState.errors,
     });
+    return;
+  }
   https.get(
     checkState.data.url,
     { headers: { range: req.headers.range } },

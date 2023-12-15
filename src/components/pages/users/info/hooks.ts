@@ -74,29 +74,25 @@ export function useGetUsers({
             QueryDocumentSnapshot<DataBase["Students"]>[]
         > => {
             if (courseId) {
+                const enrollment = await getDoc(
+                    getDocRef("EnrolledUsersRecord", courseId)
+                );
+                if (!enrollment.exists()) return [];
                 const users = await Promise.all(
-                    (
-                        await getDocs(
-                            query(
-                                createCollection("Payments"),
-                                where("courseId", "==", courseId),
-                                limit(perPage * page + perPage)
-                            )
+                    enrollment
+                        .data()
+                        .payments.slice(
+                            perPage * page,
+                            perPage * page + perPage
                         )
-                    ).docs
-                        .slice(perPage * page, perPage * page + perPage)
-                        .map(async (pay) => {
-                            return await getDoc(
-                                getDocRef(
-                                    "Students",
-                                    pay.data().userId
-                                )
-                            );
+                        .map(async ({ userId }) => {
+                            return await getDoc(getDocRef("Students", userId));
                         })
                 );
-                return users.filter((doc) =>
-                    doc.exists()
-                ) as unknown as QueryDocumentSnapshot<DataBase["Students"]>[];
+                return users.filter(
+                    (doc): doc is QueryDocumentSnapshot<DataBase["Students"]> =>
+                        doc.exists()
+                );
             }
             if (levelId) {
                 return (

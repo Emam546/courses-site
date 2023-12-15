@@ -44,15 +44,5 @@ export const Auth: RequestHandler = async (req, res, next) => {
       success: false,
       msg: ErrorMessages.UnAuthorized,
     });
-  if (req.user.blocked)
-    return res.status(HttpStatusCodes.FORBIDDEN).sendData({
-      success: false,
-      msg: ErrorMessages.TEACHER_BLOCK,
-    });
-  if (req.user.teacherBlockState)
-    return res.status(HttpStatusCodes.FORBIDDEN).sendData({
-      success: false,
-      msg: ErrorMessages.CreatorBlocked,
-    });
   return next();
 };

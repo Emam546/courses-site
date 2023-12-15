@@ -32,12 +32,14 @@ export interface Props {
     onData: (data: DataType) => Promise<any> | any;
     buttonName: string;
     lessonId: string;
+    isNotCreator?: boolean;
 }
 export default function ExamInfoForm({
     defaultData,
     onData,
     buttonName,
     lessonId,
+    isNotCreator,
 }: Props) {
     const { register, handleSubmit, formState, watch, setValue, getValues } =
         useForm<DataType>({
@@ -107,6 +109,7 @@ export default function ExamInfoForm({
                         minLength: 8,
                     })}
                     err={formState.errors.name}
+                    disabled={isNotCreator}
                 />
                 <MainInput
                     title={"Question Number"}
@@ -118,7 +121,7 @@ export default function ExamInfoForm({
                             if (value > data.questionIds.length)
                                 return `the question number must be lower than or equal ${data.questionIds.length}`;
                         },
-                        disabled: !randomVal,
+                        disabled: !randomVal || isNotCreator,
                     })}
                     id={"num-input"}
                     defaultValue={20}
@@ -130,9 +133,9 @@ export default function ExamInfoForm({
                     {...register("time", {
                         valueAsNumber: true,
                         required: "the field is required",
-
                         min: 1,
                     })}
+                    disabled={isNotCreator}
                     id={"num-input"}
                     type="number"
                     placeholder="Time in minute"
@@ -145,11 +148,13 @@ export default function ExamInfoForm({
                         title={"Hide Exam"}
                         {...register("hide")}
                         id={"Hide-input"}
+                        disabled={isNotCreator}
                     />
                     <CheckedInput
                         title={"Repeatable"}
                         {...register("repeatable")}
                         id={"repeatable-input"}
+                        disabled={isNotCreator}
                     />
                 </div>
                 <div>
@@ -157,12 +162,13 @@ export default function ExamInfoForm({
                         title={"Random Choosing"}
                         {...register("random")}
                         id={"random-input"}
+                        disabled={isNotCreator}
                     />
                     <CheckedInput
                         title={"Shuffle Question"}
                         {...register("shuffle")}
                         id={"shuffle-input"}
-                        disabled={randomVal}
+                        disabled={randomVal || isNotCreator}
                     />
                 </div>
             </Grid2>
@@ -171,6 +177,7 @@ export default function ExamInfoForm({
                     title="Description"
                     id="desc-input"
                     {...register("desc")}
+                    disabled={isNotCreator}
                     err={formState.errors.desc}
                 />
             </div>
@@ -188,6 +195,7 @@ export default function ExamInfoForm({
                         );
                         setQuestionData(g);
                     }}
+                    disabled={isNotCreator}
                     currentQuestions={questionData}
                 />
             </div>
@@ -204,18 +212,24 @@ export default function ExamInfoForm({
                             ? questionData
                             : (searchResults as QuestionType[])
                     }
-                    onDeleteElem={(v) => {
-                        setQuestionData(
-                            questionData
-                                .filter((cv) => cv.id != v.id)
-                                .map((cv, i) => ({
-                                    ...cv,
-                                    order: i,
-                                }))
-                        );
-                    }}
+                    onDeleteElem={
+                        isNotCreator
+                            ? undefined
+                            : (v) => {
+                                  setQuestionData(
+                                      questionData
+                                          .filter((cv) => cv.id != v.id)
+                                          .map((cv, i) => ({
+                                              ...cv,
+                                              order: i,
+                                          }))
+                                  );
+                              }
+                    }
                     onResort={
-                        !searchState
+                        isNotCreator
+                            ? undefined
+                            : !searchState
                             ? (indexes) => {
                                   setQuestionData(
                                       indexes.map((ci, i) => ({
@@ -235,7 +249,7 @@ export default function ExamInfoForm({
             <div className="tw-flex tw-justify-end">
                 <PrimaryButton
                     type="submit"
-                    disabled={formState.isSubmitting}
+                    disabled={formState.isSubmitting || isNotCreator}
                 >
                     {buttonName}
                 </PrimaryButton>

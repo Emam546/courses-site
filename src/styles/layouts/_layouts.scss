@@ -21,7 +21,7 @@
 @include media-breakpoint-down(md) {
   .body-wrapper {
     >.container-fluid {
-      padding: 30px 20px;
+      padding: 1.875rem 1.25rem;
     }
   }
 }
@@ -49,7 +49,7 @@
 
     .body-wrapper {
       >.container-fluid {
-        padding-top: calc(#{$header-height} + 15px);
+        padding-top: calc(#{$header-height} + 0.9375rem);
       }
     }
   }

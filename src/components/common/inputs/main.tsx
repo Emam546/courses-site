@@ -22,6 +22,9 @@ export function ErrorInputShower({
                     className={classNames("tw-text-red-600 tw-mb-0", className)}
                     {...props}
                 >
+                    {err.type == "validate" &&
+                        err.message == "" &&
+                        "Invalid input"}
                     {err.type == "required" &&
                         err.message == "" &&
                         "Required Input please fill the input first"}

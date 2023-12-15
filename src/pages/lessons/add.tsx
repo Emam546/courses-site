@@ -1,9 +1,5 @@
 import { auth, createCollection } from "@/firebase";
-import {
-    QueryDocumentSnapshot,
-    addDoc,
-    serverTimestamp,
-} from "firebase/firestore";
+import { addDoc, serverTimestamp } from "firebase/firestore";
 import router, { useRouter } from "next/router";
 import Page404 from "@/components/pages/404";
 import LessonGetDataForm from "@/components/pages/lessons/form";
@@ -21,7 +17,7 @@ function Page({ course }: Props) {
     return (
         <>
             <Head>
-                <title>Add lesson</title>
+                <title>{course.name}:Add lesson</title>
             </Head>
             <BigCard>
                 <CardTitle className="tw-mb-2">Adding Lesson</CardTitle>
@@ -37,11 +33,11 @@ function Page({ course }: Props) {
                                     courseId: course.id,
                                     teacherId: teacher!.uid,
                                     order: Date.now(),
-                                    adderIds: {},
                                 });
                                 router.push(`/courses?id=${course.id}`);
                             }}
-                            courseId={course.id}
+                            creatorId={teacher!.uid}
+                            course={course}
                             buttonName="Submit"
                         />
                     </div>

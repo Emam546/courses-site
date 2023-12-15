@@ -24,9 +24,14 @@ function ResultShower({ result: result }: ElemProps) {
         <>
             <tr>
                 <td>
-                    <Link href={`users/info?id=${user?.id}`}>
-                        {user?.data()?.displayname}
-                    </Link>
+                    {user &&
+                        (user.exists() ? (
+                            <Link href={`users/info?id=${user?.id}`}>
+                                {user?.data()?.displayname}
+                            </Link>
+                        ) : (
+                            "Deleted"
+                        ))}
                 </td>
                 <td>{data.questions.filter((q) => q.correctState).length}</td>
                 <td>
@@ -133,8 +138,8 @@ export default function ExamResultGenerator({ examId }: Props) {
                                         <th>UnVisited</th>
                                         <th>Wrong</th>
                                         <th>Total Questions</th>
-                                        <th>Start At</th>
-                                        <th>End At</th>
+                                        <th>Started At</th>
+                                        <th>Ended At</th>
                                         <th>Show</th>
                                         <th>Delete</th>
                                     </tr>
@@ -150,7 +155,7 @@ export default function ExamResultGenerator({ examId }: Props) {
                                     })}
                                 </tbody>
                             </table>
-                            <div className="tw-mt-5">
+                            <div className="tw-mt-4">
                                 <Pagination
                                     onChange={(e, value) => {
                                         setPage(value);

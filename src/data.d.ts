@@ -8,6 +8,16 @@ declare global {
             currency: string;
         }
         type Roles = "admin" | "assistant" | "creator";
+        type TimeStampToDate<T> = {
+            [K in keyof T]: T[K] extends Timestamp ? Date : T[K];
+        };
+        type TimeStampToString<T> = {
+            [K in keyof T]: T[K] extends Timestamp ? String : T[K];
+        };
+
+        type KeyToString<T, G extends string> = {
+            [K in keyof T]: K extends G ? string : T[K];
+        };
     }
 
     interface DataBase {
@@ -16,6 +26,7 @@ declare global {
             desc: string;
             hide: boolean;
             teacherId: string;
+            usersAdderIds: string[];
         }>;
         Courses: DataBase.WithOrder<{
             name: string;
@@ -27,7 +38,15 @@ declare global {
             price: DataBase.Price;
             createdAt: Timestamp;
             publishedAt: Timestamp;
+            paymentAdderIds: string[];
         }>;
+        EnrolledUsersRecord: {
+            payments: {
+                paymentId: string;
+                userId: string;
+            }[];
+            teacherId: string;
+        };
         Lessons: DataBase.WithOrder<{
             name: string;
             briefDesc: string;
@@ -37,7 +56,7 @@ declare global {
             createdAt: Timestamp;
             publishedAt: Timestamp;
             teacherId: string;
-            adderIds: Record<string, ["editor"]>;
+            adderIds: string[];
             video?:
                 | ({
                       type: "youtube";
@@ -104,21 +123,36 @@ declare global {
         };
         Teacher: {
             type: DataBase.Roles;
-            blocked: boolean;
+            blocked: null | {
+                teacherId: string;
+                at: Timestamp;
+            };
             createdAt: Timestamp;
             contactPhone?: string;
             contactEmail?: string;
+            displayName: string;
+            photoUrl?: string;
+            email: string;
+            phone?: string;
         };
         Students: {
             teacherId: string;
             levelId: string;
-            blocked: boolean;
+            blocked: null | {
+                teacherId: string;
+                at: Timestamp;
+            };
             displayname: string;
             phone?: string;
             createdAt: Timestamp;
         } & (
             | { emailVerified: boolean; email: string }
-            | { userName: string; emailVerified?: boolean; email?: string }
+            | {
+                  userName: string;
+                  emailVerified?: boolean;
+                  email?: string;
+                  creatorId: string;
+              }
         );
         AuthStudent: {
             passwordHash: string;
@@ -133,6 +167,7 @@ declare global {
                   price: DataBase.Price;
               } & {
                   type: "admin";
+                  creatorId: string;
               };
     }
 }

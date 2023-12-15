@@ -5,7 +5,6 @@ import SelectInput from "@/components/common/inputs/select";
 import { useEffect, useState } from "react";
 import { Grid2 } from "@/components/grid";
 import PrimaryButton from "@/components/button";
-import { useCountDocs } from "@/hooks/fireStore";
 import { useCourseLevelData } from "./hooks";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -39,12 +38,14 @@ export interface Props {
     lessonId: string;
     onAdd: (data: QuestionType[]) => any;
     currentQuestions: QuestionType[];
+    disabled?: boolean;
 }
 
 export default function QuestionAdder({
     lessonId,
     onAdd,
     currentQuestions,
+    disabled,
 }: Props) {
     const [courseId, setCourseId] = useState<string>("");
     const [chosenLessonId, setLessonId] = useState("");
@@ -75,6 +76,7 @@ export default function QuestionAdder({
                                     setCourseId(e.currentTarget.value);
                                 }}
                                 value={courseId}
+                                disabled={disabled}
                             >
                                 <option value="">Choose Course</option>
                                 {courses.map((val) => {
@@ -94,6 +96,7 @@ export default function QuestionAdder({
                                 onChange={(e) =>
                                     setLessonId(e.currentTarget.value)
                                 }
+                                disabled={disabled}
                             >
                                 <option value="">Choose Lesson</option>
 
@@ -117,7 +120,7 @@ export default function QuestionAdder({
                                     setCourseId("");
                                     setLessonId("");
                                 }}
-                                disabled={queryQuestions.isLoading}
+                                disabled={queryQuestions.isLoading || disabled}
                             >
                                 Add Questions{" "}
                                 {queryQuestions.data != undefined &&

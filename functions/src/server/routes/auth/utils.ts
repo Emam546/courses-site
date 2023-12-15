@@ -29,7 +29,7 @@ export function generateToken(
       blocked: user.blocked,
       levelId: user.levelId,
       createdAt: user.createdAt,
-      teacherBlockState: teacher.blocked,
+      teacherBlockState: teacher.blocked ? true : false,
     };
   }
   return {
@@ -41,7 +41,8 @@ export function generateToken(
     blocked: user.blocked,
     levelId: user.levelId,
     createdAt: user.createdAt,
-    teacherBlockState: teacher.blocked,
+    teacherBlockState: teacher.blocked ? true : false,
+    creatorId: user.creatorId,
   };
 }
 export async function SetTokens(

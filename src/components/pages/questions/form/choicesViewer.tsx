@@ -1,4 +1,4 @@
-import { UseFormRegister, UseFormRegisterReturn } from "react-hook-form";
+import { UseFormRegisterReturn } from "react-hook-form";
 import InfoGetter, { CreateElem } from "../../../InsertCommonData";
 import { Elem as OrgElem } from "../../../InsertCommonData/Elem";
 
@@ -50,6 +50,7 @@ export interface Props {
     data: ChoiceType[];
     onChange: (data: ChoiceType[]) => any;
     inputRef: UseFormRegisterReturn<"answer">;
+    disabled?: boolean;
 }
 export default function ChoicesViewer({ data, onChange, inputRef }: Props) {
     return (

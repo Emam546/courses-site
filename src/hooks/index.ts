@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
+import React, { Dispatch, useEffect, useRef } from "react";
 import { useState } from "react";
 import { DependencyList } from "react";
 
@@ -131,8 +132,45 @@ export function useDebounceState<T>(time: number, val?: T) {
         setState(true);
     }, [curVal]);
     return [debounce, setVal, state, setdebounce] as [
-        ...ReturnType<typeof useState<T>>,
+        T,
+        Dispatch<T>,
         boolean,
         ReturnType<typeof useState<T>>[1]
     ];
+}
+export type ResultLoading<T, Error> =
+    | [T, false, null]
+    | [null, false, Error]
+    | [null, true, null];
+export function useLoadingPromise<T, Error = unknown>(
+    promise: () => Promise<T>,
+    deps?: DependencyList,
+    state: boolean = true
+): ResultLoading<T, Error> {
+    const [data, setData] = useState<T | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<Error | null>(null);
+    useEffect(() => {
+        if (!state) return;
+        promise()
+            .then((data) => {
+                setData(data);
+            })
+            .catch((err) => setError(err))
+            .finally(() => setLoading(false));
+        setLoading(true);
+    }, deps);
+    return [data, loading, error] as any;
+}
+export function useLoadingPromiseQuery<T, Error = unknown>(
+    promise: () => Promise<T>,
+    keys: any,
+    state: boolean = true
+): ResultLoading<T, Error> {
+    const query = useQuery<T, Error>({
+        queryKey: keys,
+        queryFn: promise,
+        enabled: state,
+    });
+    return [query.data || null, query.isLoading, query.error] as any;
 }

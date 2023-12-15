@@ -4,21 +4,21 @@ import { GoToButton } from "@/components/common/inputs/addButton";
 import Page404 from "@/components/pages/404";
 import ExamInfoForm from "@/components/pages/exams/form";
 import ExamResultGenerator from "@/components/pages/exams/info/results";
-import { getDocRef } from "@/firebase";
+import PrintExamResults from "@/components/pages/print/examResults";
+import { auth, getDocRef } from "@/firebase";
 import { useDocument } from "@/hooks/fireStore";
 import { updateDoc } from "firebase/firestore";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
-interface UpdateForm {
-    doc: DataBase.WithIdType<DataBase["Exams"]>;
-}
+import { useAuthState } from "react-firebase-hooks/auth";
 
 export interface Props {
     doc: DataBase.WithIdType<DataBase["Exams"]>;
 }
 function Page({ doc: initData }: Props) {
     const [doc, setDoc] = useState(initData);
+    const [teacher] = useAuthState(auth);
     return (
         <>
             <Head>
@@ -38,16 +38,24 @@ function Page({ doc: initData }: Props) {
                                 alert("the document updated successfully");
                             }}
                             buttonName={"Update"}
+                            isNotCreator={teacher?.uid != doc.teacherId}
                             lessonId={doc.lessonId}
                         />
                     </MainCard>
-                    <CardTitle>Results</CardTitle>
+                    <div className="tw-flex tw-items-center tw-justify-between">
+                        <CardTitle>Results</CardTitle>
+                        <PrintExamResults examId={doc.id} />
+                    </div>
                     <MainCard>
                         <ExamResultGenerator examId={doc.id} />
                     </MainCard>
                 </>
             </BigCard>
             <div className="py-3">
+                <GoToButton
+                    label="Generate some exams"
+                    href={`/exams/generator?examId=${doc.id}`}
+                />
                 <GoToButton
                     label="Go To Lesson"
                     href={`/lessons?id=${doc.lessonId}`}

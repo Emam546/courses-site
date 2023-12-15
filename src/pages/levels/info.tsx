@@ -2,14 +2,12 @@ import { BigCard, CardTitle, MainCard } from "@/components/card";
 import ErrorShower from "@/components/common/error";
 import AddButton, { GoToButton } from "@/components/common/inputs/addButton";
 import Page404 from "@/components/pages/404";
-import CourseInfoFormGetter, { T } from "@/components/pages/courses/info";
+import CourseInfoFormGetter from "@/components/pages/courses/info";
 import LevelInfoForm from "@/components/pages/levels/form";
-import { createCollection, getDocRef } from "@/firebase";
+import { auth, createCollection, getDocRef } from "@/firebase";
 import { useDocument } from "@/hooks/fireStore";
 import {
-    DocumentSnapshot,
     FirestoreError,
-    getDoc,
     getDocs,
     orderBy,
     query,
@@ -19,15 +17,21 @@ import {
 } from "firebase/firestore";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import path from "path";
 import { useState, useEffect } from "react";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { useGetTeachers } from "../lessons";
+import { IsOwnerComp } from "@/components/wrappers/wrapper";
+import { useLoadingPromise } from "@/hooks";
+import { useAppSelector } from "@/store";
 
 interface Props {
     doc: DataBase.WithIdType<DataBase["Levels"]>;
-    courses: DataBase.WithIdType<DataBase["Courses"]>[];
+    courses?: DataBase.WithIdType<DataBase["Courses"]>[];
+    assistantTeachers: DataBase.WithIdType<DataBase["Teacher"]>[];
 }
-function Page({ doc: initData, courses }: Props) {
+function Page({ doc: initData, courses, assistantTeachers }: Props) {
     const [doc, setDoc] = useState(initData);
+    const [teacher] = useAuthState(auth);
     return (
         <div className="tw-flex-1 tw-flex tw-flex-col tw-items-stretch">
             <Head>
@@ -37,88 +41,109 @@ function Page({ doc: initData, courses }: Props) {
                 <CardTitle>Update Level Data</CardTitle>
                 <MainCard>
                     <LevelInfoForm
-                        defaultData={doc}
+                        defaultData={{
+                            ...doc,
+                            assistantTeachers: assistantTeachers,
+                        }}
                         onData={async (data) => {
-                            console.log(doc, data);
                             await updateDoc(getDocRef("Levels", doc.id), {
                                 ...data,
                             });
                             setDoc({ ...doc, ...data });
                             alert("the document updated successfully");
                         }}
+                        creatorId={doc.teacherId}
+                        isNotCreator={teacher?.uid != doc.teacherId}
                         buttonName="Update"
                     />
                 </MainCard>
-
-                <CardTitle>Courses</CardTitle>
-                <MainCard>
-                    <CourseInfoFormGetter levelId={doc.id} />
-                </MainCard>
+                <IsOwnerComp teacherId={doc.teacherId}>
+                    <CardTitle>Courses</CardTitle>
+                    <MainCard>
+                        <CourseInfoFormGetter
+                            isNotCreator={teacher?.uid != doc.teacherId}
+                            levelId={doc.id}
+                        />
+                    </MainCard>
+                </IsOwnerComp>
             </BigCard>
             <div className="py-3">
-                <AddButton
-                    label="Add Course"
-                    href={`/courses/add?levelId=${doc.id}`}
-                />
+                {(teacher?.uid == doc.teacherId ||
+                    doc.usersAdderIds.includes(teacher!.uid)) && (
+                    <AddButton
+                        label="Add a Student"
+                        href={`/users/add?levelId=${doc.id}`}
+                    />
+                )}
+
+                <IsOwnerComp teacherId={doc.teacherId}>
+                    <AddButton
+                        label="Add a Course"
+                        href={`/courses/add?levelId=${doc.id}`}
+                    />
+                </IsOwnerComp>
                 <GoToButton
-                    label="Go To Levels"
-                    href="/levels"
+                    label="Manage Users"
+                    href={`/levels/users?levelId=${doc.id}`}
                 />
+                <IsOwnerComp teacherId={doc.teacherId}>
+                    <GoToButton
+                        label="Go To Levels"
+                        href="/levels"
+                    />
+                </IsOwnerComp>
             </div>
         </div>
     );
 }
-export function useGetCourses(
-    levelId: string
-):
-    | [QuerySnapshot<DataBase["Courses"]>, false, null]
-    | [null, false, FirestoreError]
-    | [null, true, null] {
-    const [loading, setLoading] = useState(false);
-    const [data, setData] = useState<QuerySnapshot<DataBase["Courses"]> | null>(
-        null
+export function useGetCourses(levelId: string, state: boolean = true) {
+    return useLoadingPromise<
+        QuerySnapshot<DataBase["Courses"]>,
+        FirestoreError
+    >(
+        () =>
+            getDocs(
+                query(
+                    createCollection("Courses"),
+                    where("levelId", "==", levelId),
+                    orderBy("order")
+                )
+            ),
+        [levelId],
+        typeof levelId == "string" && state
     );
-    const [error, setError] = useState<FirestoreError | null>(null);
-    useEffect(() => {
-        if (!levelId) return;
-        setLoading(true);
-        getDocs(
-            query(
-                createCollection("Courses"),
-                where("levelId", "==", levelId),
-                orderBy("order")
-            )
-        )
-            .then((data) => {
-                setData(data);
-            })
-            .catch((err) => setError(err))
-            .finally(() => {
-                setLoading(false);
-            });
-    }, [path, levelId]);
-    return [data, loading, error] as any;
 }
 export default function SafeArea() {
+    const teacher = useAppSelector((state) => state.auth.user!);
     const id = useRouter().query.id;
     const [doc, loading, error] = useDocument("Levels", id as string);
-    const [courses, loading2, error2] = useGetCourses(id as string);
+    const loadingCourseState =
+        teacher.type == "admin" || teacher.id == doc?.data()?.teacherId;
+    const [courses, loading2, error2] = useGetCourses(
+        id as string,
+        loadingCourseState
+    );
+    const [assistantTeachers, loading3, error3] = useGetTeachers(
+        doc?.data()?.usersAdderIds
+    );
     if (typeof id != "string")
         return <Page404 message="You must provide the page id" />;
-    if (error2 || error)
-        return (
-            <ErrorShower
-                loading={false}
-                error={error || error2}
-            />
-        );
-    if (loading || loading2) return <ErrorShower loading={loading} />;
+
+    if (error || error2 || error3)
+        return <ErrorShower error={error || error2 || error3} />;
+    if (loading) return <ErrorShower loading />;
     if (!doc.exists()) return <Page404 message="The Level id is not exist" />;
+    if (loading2 && loadingCourseState) return <ErrorShower loading />;
+    if (loading3) return <ErrorShower loading />;
 
     return (
         <Page
-            courses={courses.docs.map((doc) => ({ id: doc.id, ...doc.data() }))}
+            courses={courses?.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            }))}
             doc={{ id, ...doc.data() }}
+            assistantTeachers={assistantTeachers}
         />
     );
 }

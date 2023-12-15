@@ -4,8 +4,14 @@ import Header from "@/components/header";
 import Login from "./pages/login";
 import { useRouter } from "next/router";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { auth } from "@/firebase";
+import { auth, getDocRef } from "@/firebase";
 import EmailVerification from "./pages/emialVerfication";
+import { useQuery } from "@tanstack/react-query";
+import { FirestoreError, getDoc } from "firebase/firestore";
+import { useAppDispatch, useAppSelector } from "@/store";
+import { AuthActions } from "@/store/auth";
+import ErrorShower from "./common/error";
+import { QueryDocumentSnapshot } from "firebase/firestore";
 
 function MainApp({ children: children }: { children: React.ReactNode }) {
     const mainWrapper = useRef<HTMLDivElement>(null);
@@ -63,7 +69,7 @@ function MainApp({ children: children }: { children: React.ReactNode }) {
                             wrapper.setAttribute("data-sidebartype", "full");
                         }}
                     />
-                    <div className="container-fluid tw-flex-1 tw-w-full tw-flex tw-flex-col tw-justify-stretch tw-items-stretch px-4">
+                    <div className="container-fluid  tw-flex-1 tw-w-full tw-flex tw-flex-col tw-justify-stretch tw-items-stretch px-4">
                         {children}
                     </div>
                 </div>
@@ -71,13 +77,50 @@ function MainApp({ children: children }: { children: React.ReactNode }) {
         </>
     );
 }
-export default function MainWrapper({
+export function useLoadUser(userId?: string) {
+    return useQuery<
+        QueryDocumentSnapshot<DataBase["Teacher"]> | null,
+        FirestoreError
+    >({
+        queryKey: ["Teacher", userId],
+        queryFn: async () => {
+            const doc = await getDoc(getDocRef("Teacher", userId!));
+            if (!doc.exists()) return null;
+            return doc;
+        },
+        enabled: typeof userId == "string",
+    });
+}
+export function UserProvider({
     children: children,
 }: {
     children: React.ReactNode;
 }) {
     const [user, loading, error] = useAuthState(auth);
-    if (loading) return null;
+    const userDoc = useAppSelector((state) => state.auth.user);
+    const dispatch = useAppDispatch();
+    const queryUser = useLoadUser(user?.uid);
+    useEffect(() => {
+        const doc = queryUser.data;
+        if (!doc) return;
+        dispatch(
+            AuthActions.setUser({
+                ...doc.data(),
+                id: doc.id,
+                createdAt: doc.data().createdAt.toDate().toString(),
+            })
+        );
+    }, [queryUser.data]);
+    useEffect(() => {
+        if (!user) dispatch(AuthActions.setUser(undefined));
+    }, [user]);
+    if (loading || error)
+        return (
+            <ErrorShower
+                loading={loading}
+                error={error as FirestoreError}
+            />
+        );
     if (!user)
         return (
             <div className="tw-flex-1">
@@ -90,5 +133,35 @@ export default function MainWrapper({
                 <EmailVerification />
             </div>
         );
-    return <MainApp>{children}</MainApp>;
+
+    if (queryUser.isLoading || queryUser.error || userDoc == undefined)
+        return (
+            <ErrorShower
+                loading={queryUser.isLoading}
+                error={queryUser.error}
+            />
+        );
+    if (!queryUser.data)
+        return (
+            <ErrorShower
+                error={{
+                    code: "unavailable",
+                    message: "The user is not exist",
+                    name: "userDoc is not exist",
+                }}
+            />
+        );
+    if (!userDoc) return null;
+    return <>{children}</>;
+}
+export default function MainWrapper({
+    children: children,
+}: {
+    children: React.ReactNode;
+}) {
+    return (
+        <UserProvider>
+            <MainApp>{children}</MainApp>
+        </UserProvider>
+    );
 }

@@ -1,5 +1,5 @@
 import { hasOwnProperty } from "@/utils";
-import { firestore, auth } from "@/firebase";
+import { firestore } from "@/firebase";
 import Validator, { AvailableRules } from "validator-checker-js";
 import { MessagesStore } from "validator-checker-js/dist/Rule";
 
@@ -7,11 +7,6 @@ import { isString } from "@/utils/types";
 
 declare module "validator-checker-js/dist/type" {
   interface AvailableRules {
-    role: {
-      type: string;
-      path: { role: string };
-      errors: MessagesStore<{ role: string }>;
-    };
     existedId: {
       type: string;
       path: { existedId: { path: keyof DataBase } };
@@ -19,20 +14,7 @@ declare module "validator-checker-js/dist/type" {
     };
   }
 }
-Validator.register(
-  "role",
-  (value): value is { role: string } => {
-    return hasOwnProperty(value, "role") && isString(value.role);
-  },
-  async (teacherId, data) => {
-    if (!isString(teacherId)) return "the userId is not a string";
-    const state =
-      (await auth.getUser(teacherId)).customClaims?.role == data.role;
-    if (!state) return `the userId is not belonged to the ${data.role}`;
-    return undefined;
-  },
-  {},
-);
+
 Validator.register(
   "existedId",
   (value): value is AvailableRules["existedId"]["path"] => {

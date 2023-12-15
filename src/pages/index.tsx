@@ -3,7 +3,8 @@ import ErrorShower from "@/components/common/error";
 import UsersTable, {
     Props as UserTableProps,
 } from "@/components/pages/users/info/table";
-import { createCollection } from "@/firebase";
+import { useRedirectIfNotCreator } from "@/components/wrappers/redirect";
+import { auth, createCollection } from "@/firebase";
 import { useQuery } from "@tanstack/react-query";
 import {
     FirestoreError,
@@ -14,6 +15,8 @@ import {
     where,
 } from "firebase/firestore";
 import Head from "next/head";
+import { useRouter } from "next/router";
+import { useAuthState } from "react-firebase-hooks/auth";
 export interface Props {
     users: UserTableProps["users"];
 }
@@ -256,6 +259,14 @@ function Page({ users }: Props) {
                                         setPage={() => {}}
                                         totalUsers={users.length}
                                         users={users}
+                                        headKeys={[
+                                            "createdAt",
+                                            "creatorId",
+                                            "userName",
+                                            "displayname",
+                                            "levelId",
+                                            "order",
+                                        ]}
                                     />
                                 </div>
                             </div>
@@ -266,13 +277,14 @@ function Page({ users }: Props) {
         </>
     );
 }
-function useGetLastStudents() {
+function useGetLastStudents(teacherId?: string) {
     return useQuery<Props["users"], FirestoreError>({
         queryKey: ["Users", "lastStudents"],
         queryFn: async () => {
             const res = await getDocs(
                 query(
                     createCollection("Students"),
+                    where("teacherId", "==", teacherId),
                     orderBy("createdAt", "desc"),
                     limit(5)
                 )
@@ -283,10 +295,16 @@ function useGetLastStudents() {
                 ...doc.data(),
             }));
         },
+        enabled: typeof teacherId == "string",
     });
 }
 export default function SafeArea() {
-    const initUser = useGetLastStudents();
+    const [teacher] = useAuthState(auth);
+    const router = useRouter();
+    const teacherId = (router.query.teacherId as string) || teacher?.uid;
+    const initUser = useGetLastStudents(teacherId);
+    const redirecting = useRedirectIfNotCreator("/assistant");
+    if (redirecting) return <ErrorShower loading />;
     if (initUser.error)
         return (
             <ErrorShower

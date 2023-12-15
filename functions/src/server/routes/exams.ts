@@ -7,33 +7,8 @@ import { shuffle } from "@/utils";
 import { ErrorMessages, Messages } from "@serv/declarations/major/Messages";
 import HttpStatusCodes from "../declarations/major/HttpStatusCodes";
 import { Auth } from "./middleware";
+import { createExamQuestions } from "../utils/exam";
 const router = Router();
-
-function createExamQuestions(
-  doc: QueryDocumentSnapshot<DataBase["Exams"]>,
-): DataBase["Results"]["questions"] {
-  const data = doc.data();
-  if (data.random) {
-    const questions: DataBase["Results"]["questions"] = [];
-    for (let i = 0; i < data.num && data.questionIds.length > 0; i++) {
-      const floor = Math.floor(Math.random() * data.questionIds.length);
-      const elem = data.questionIds[floor];
-      if (elem == undefined) break;
-      data.questionIds.splice(floor, 1);
-      questions.push({
-        questionId: elem,
-        state: "unvisited",
-      });
-    }
-    return questions;
-  }
-  if (data.shuffle) data.questionIds = shuffle(data.questionIds);
-
-  return data.questionIds.map((id) => ({
-    questionId: id,
-    state: "unvisited",
-  }));
-}
 
 declare global {
   namespace Express {
@@ -116,13 +91,16 @@ router.post("/create", Auth, async (req, res) => {
   const exam = req.exam;
   const examData = exam.data();
 
-  const resultData = {
+  const resultData: DataBase["Results"] = {
     courseId: examData.courseId,
     examId: exam.id,
-    startAt: FieldValue.serverTimestamp(),
+    startAt: FieldValue.serverTimestamp() as any,
     teacherId: examData.teacherId,
     userId: req.user.id,
-    questions: createExamQuestions(exam),
+    questions: createExamQuestions(examData).map((id) => ({
+      questionId: id,
+      state: "unvisited",
+    })),
     time: examData.time,
   };
   if (!examData.repeatable) {

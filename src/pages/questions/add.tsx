@@ -14,7 +14,6 @@ import Head from "next/head";
 import { GoToButton } from "@/components/common/inputs/addButton";
 import { useGetDoc } from "@/hooks/fireStore";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { addInfinityQuestions } from "@/components/pages/questions/info";
 import { Timestamp } from "@firebase/firestore";
 export interface Props {
     lesson: DataBase.WithIdType<DataBase["Lessons"]>;
@@ -25,7 +24,7 @@ function Page({ lesson }: Props) {
     return (
         <>
             <Head>
-                <title>Add questions</title>
+                <title>{lesson.name}:Add questions</title>
             </Head>
             <BigCard>
                 <CardTitle>Adding Question</CardTitle>
@@ -41,17 +40,9 @@ function Page({ lesson }: Props) {
                                 creatorId: teacher!.uid,
                                 courseId: lesson.courseId,
                             };
-                            const res = await addDoc(col, newData);
+                            await addDoc(col, newData);
                             setCount(count + 1);
-                            addInfinityQuestions(
-                                {
-                                    ...newData,
-                                    createdAt: Timestamp.fromDate(new Date()),
-                                    id: res.id,
-                                },
-                                lesson.id
-                            );
-                            alert("submit Question");
+                            alert("Question submitted");
                         }}
                         buttonName="Submit"
                         ResetAfterSubmit

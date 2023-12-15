@@ -51,8 +51,9 @@ const Elem = CreateElem<T>(({ index, props: { data }, ...props }, ref) => {
 });
 export interface Props {
     levelId: string;
+    isNotCreator?: boolean;
 }
-export default function CourseInfoGetter({ levelId }: Props) {
+export default function CourseInfoGetter({ levelId, isNotCreator }: Props) {
     const collectionCourses = createCollection("Courses");
     const [curDel, setCurDel] = useState<T>();
     const [courses, loading, error] = useCollection(
@@ -77,21 +78,29 @@ export default function CourseInfoGetter({ levelId }: Props) {
                             id: doc.id,
                             ...doc.data(),
                         }))}
-                        onDeleteElem={(elem) => setCurDel(elem)}
-                        onResort={async (indexes) => {
-                            await Promise.all(
-                                indexes.map(async (newi, ci) =>
-                                    updateDoc(courses.docs[ci].ref, {
-                                        order: newi,
-                                    })
-                                )
-                            );
-                        }}
+                        onDeleteElem={
+                            isNotCreator ? undefined : (elem) => setCurDel(elem)
+                        }
+                        onResort={
+                            isNotCreator
+                                ? undefined
+                                : async (indexes) => {
+                                      await Promise.all(
+                                          indexes.map(async (newi, ci) =>
+                                              updateDoc(courses.docs[ci].ref, {
+                                                  order: newi,
+                                              })
+                                          )
+                                      );
+                                  }
+                        }
                     />
                 </>
             )}
             {courses && courses.size == 0 && (
-                <p className="tw-mb-0">There is no Courses so far please add some Courses</p>
+                <p className="tw-mb-0">
+                    There is no Courses so far please add some Courses
+                </p>
             )}
             <DeleteDialog
                 onAccept={async () => {

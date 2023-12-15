@@ -6,16 +6,16 @@
     }
     background-color: #fff;
     border: 10px solid #f6f6f6;
-    margin: 20px auto;
-    max-width: 800px;
-    padding: 15px;
-    border-radius: 20px;
+    margin: 1.25rem auto;
+    max-width: 50rem;
+    padding: 0.9375rem;
+    border-radius: 1.25rem;
 
     .quiz-info {
         display: flex;
-        padding: 20px;
+        padding: 1.25rem;
         background-color: #f6f6f6;
-        border-radius: 20px;
+        border-radius: 1.25rem;
 
         .category {
             flex: 1;
@@ -29,10 +29,10 @@
 
     .quiz-area {
         background-color: #fff;
-        padding: 20px;
-        margin-top: 15px;
-        margin-bottom: 10px;
-        border-radius: 20px;
+        padding: 1.25rem;
+        margin-top: 0.9375rem;
+        margin-bottom: 0.625rem;
+        border-radius: 1.25rem;
 
         h2 {
             margin: 0;
@@ -48,9 +48,9 @@
         }
         .option {
             background-color: #f6f6f6;
-            padding: 15px;
-            margin: 10px;
-            border-radius: 20px;
+            padding: 0.9375rem;
+            margin: 0.625rem;
+            border-radius: 1.25rem;
             > * {
                 color: #444;
             }
@@ -78,13 +78,13 @@
         display: block;
 
         cursor: pointer;
-        padding: 15px;
+        padding: 0.9375rem;
         border: none;
         color: #fff;
         font-weight: bold;
-        font-size: 18px;
-        border-radius: 20px;
-        margin: 20px 0;
+        font-size: 1.125rem;
+        border-radius: 1.25rem;
+        margin: 1.25rem 0;
         margin-left: auto;
         &:hover {
             background-color: #003d80;
@@ -98,8 +98,8 @@
     .bullets {
         background-color: #f6f6f6;
         display: flex;
-        padding: 20px;
-        margin-bottom: 10px;
-        border-radius: 20px;
+        padding: 1.25rem;
+        margin-bottom: 0.625rem;
+        border-radius: 1.25rem;
     }
 }

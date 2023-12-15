@@ -34,7 +34,7 @@ export default function Login({ onLogin }: Props) {
             data-sidebar-position="fixed"
             data-header-position="fixed"
         >
-            <div className="position-relative overflow-hidden radial-gradient min-vh-100 d-flex align-items-center justify-content-center">
+            <div className="position-relative overflow-hidden radial-gradient min-vh-100 d-flex align-items-center justify-content-center tw-py-6">
                 <div className="d-flex align-items-center justify-content-center w-100">
                     <div className="row justify-content-center w-100">
                         <div className="col-md-8 col-lg-6 col-xxl-3">

@@ -5,24 +5,53 @@ import { useForm } from "react-hook-form";
 import DatePicker from "@/components/common/inputs/datePicker";
 import { WrapElem } from "@/components/common/inputs/styles";
 import SelectInput from "@/components/common/inputs/select";
-import { useGetLevels } from "@/hooks/fireStore";
+import { useDocumentQuery, useGetLevels } from "@/hooks/fireStore";
 import CheckedInput from "@/components/common/inputs/checked";
+import Link from "next/link";
+import { formateDate } from "@/utils";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { auth } from "@/firebase";
+import { Timestamp } from "firebase/firestore";
 
 export type DataType = {
     levelId: string;
     blocked: boolean;
 };
+type FormData = DataBase["Students"] & { blocked: boolean };
 export interface Props {
-    defaultData: DataBase["Students"];
+    user: DataBase["Students"];
     onData: (data: DataType) => Promise<any> | any;
 }
-export default function LevelInfoForm({ defaultData, onData }: Props) {
-    const { register, handleSubmit, formState, getValues } = useForm<
-        DataBase["Students"]
-    >({
-        defaultValues: defaultData,
-    });
-    const { data: levels } = useGetLevels();
+function BlockedAt({ userId, at }: { userId: string | true; at: Timestamp }) {
+    const [teacher] = useAuthState(auth);
+    const [blockedTeacher] = useDocumentQuery(
+        "Teacher",
+        typeof userId == "string" ? userId : undefined
+    );
+    return (
+        <p className="tw-mb-0">
+            Blocked by{` `}
+            {userId == teacher?.uid || userId == true ? (
+                `You`
+            ) : (
+                <Link href={`/teachers/info?id=${userId}`}>
+                    {blockedTeacher?.data()?.displayName}
+                </Link>
+            )}
+            {` `}at {formateDate(at.toDate())}
+        </p>
+    );
+}
+export default function UserInfoForm({ user: user, onData }: Props) {
+    const { register, handleSubmit, formState, getValues, watch } =
+        useForm<FormData>({
+            defaultValues: {
+                ...user,
+                blocked: new Boolean(user.blocked).valueOf(),
+            },
+        });
+    const { data: levels } = useGetLevels(user.teacherId);
+
     return (
         <>
             <form
@@ -40,6 +69,11 @@ export default function LevelInfoForm({ defaultData, onData }: Props) {
                         title={"Name"}
                         {...register("displayname", { disabled: true })}
                         err={formState.errors.displayname}
+                    />
+                    <MainInput
+                        id={"name-input"}
+                        title={"User Name"}
+                        {...register("userName", { disabled: true })}
                     />
                     <MainInput
                         id={"phone-input"}
@@ -76,11 +110,19 @@ export default function LevelInfoForm({ defaultData, onData }: Props) {
                             );
                         })}
                     </SelectInput>
-                    <CheckedInput
-                        id={"block-input"}
-                        title={"Block State"}
-                        {...register("blocked")}
-                    />
+                    <div className="tw-flex tw-flex-col tw-justify-end">
+                        <CheckedInput
+                            id={"block-input"}
+                            title={"Block State"}
+                            {...register("blocked")}
+                        />
+                        {user.blocked && (
+                            <BlockedAt
+                                userId={user.blocked.teacherId}
+                                at={user.blocked.at}
+                            />
+                        )}
+                    </div>
                 </Grid2>
                 <div className="tw-mt-4 tw-flex tw-justify-end">
                     <PrimaryButton

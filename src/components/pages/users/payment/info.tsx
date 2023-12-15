@@ -1,4 +1,4 @@
-import { auth, createCollection, getDocRef } from "@/firebase";
+import { createCollection, getDocRef } from "@/firebase";
 import {
     QueryDocumentSnapshot,
     deleteDoc,
@@ -18,7 +18,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useGetDoc } from "@/hooks/fireStore";
 import ErrorShower from "@/components/common/error";
 import queryClient from "@/queryClient";
-import { useAuthState } from "react-firebase-hooks/auth";
 import { UnpaidCoursesKey } from "./form";
 export interface Props {
     userId: string;
@@ -32,15 +31,24 @@ function PaymentShower({ payment }: ElemProps) {
     return (
         <>
             <tr>
-                <td>{course?.data()?.name}</td>
+                <td>
+                    {course && course.exists() ? course.data().name : "Deleted"}
+                </td>
                 <td>
                     {formateDate(
                         payment.data().activatedAt?.toDate() || new Date()
                     )}
                 </td>
                 <td className="first-letter:tw-uppercase">
+                    {payment.data().price.num}{" "}
+                    <span className="tw-capitalize">
+                        {payment.data().price.currency}
+                    </span>
+                </td>
+                <td className="first-letter:tw-uppercase">
                     {payment.data().type}
                 </td>
+
                 <td>
                     <button
                         type="button"
@@ -94,7 +102,6 @@ function PaymentShower({ payment }: ElemProps) {
     );
 }
 export default function PaymentInfoGenerator({ userId }: Props) {
-    const [teacher] = useAuthState(auth);
     const [payments, loading, errorShower] = useCollection(
         query(
             createCollection("Payments"),
@@ -119,6 +126,7 @@ export default function PaymentInfoGenerator({ userId }: Props) {
                                 <tr>
                                     <th>Course</th>
                                     <th>Activated At</th>
+                                    <th>Price</th>
                                     <th>Type</th>
                                     <th>Delete</th>
                                 </tr>
@@ -136,7 +144,9 @@ export default function PaymentInfoGenerator({ userId }: Props) {
                         </table>
                     )}
                     {payments.empty && (
-                        <p className="tw-mb-0">The user has no payment actions so far</p>
+                        <p className="tw-mb-0">
+                            The user has no payment actions so far
+                        </p>
                     )}
                 </>
             )}

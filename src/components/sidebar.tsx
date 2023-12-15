@@ -1,8 +1,10 @@
 /* eslint-disable @next/next/no-img-element */
+import { useAppSelector } from "@/store";
 import classNames from "classnames";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import SimpleBar from "simplebar-react";
+import { IsAdminComp, IsCreatorComp } from "./wrappers/wrapper";
 
 interface HeaderNavProps {
     title: string;
@@ -22,8 +24,7 @@ interface LinkElemProps {
 
 export function LinkElem({ href, title }: LinkElemProps) {
     const router = useRouter();
-
-    const state = router.asPath.split("/")[1] == href.split("/")[1];
+    const state = router.pathname == href;
     return (
         <li className={classNames("sidebar-item", { selected: state })}>
             <Link
@@ -42,9 +43,55 @@ export function LinkElem({ href, title }: LinkElemProps) {
     );
 }
 export interface Props {
-    onClose?: (this: HTMLDivElement) => any;
+    onClose?: (this: HTMLElement) => any;
+}
+function AdminNavBar() {
+    return (
+        <>
+            <HeaderNav title="Admin" />
+            <LinkElem
+                href="/admin/teachers"
+                title="Teachers"
+            />
+        </>
+    );
+}
+function CreatorNavBar() {
+    return (
+        <>
+            <HeaderNav title="Creator" />
+            <LinkElem
+                href="/"
+                title="Dashboard"
+            />
+            <LinkElem
+                href="/levels"
+                title="Organize Data"
+            />
+            <LinkElem
+                href="/users"
+                title="Manage Users"
+            />
+        </>
+    );
+}
+function AssistantNavBar() {
+    return (
+        <>
+            <HeaderNav title="Assistant" />
+            <LinkElem
+                href="/assistant"
+                title="Add Questions"
+            />
+            <LinkElem
+                href="/assistant/users"
+                title="Control Users"
+            />
+        </>
+    );
 }
 export default function SideBar({ onClose: onToggle }: Props) {
+    const user = useAppSelector((state) => state.auth.user);
     return (
         <aside className="left-sidebar">
             {/* Sidebar scroll*/}
@@ -60,33 +107,28 @@ export default function SideBar({ onClose: onToggle }: Props) {
                             alt="logo"
                         />
                     </Link>
-                    <div
-                        className="close-btn d-xl-none d-block  cursor-pointer"
+                    <button
+                        className="close-btn d-xl-none d-block cursor-pointer tw-border-none tw-bg-inherit"
                         id="sidebarCollapse"
                         onClick={(e) => {
                             onToggle && onToggle.call(e.currentTarget);
                         }}
                     >
                         <i className="ti ti-x fs-8" />
-                    </div>
+                    </button>
                 </div>
                 {/* Sidebar navigation*/}
                 <SimpleBar className="scroll-sidebar">
                     <nav className="sidebar-nav">
                         <ul id="sidebarnav">
-                            <HeaderNav title="Home" />
-                            <LinkElem
-                                href="/"
-                                title="Dashboard"
-                            />
-                            <LinkElem
-                                href="/levels"
-                                title="Organize Data"
-                            />
-                            <LinkElem
-                                href="/users"
-                                title="Manage Users"
-                            />
+                            <IsAdminComp>
+                                <AdminNavBar />
+                            </IsAdminComp>
+                            <IsCreatorComp>
+                                <CreatorNavBar />
+                            </IsCreatorComp>
+
+                            <AssistantNavBar />
                         </ul>
                     </nav>
                 </SimpleBar>

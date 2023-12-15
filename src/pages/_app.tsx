@@ -16,7 +16,8 @@ import queryClient from "@/queryClient";
 import { NextPage } from "next";
 import ConnectedBar from "@/components/internetConnection";
 import LoadingBar from "@/components/loadingBar";
-
+import { Provider as ReduxProvider } from "react-redux";
+import store from "@/store";
 config.autoAddCss = false;
 
 export type NextPageWithLayout<P = Record<string, unknown>, IP = P> = NextPage<
@@ -31,13 +32,15 @@ type AppPropsWithLayout = AppProps & {
 };
 export function Provider({ children }: { children: ReactNode }) {
     return (
-        <QueryClientProvider client={queryClient}>
-            {/* <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_CLIENT_ID!}> */}
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                {children}
-            </LocalizationProvider>
-            {/* </GoogleOAuthProvider> */}
-        </QueryClientProvider>
+        <ReduxProvider store={store}>
+            <QueryClientProvider client={queryClient}>
+                {/* <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_CLIENT_ID!}> */}
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    {children}
+                </LocalizationProvider>
+                {/* </GoogleOAuthProvider> */}
+            </QueryClientProvider>
+        </ReduxProvider>
     );
 }
 export default function App({ Component, pageProps }: AppPropsWithLayout) {

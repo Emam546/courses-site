@@ -16,12 +16,12 @@ import { GoToButton } from "@/components/common/inputs/addButton";
 export interface Props {
     level: DataBase.WithIdType<DataBase["Levels"]>;
 }
-export function SaveArea({ level }: Props) {
+export function Page({ level }: Props) {
     const [teacher] = useAuthState(auth);
     return (
         <>
             <Head>
-                <title>Add Course</title>
+                <title>{level.name}:Add Course</title>
             </Head>
 
             <BigCard>
@@ -41,6 +41,8 @@ export function SaveArea({ level }: Props) {
 
                             router.push(`/levels/info?id=${level.id}`);
                         }}
+                        creatorId={teacher!.uid}
+                        assistants={[]}
                         buttonName="Submit"
                     />
                 </MainCard>
@@ -55,7 +57,7 @@ export function SaveArea({ level }: Props) {
         </>
     );
 }
-export default function AddCourses() {
+export default function SafeArea() {
     const router = useRouter();
     const { levelId } = router.query;
     const [level, isLoading, error] = useDocument("Levels", levelId as string);
@@ -69,5 +71,5 @@ export default function AddCourses() {
             />
         );
     if (!level.exists()) return <Page404 message="The level is not exist" />;
-    return <SaveArea level={{ id: levelId, ...level.data() }} />;
+    return <Page level={{ id: levelId, ...level.data() }} />;
 }

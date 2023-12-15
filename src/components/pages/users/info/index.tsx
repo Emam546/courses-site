@@ -68,6 +68,15 @@ export default function UserInfoGenerator() {
                                 id: val.id,
                                 order: i + curCount,
                             }))}
+                            headKeys={[
+                                "levelId",
+                                "order",
+                                "displayname",
+                                "userName",
+                                "creatorId",
+                                "createdAt",
+                                "blocked",
+                            ]}
                         />
                     </div>
                 )}

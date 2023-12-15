@@ -4,18 +4,22 @@ import AddButton, { GoToButton } from "@/components/common/inputs/addButton";
 import Page404 from "@/components/pages/404";
 import CourseInfoForm from "@/components/pages/courses/form";
 import LessonsInfoGetter from "@/components/pages/lessons/info";
+import PrintCourseStudents from "@/components/pages/print/StudentCourse";
 import {
     useGetUsersCount,
     useGetUsers,
     perPage,
 } from "@/components/pages/users/info/hooks";
 import UsersTable from "@/components/pages/users/info/table";
-import { getDocRef } from "@/firebase";
-import { useDocument, useGetDoc } from "@/hooks/fireStore";
-import { QueryDocumentSnapshot, updateDoc } from "firebase/firestore";
+import { IsOwnerComp } from "@/components/wrappers/wrapper";
+import { auth, getDocRef } from "@/firebase";
+import { useDocument } from "@/hooks/fireStore";
+import { updateDoc } from "firebase/firestore";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { useGetTeachers } from "../lessons";
 
 interface StudentsForm {
     doc: DataBase.WithIdType<DataBase["Courses"]>;
@@ -35,7 +39,10 @@ function Students({ doc }: StudentsForm) {
     const curCount = perPage * page + 1;
     return (
         <>
-            <CardTitle>Students</CardTitle>
+            <div className="tw-flex tw-items-center tw-justify-between">
+                <CardTitle>Students</CardTitle>
+                {!state && <PrintCourseStudents courseId={doc.id} />}
+            </div>
             <MainCard>
                 {state ? (
                     <ErrorShower
@@ -52,6 +59,14 @@ function Students({ doc }: StudentsForm) {
                             id: val.id,
                             order: i + curCount,
                         }))}
+                        headKeys={[
+                            "blocked",
+                            "createdAt",
+                            "creatorId",
+                            "userName",
+                            "displayname",
+                            "order",
+                        ]}
                     />
                 )}
             </MainCard>
@@ -60,9 +75,11 @@ function Students({ doc }: StudentsForm) {
 }
 export interface Props {
     course: DataBase.WithIdType<DataBase["Courses"]>;
+    assistantTeachers: DataBase.WithIdType<DataBase["Teacher"]>[];
 }
-function Page({ course: initData }: Props) {
+function Page({ course: initData, assistantTeachers }: Props) {
     const [course, setCourse] = useState(initData);
+    const [teacher] = useAuthState(auth);
     return (
         <>
             <Head>
@@ -72,29 +89,36 @@ function Page({ course: initData }: Props) {
                 <CardTitle>Update Course Data</CardTitle>
                 <MainCard>
                     <CourseInfoForm
+                        assistants={assistantTeachers}
                         defaultData={course}
                         onData={async (data) => {
-                            console.log(course,data);
                             await updateDoc(getDocRef("Courses", course.id), {
                                 ...data,
                             });
                             setCourse({ ...course, ...data });
                             alert("the document updated successfully");
                         }}
+                        creatorId={course.teacherId}
                         buttonName="Update"
+                        isNotCreator={teacher?.uid != course.teacherId}
                     />
                 </MainCard>
                 <CardTitle>Lessons</CardTitle>
                 <MainCard>
-                    <LessonsInfoGetter courseId={course.id} />
+                    <LessonsInfoGetter
+                        isNotCreator={teacher?.uid != course.teacherId}
+                        courseId={course.id}
+                    />
                 </MainCard>
                 <Students doc={course} />
             </BigCard>
             <div className="py-3">
-                <AddButton
-                    label="Add Lessons"
-                    href={`/lessons/add?courseId=${course.id}`}
-                />
+                <IsOwnerComp teacherId={course.teacherId}>
+                    <AddButton
+                        label="Add a Lesson"
+                        href={`/lessons/add?courseId=${course.id}`}
+                    />
+                </IsOwnerComp>
                 <GoToButton
                     label="Go To Level"
                     href={`/levels/info?id=${course.levelId}`}
@@ -107,17 +131,21 @@ export default function SafeArea() {
     const router = useRouter();
     const id = router.query.id;
     const [doc, isLoading, error] = useDocument("Courses", id as string);
-
+    const [assistantTeachers, loading2, error2] = useGetTeachers(
+        doc?.data()?.paymentAdderIds
+    );
     if (typeof id != "string")
         return <Page404 message="You must provide The page id with url" />;
-    if (isLoading || error)
-        return (
-            <ErrorShower
-                loading={isLoading}
-                error={error}
-            />
-        );
+    if (error2 || error) return <ErrorShower error={error} />;
+    if (isLoading) return <ErrorShower loading />;
     if (doc && !doc.exists())
         return <Page404 message="The Course id is not exist" />;
-    return <Page course={{ id: doc.id, ...doc.data() }} />;
+    if (loading2) return <ErrorShower loading />;
+
+    return (
+        <Page
+            assistantTeachers={assistantTeachers}
+            course={{ id: doc.id, ...doc.data() }}
+        />
+    );
 }

@@ -9,6 +9,7 @@ const Editor = dynamic<EditorProps>(
 
 type Props = {
     defaultValue?: RawDraftContentState;
+    disabled?: boolean;
 } & EditorProps;
 
 const toolbar = {
@@ -25,11 +26,13 @@ const toolbar = {
     ],
 };
 
-
 const FinalEditor = React.forwardRef<HTMLInputElement, Props>(
-    ({ defaultValue, placeholder, ...props }, ref) => {
+    ({ defaultValue, placeholder, disabled, ...props }, ref) => {
         return (
-            <div className="tw-bg-neutral-100">
+            <div
+                aria-disabled={disabled}
+                className="tw-bg-neutral-100 aria-disabled:tw-bg-neutral-300"
+            >
                 <Editor
                     editorClassName="tw-min-h-[10rem] tw-px-3 tw-max-w-full"
                     defaultEditorState={
@@ -41,6 +44,7 @@ const FinalEditor = React.forwardRef<HTMLInputElement, Props>(
                     placeholder={placeholder}
                     toolbar={toolbar}
                     {...props}
+                    stripPastedStyles={true}
                 />
             </div>
         );

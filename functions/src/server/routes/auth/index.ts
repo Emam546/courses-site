@@ -1,14 +1,13 @@
-import "./validator";
-import { getCollectionReference } from "@/firebase";
+
 import { Response, Router } from "express";
 import HttpStatusCodes from "@serv/declarations/major/HttpStatusCodes";
 import { FieldValue } from "firebase-admin/firestore";
-import bcrypt from "bcrypt";
 import Validator from "validator-checker-js";
 import { decode, sign } from "@serv/utils/jwt";
 import { ErrorMessages, Messages } from "@/server/declarations/major/Messages";
 import { verifyEmail, UserData, decodeEmail } from "./sender";
 import { authUser } from "./utils";
+import { createStudent } from "@/server/utils/auth";
 const router = Router();
 export interface UserSingData {
   displayname: string;
@@ -16,16 +15,7 @@ export interface UserSingData {
   phone: string;
   emailVerified: boolean;
 }
-export function generateToken(id: string, data: UserSingData) {
-  return {
-    id,
-    role: "student",
-    displayName: data.displayname,
-    email: data.email,
-    email_verified: data.emailVerified,
-    phone: data.phone,
-  };
-}
+
 const registerValidator = new Validator({
   email: [
     "email",
@@ -33,7 +23,7 @@ const registerValidator = new Validator({
     { emailStudent: { teacherId: true, exist: false } },
   ],
   password: ["string", "alpha_num", { min: 5 }, "required"],
-  teacherId: ["required", { role: "teacher" }],
+  teacherId: ["required", "string", { existedId: { path: "Teacher" } }],
   levelId: ["required", { existedId: { path: "Levels" } }, "string"],
   phone: ["string"],
   displayName: ["string", "required"],
@@ -61,19 +51,7 @@ router.post("/sing-up", async (req, res) => {
 
   await setSendEmail(res, checkingRes.data);
 });
-const signInValidator = new Validator({
-  email: [
-    "email",
-    "required",
-    { emailStudent: { teacherId: true, exist: true } },
-  ],
-  password: [
-    "string",
-    "required",
-    { passwordStudent: { teacherId: true, email: true } },
-  ],
-  teacherId: ["string", "required"],
-});
+
 router.get("/resendEmail", async (req, res) => {
   const verifyToken = req.cookies.verifyToken;
   if (!verifyToken)
@@ -83,39 +61,6 @@ router.get("/resendEmail", async (req, res) => {
     });
   const data = decode<UserData>(verifyToken);
   return await setSendEmail(res, data);
-});
-
-router.post("/login", async (req, res) => {
-  const checkingRes = await signInValidator.asyncPasses(req.body);
-  if (!checkingRes.state)
-    return res.status(HttpStatusCodes.BAD_REQUEST).sendData({
-      success: false,
-      msg: ErrorMessages.InValidData,
-      err: checkingRes.errors,
-    });
-  const { email, teacherId } = checkingRes.data;
-  const result = await getCollectionReference("Students")
-    .where("teacherId", "==", teacherId)
-    .where("email", "==", email)
-    .limit(1)
-    .get();
-
-  const userDoc = result.docs[0];
-  const resData = userDoc.data();
-  if (!resData)
-    return res.status(HttpStatusCodes.BAD_REQUEST).sendData({
-      success: false,
-      msg: ErrorMessages.InValidData,
-    });
-  if (resData.blocked)
-    return res.status(HttpStatusCodes.FORBIDDEN).sendData({
-      success: false,
-      msg: ErrorMessages.TEACHER_BLOCK,
-    });
-  return await authUser(res, {
-    id: userDoc.id,
-    ...userDoc.data(),
-  });
 });
 
 router.get("/verify/:emailToken", async (req, res) => {
@@ -131,7 +76,7 @@ router.get("/verify/:emailToken", async (req, res) => {
     });
   }
   const { email, password, displayName, teacherId, levelId, phone } = data;
-  const emailCheck = await signInValidator.validate(email, {
+  const emailCheck = await new Validator({}).validate(email, {
     emailStudent: { teacherId: teacherId, exist: false },
   });
   if (emailCheck)
@@ -142,7 +87,7 @@ router.get("/verify/:emailToken", async (req, res) => {
 
   const gData = {
     displayname: displayName,
-    blocked: false,
+    blocked: null,
     email: email,
     phone: phone,
     createdAt: FieldValue.serverTimestamp() as any,
@@ -150,14 +95,7 @@ router.get("/verify/:emailToken", async (req, res) => {
     teacherId: teacherId,
     emailVerified: true,
   };
-  const userDoc = await getCollectionReference("Students").add(gData);
-  const passwordSalt = bcrypt.genSaltSync();
-  const passwordHash = bcrypt.hashSync(password, passwordSalt);
-
-  await getCollectionReference("AuthStudent").doc(userDoc.id).set({
-    passwordHash,
-    passwordSalt,
-  });
+  const userDoc = await createStudent(gData, password);
   return await authUser(res, { ...gData, id: userDoc.id });
 });
 router.get("/logout", async (req, res) => {

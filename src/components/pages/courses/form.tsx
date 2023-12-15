@@ -8,8 +8,11 @@ import { Grid2 } from "@/components/grid";
 
 import DatePicker from "@/components/common/inputs/datePicker";
 import { useForm } from "react-hook-form";
-import React from "react";
+import React, { useState } from "react";
 import { Timestamp } from "firebase/firestore";
+import { CardTitle } from "@/components/card";
+import { SearchTeacherForm } from "../lessons/assistants/form";
+import LessonsAssistantInfoGetter from "../lessons/assistants/info";
 export type DataType = {
     name: string;
     desc: string;
@@ -20,18 +23,25 @@ export type DataType = {
         currency: string;
     };
     publishedAt: Timestamp;
+    paymentAdderIds: string[];
 };
 export interface Props {
     defaultData?: DataType;
     onData: (data: DataType) => Promise<any> | any;
     buttonName: React.ReactNode;
+    isNotCreator?: boolean;
+    assistants: DataBase.WithIdType<DataBase["Teacher"]>[];
+    creatorId: string;
 }
 export default function CourseInfoForm({
     defaultData,
     onData,
     buttonName,
+    assistants,
+    isNotCreator,
+    creatorId,
 }: Props) {
-    const { register, handleSubmit, formState, getValues, setValue } =
+    const { register, handleSubmit, formState, getValues, setValue, watch } =
         useForm<DataType>({
             defaultValues: {
                 publishedAt:
@@ -41,9 +51,15 @@ export default function CourseInfoForm({
                 featured: defaultData?.featured,
                 hide: defaultData?.hide,
                 name: defaultData?.name,
+                paymentAdderIds: defaultData?.paymentAdderIds || [],
             },
         });
-    register("publishedAt", { required: "You must Provide" });
+    register("publishedAt", {
+        required: "You must Provide",
+        disabled: isNotCreator,
+    });
+    const value = watch("price.num");
+    const [assistantTeachers, setTeachers] = useState(assistants || []);
     return (
         <form
             autoComplete="off"
@@ -57,31 +73,42 @@ export default function CourseInfoForm({
                     title={"Course Name"}
                     {...register("name", {
                         required: "You must fill the input",
+                        disabled: isNotCreator,
                     })}
                     err={formState.errors.name}
                 />
-                <BudgetInput
-                    label={"Course Price"}
-                    priceProps={{
-                        ...register("price.num", {
-                            required:
-                                "Please set the course price or set it to 0",
-                            valueAsNumber: true,
-                            min: 0,
-                        }),
-                        placeholder: "eg.120",
-                        type: "number",
-                    }}
-                    unitProps={{
-                        ...register("price.currency", {
-                            required: "Please select a currency",
-                        }),
-                    }}
-                    err={
-                        formState.errors.price?.num ||
-                        formState.errors.price?.currency
-                    }
-                />
+                <div>
+                    <BudgetInput
+                        label={"Course Price"}
+                        priceProps={{
+                            ...register("price.num", {
+                                required:
+                                    "Please set the course price or set it to 0",
+                                valueAsNumber: true,
+                                min: 0,
+                            }),
+                            placeholder: "eg.120",
+                            type: "number",
+                            disabled: isNotCreator,
+                        }}
+                        unitProps={{
+                            ...register("price.currency", {
+                                required: "Please select a currency",
+
+                                disabled: isNotCreator,
+                            }),
+                        }}
+                        err={
+                            formState.errors.price?.num ||
+                            formState.errors.price?.currency
+                        }
+                    />
+                    {value == 0 && (
+                        <p className="tw-text-sm tw-text-green-500 tw-absolute tw-mb-0">
+                            The Course is Free Now any one can access it
+                        </p>
+                    )}
+                </div>
                 <WrapElem label="Publish Date">
                     <DatePicker
                         value={getValues("publishedAt").toDate()}
@@ -89,6 +116,7 @@ export default function CourseInfoForm({
                             if (!val) return formState;
                             setValue("publishedAt", Timestamp.fromDate(val));
                         }}
+                        disabled={isNotCreator}
                     />
                     <ErrorInputShower
                         err={formState.errors.publishedAt?.root}
@@ -98,14 +126,18 @@ export default function CourseInfoForm({
             <div className="tw-mt-3 tw-mb-2">
                 <CheckedInput
                     title={"Hide Course"}
-                    {...register("hide")}
+                    {...register("hide", {
+                        disabled: isNotCreator,
+                    })}
                     id={"Hide-input"}
                 />
             </div>
             <div className="tw-my-2">
                 <CheckedInput
                     title={"Featured Course"}
-                    {...register("featured")}
+                    {...register("featured", {
+                        disabled: isNotCreator,
+                    })}
                     id={"featured-input"}
                 />
             </div>
@@ -114,14 +146,50 @@ export default function CourseInfoForm({
                 <TextArea
                     title="Description"
                     id="desc-input"
-                    {...register("desc")}
+                    {...register("desc", {
+                        disabled: isNotCreator,
+                    })}
                     err={formState.errors.desc}
+                />
+            </div>
+            <CardTitle className="tw-mt-3">Payer Assistants</CardTitle>
+            <div className="tw-space-y-3">
+                <SearchTeacherForm
+                    onAdd={(teacher) => {
+                        if (teacher.id == creatorId)
+                            return alert(
+                                "You can't add the creator of this document"
+                            );
+
+                        if (getValues("paymentAdderIds").includes(teacher.id))
+                            return alert("The user has already been added");
+                        setValue("paymentAdderIds", [
+                            ...getValues("paymentAdderIds"),
+                            teacher.id,
+                        ]);
+                        setTeachers((pre) => [...pre, teacher]);
+                    }}
+                />
+                <LessonsAssistantInfoGetter
+                    isNotCreator={isNotCreator}
+                    onRemove={async (removedUser) => {
+                        setValue(
+                            "paymentAdderIds",
+                            getValues("paymentAdderIds").filter(
+                                (id) => removedUser.id != id
+                            )
+                        );
+                        setTeachers((pre) =>
+                            pre.filter(({ id }) => removedUser.id != id)
+                        );
+                    }}
+                    teachers={assistantTeachers}
                 />
             </div>
             <div className="tw-flex tw-justify-end">
                 <PrimaryButton
                     type="submit"
-                    disabled={formState.isSubmitting}
+                    disabled={formState.isSubmitting || isNotCreator}
                 >
                     {buttonName}
                 </PrimaryButton>

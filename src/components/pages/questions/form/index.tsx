@@ -1,6 +1,6 @@
 import PrimaryButton from "@/components/button";
 import { WrapElem } from "@/components/common/inputs/styles";
-import { useForm } from "react-hook-form";
+import { FieldError, useForm } from "react-hook-form";
 import FinalEditor from "@/components/common/inputs/Editor";
 import { useState } from "react";
 import {
@@ -33,11 +33,13 @@ export interface Props {
     defaultData?: DataType;
     buttonName: React.ReactNode;
     ResetAfterSubmit?: boolean;
+    isCanNotEdit?: boolean;
 }
 export interface ChoiceProps {
     onSubmitQuestion: (quest: RawDraftContentState) => any;
+    disabled?: boolean;
 }
-function ChoiceArea({ onSubmitQuestion }: ChoiceProps) {
+function ChoiceArea({ onSubmitQuestion, disabled }: ChoiceProps) {
     const { register, formState, handleSubmit, setValue, reset } = useForm<{
         area: RawDraftContentState;
     }>({});
@@ -60,12 +62,13 @@ function ChoiceArea({ onSubmitQuestion }: ChoiceProps) {
                 onContentStateChange={(val) => {
                     setValue("area", val);
                 }}
+                disabled={disabled}
             />
             <ErrorInputShower err={formState.errors.area as any} />
             <div className="tw-flex tw-justify-end tw-mt-3">
                 <PrimaryButton
                     type="button"
-                    disabled={formState.isSubmitting}
+                    disabled={formState.isSubmitting || disabled}
                     onClick={handleSubmit((data) => {
                         onSubmitQuestion(
                             convertToRaw(editorState.getCurrentContent())
@@ -90,6 +93,7 @@ export default function QuestionGetDataForm({
     onData,
     buttonName,
     ResetAfterSubmit,
+    isCanNotEdit,
 }: Props) {
     const {
         register,
@@ -100,7 +104,12 @@ export default function QuestionGetDataForm({
         setValue,
         reset,
     } = useForm<DataType>({
-        defaultValues: { choices: [], ...defaultData },
+        defaultValues: {
+            choices: defaultData?.choices || [],
+            answer: defaultData?.answer,
+            quest: defaultData?.quest,
+            shuffle: defaultData?.shuffle,
+        },
     });
     const choices = watch("choices");
     const [questState, setQuestState] = useState(
@@ -149,6 +158,7 @@ export default function QuestionGetDataForm({
                     onEditorStateChange={(state) => {
                         setQuestState(state);
                     }}
+                    disabled={isCanNotEdit}
                 />
                 <ErrorInputShower err={formState.errors.quest} />
             </WrapElem>
@@ -157,6 +167,7 @@ export default function QuestionGetDataForm({
                     title="Shuffle Choices"
                     id="shuffle-input"
                     {...register("shuffle")}
+                    disabled={isCanNotEdit}
                 />
             </div>
             <WrapElem
@@ -174,6 +185,7 @@ export default function QuestionGetDataForm({
                             },
                         ]);
                     }}
+                    disabled={isCanNotEdit}
                 />
             </WrapElem>
             {choices.length > 0 && (
@@ -185,6 +197,7 @@ export default function QuestionGetDataForm({
                         data={choices}
                         inputRef={register("answer", {
                             required: "Please provide an answer",
+                            disabled: isCanNotEdit,
                         })}
                         onChange={(data) => setValue("choices", data)}
                     />
@@ -192,11 +205,11 @@ export default function QuestionGetDataForm({
             )}
 
             <ErrorInputShower err={formState.errors.answer} />
-            <ErrorInputShower err={formState.errors.choices as any} />
+            <ErrorInputShower err={formState.errors.choices as FieldError} />
             <div className="tw-flex tw-justify-end">
                 <PrimaryButton
                     type="submit"
-                    disabled={formState.isSubmitting}
+                    disabled={formState.isSubmitting || isCanNotEdit}
                 >
                     {buttonName}
                 </PrimaryButton>

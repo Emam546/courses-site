@@ -1,17 +1,8 @@
 import SelectInput from "@/components/common/inputs/select";
 import { Grid2 } from "@/components/grid";
 
-import { createCollection } from "@/firebase";
 import { useGetCourses, useGetLevels } from "@/hooks/fireStore";
-import { useQuery } from "@tanstack/react-query";
-import {
-    QueryDocumentSnapshot,
-    getDocs,
-    orderBy,
-    query,
-    where,
-} from "firebase/firestore";
-import { useCollection } from "react-firebase-hooks/firestore";
+import { QueryDocumentSnapshot } from "firebase/firestore";
 export type Props = {
     onCourse: (
         course?: QueryDocumentSnapshot<DataBase["Courses"]> | undefined

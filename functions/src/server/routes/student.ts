@@ -3,8 +3,9 @@ import { ErrorMessages, Messages } from "../declarations/major/Messages";
 import { getCollection } from "@/firebase";
 import HttpStatusCodes from "../declarations/major/HttpStatusCodes";
 import Validator from "validator-checker-js";
+import { Auth } from "./middleware";
 const router = Router();
-
+router.use(Auth);
 router.get("/", async (req, res) => {
   return res.status(200).sendData({
     success: true,

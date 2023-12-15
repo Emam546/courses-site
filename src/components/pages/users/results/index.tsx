@@ -37,7 +37,8 @@ function ResultShower({ result: result }: ElemProps) {
                         (data.questions.filter((q) => q.correctState).length /
                             data.questions.length) *
                             100
-                    )}%
+                    )}
+                    %
                 </td>
                 <td>
                     {
@@ -136,8 +137,8 @@ export default function UserResultGenerator({ userId }: Props) {
                                         <th>UnVisited</th>
                                         <th>Wrong</th>
                                         <th>Total Questions</th>
-                                        <th>Start At</th>
-                                        <th>End At</th>
+                                        <th>Started At</th>
+                                        <th>Ended At</th>
                                         <th>Show</th>
                                         <th>Delete</th>
                                     </tr>
@@ -166,7 +167,9 @@ export default function UserResultGenerator({ userId }: Props) {
                             </div>
                         </>
                     )}
-                    {count == 0 && <p className="tw-mb-0">There is no results so far</p>}
+                    {count == 0 && (
+                        <p className="tw-mb-0">There is no results so far</p>
+                    )}
                 </div>
             )}
         </>

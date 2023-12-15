@@ -21,32 +21,30 @@ function Page({ lesson }: Props) {
     return (
         <>
             <Head>
-                <title>Add Exam</title>
+                <title>{lesson.name}:Add Exam</title>
             </Head>
             <BigCard>
-                <>
-                    <CardTitle>Adding Exam</CardTitle>
-                    <CardTitle>Lesson:{lesson.name}</CardTitle>
-                    <MainCard>
-                        <ExamInfoForm
-                            onData={async (data) => {
-                                const col = createCollection("Exams");
+                <CardTitle>Adding Exam</CardTitle>
+                <CardTitle>Lesson:{lesson.name}</CardTitle>
+                <MainCard>
+                    <ExamInfoForm
+                        onData={async (data) => {
+                            const col = createCollection("Exams");
 
-                                await addDoc(col, {
-                                    ...data,
-                                    createdAt: serverTimestamp(),
-                                    lessonId: lesson.id,
-                                    teacherId: teacher!.uid,
-                                    order: Date.now(),
-                                    courseId: lesson.courseId,
-                                });
-                                router.push(`/lessons?id=${lesson.id}`);
-                            }}
-                            buttonName="Submit"
-                            lessonId={lesson.id}
-                        />
-                    </MainCard>
-                </>
+                            await addDoc(col, {
+                                ...data,
+                                createdAt: serverTimestamp(),
+                                lessonId: lesson.id,
+                                teacherId: teacher!.uid,
+                                order: Date.now(),
+                                courseId: lesson.courseId,
+                            });
+                            router.push(`/lessons?id=${lesson.id}`);
+                        }}
+                        buttonName="Submit"
+                        lessonId={lesson.id}
+                    />
+                </MainCard>
             </BigCard>
             <div className="py-3">
                 <GoToButton

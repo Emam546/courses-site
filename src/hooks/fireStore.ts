@@ -1,58 +1,34 @@
 import { auth, createCollection, getDocRef } from "@/firebase";
 import queryClient from "@/queryClient";
 import { useQuery } from "@tanstack/react-query";
-import { FirebaseError } from "firebase/app";
 import {
     DocumentSnapshot,
     FirestoreError,
-    Query,
-    getCountFromServer,
     getDoc,
     getDocs,
     orderBy,
     query,
     where,
 } from "firebase/firestore";
-import { useEffect, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
+import { useLoadingPromise, useLoadingPromiseQuery } from ".";
 
-export function useCountDocs<T>(
-    query?: Query<T>
-): [number | undefined, boolean, any] {
-    const [count, setCount] = useState<number>();
-    const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<any>();
-    useEffect(() => {
-        setLoading(true);
-        if (!query) return setCount(undefined);
-        getCountFromServer(query)
-            .then((val) => {
-                setCount(val.data().count);
-                setLoading(false);
-            })
-            .catch((err) => {
-                setError(err);
-            });
-    }, [query]);
-    return [count, loading, error];
-}
-export function useGetLevels() {
+export function useGetLevels(teacherId?: string) {
     const [teacher] = useAuthState(auth);
-
+    const id = teacherId || teacher!.uid;
     return useQuery({
-        queryKey: ["Levels"],
+        queryKey: ["Levels", id],
         queryFn: async () =>
             await getDocs(
                 query(
                     createCollection("Levels"),
-                    where("teacherId", "==", teacher!.uid),
+                    where("teacherId", "==", id),
                     orderBy("order")
                 )
             ),
     });
 }
 export function useGetCourses(levelId?: string) {
-    const [teacher] = useAuthState(auth);
     return useQuery({
         queryKey: ["Courses", "levelId", levelId],
         enabled: typeof levelId == "string",
@@ -76,31 +52,22 @@ export function useGetDoc<T extends keyof DataBase>(path: T, id?: string) {
         onError(err: FirestoreError) {},
     });
 }
-export function useDocument<T extends keyof DataBase>(
+
+export function useDocument<T extends keyof DataBase>(path: T, id?: string) {
+    return useLoadingPromise<DocumentSnapshot<DataBase[T]>, FirestoreError>(
+        () => getDoc(getDocRef(path, id!)),
+        [path, id],
+        typeof id == "string"
+    );
+}
+export function useDocumentQuery<T extends keyof DataBase>(
     path: T,
     id?: string
-):
-    | [DocumentSnapshot<DataBase[T]>, false, null]
-    | [null, false, FirestoreError]
-    | [null, true, null] {
-    const [loading, setLoading] = useState(true);
-    const [data, setData] = useState<DocumentSnapshot<DataBase[T]> | null>(
-        null
-    );
-    const [error, setError] = useState<FirestoreError | null>(null);
-    useEffect(() => {
-        if (!id) return;
-        setLoading(true);
-        getDoc(getDocRef(path, id))
-            .then((data) => {
-                setData(data);
-            })
-            .catch((err) => setError(err))
-            .finally(() => {
-                setLoading(false);
-            });
-    }, [path, id]);
-    return [data, loading, error] as any;
+) {
+    return useLoadingPromiseQuery<
+        DocumentSnapshot<DataBase[T]>,
+        FirestoreError
+    >(() => getDoc(getDocRef(path, id!)), [path, id], typeof id == "string");
 }
 
 export function updateDocCache<T extends keyof DataBase>(
@@ -109,4 +76,17 @@ export function updateDocCache<T extends keyof DataBase>(
     id: string
 ) {
     queryClient.setQueryData([path, id], val);
+}
+export async function getDocCache<T extends keyof DataBase>(
+    path: T,
+    id: string
+): Promise<DocumentSnapshot<DataBase[T]>> {
+    const data = queryClient.getQueryData<DocumentSnapshot<DataBase[T]>>([
+        path,
+        id,
+    ]);
+    if (data) return data;
+    return await queryClient.fetchQuery([path, id], () =>
+        getDoc(getDocRef(path, id!))
+    );
 }
