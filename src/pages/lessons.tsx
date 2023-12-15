@@ -1,6 +1,5 @@
 /* eslint-disable jsx-a11y/alt-text */
 import Loader from "@/components/loader";
-import Page404 from "@/components/pages/404";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -8,7 +7,12 @@ import draftToHtml from "draftjs-to-html";
 import { useQuery } from "@tanstack/react-query";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { LessonType, getLesson } from "@/firebase/func/data/lessons";
+import {
+    LessonType,
+    VideoDetails,
+    getLesson,
+    getLessonVideo,
+} from "@/firebase/func/data/lessons";
 import { CourseType } from "@/firebase/func/data/course";
 import { useGetCourse } from "./courses";
 import { ExamsLessonType, getExamLesson } from "@/firebase/func/data/exam";
@@ -17,17 +21,15 @@ import {
     ErrorMessageCom,
     PageNotExisted,
 } from "@/components/handelErrorMessage";
-import { ProviderUser } from "@/components/wrapper";
-
-function Page({
-    doc,
-    course,
-    exams,
-}: {
+import { Player } from "@/components/common/videoPlayer";
+export interface Props {
     doc: LessonType;
     course: CourseType;
     exams: ExamsLessonType[];
-}) {
+    video: VideoDetails;
+}
+
+function Page({ doc, course, exams, video }: Props) {
     return (
         <>
             <Head>
@@ -67,14 +69,12 @@ function Page({
             </section>
             <section className="single-course spad tw-pb-20">
                 <div className="container">
-                    <img
-                        src="img/courses/single.jpg"
-                        className="course-preview"
-                    />
                     <div className="row">
+                        {doc.video && <Player video={video} />}
+
                         <div className="col-lg-10 offset-lg-1 course-list">
                             <div className="cl-item">
-                                <h2 className="tw-font-medium tw-text-4xl tw-mb-6">
+                                <h2 className="tw-font-semibold tw-text-2xl tw-mb-2">
                                     Course Description
                                 </h2>
                                 <div
@@ -86,30 +86,35 @@ function Page({
                                 ></div>
                             </div>
                         </div>
-                        <div className="col-lg-10 offset-lg-1">
-                            <h1 className="tw-text-5xl tw-mb-6">Exams</h1>
-                            <div className="tw-space-y-5">
-                                {exams.map((doc) => {
-                                    return (
-                                        <Link
-                                            key={doc.id}
-                                            href={`/exams?id=${doc.id}`}
-                                            className="site-btn tw-text-start tw-px-10 tw-py-3 tw-flex tw-items-center"
-                                        >
-                                            <p className="tw-flex-1 tw-text-white tw-text-lg tw-font-semibold">
-                                                {doc.name}
-                                            </p>
-                                            <div>
-                                                <FontAwesomeIcon
-                                                    className="tw-text-lg"
-                                                    icon={faArrowRight}
-                                                />
-                                            </div>
-                                        </Link>
-                                    );
-                                })}
+
+                        {exams.length > 0 && (
+                            <div className="col-lg-10 offset-lg-1">
+                                <h1 className="tw-text-2xl tw-font-semibold">
+                                    Exams
+                                </h1>
+                                <div className="tw-space-y-5">
+                                    {exams.map((doc) => {
+                                        return (
+                                            <Link
+                                                key={doc.id}
+                                                href={`/exams?id=${doc.id}`}
+                                                className="site-btn tw-text-start tw-px-10 tw-py-3 tw-flex tw-items-center"
+                                            >
+                                                <p className="tw-flex-1 tw-text-white tw-text-lg tw-font-semibold">
+                                                    {doc.name}
+                                                </p>
+                                                <div>
+                                                    <FontAwesomeIcon
+                                                        className="tw-text-lg"
+                                                        icon={faArrowRight}
+                                                    />
+                                                </div>
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             </section>
@@ -136,6 +141,17 @@ export function useGetLesson(lessonId?: string) {
         onError(err: ErrorMessage) {},
     });
 }
+
+export function useGetLessonVideo(lessonId?: string) {
+    return useQuery({
+        queryKey: ["Lessons", lessonId, "video"],
+        queryFn: async () => {
+            return await wrapRequest(getLessonVideo(lessonId!));
+        },
+        enabled: typeof lessonId == "string",
+        onError(err: ErrorMessage) {},
+    });
+}
 export default function SafeArea() {
     const router = useRouter();
     const { id } = router.query;
@@ -143,8 +159,15 @@ export default function SafeArea() {
     const queryLesson = useGetLesson(id as string);
     const queryExams = useGetExams(id as string);
     const queryCourse = useGetCourse(queryLesson.data?.lesson.courseId);
+    const videoLesson = useGetLessonVideo(id as string);
+
     if (typeof id != "string") return <PageNotExisted />;
-    if (queryLesson.error || queryCourse.error || queryExams.error)
+    if (
+        queryLesson.error ||
+        queryCourse.error ||
+        queryExams.error ||
+        videoLesson.error
+    )
         return (
             <ErrorMessageCom
                 error={
@@ -152,15 +175,19 @@ export default function SafeArea() {
                 }
             />
         );
-    if (queryLesson.isLoading || queryCourse.isLoading || queryExams.isLoading)
+    if (
+        queryLesson.isLoading ||
+        queryCourse.isLoading ||
+        queryExams.isLoading ||
+        videoLesson.isLoading
+    )
         return <Loader />;
     return (
-        <ProviderUser>
-            <Page
-                exams={queryExams.data.exams}
-                course={queryCourse.data.course}
-                doc={queryLesson.data.lesson}
-            />
-        </ProviderUser>
+        <Page
+            exams={queryExams.data.exams}
+            course={queryCourse.data.course}
+            doc={queryLesson.data.lesson}
+            video={videoLesson.data.video}
+        />
     );
 }

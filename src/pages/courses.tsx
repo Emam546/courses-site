@@ -1,7 +1,6 @@
 import Loader from "@/components/loader";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import Page404 from "@/components/pages/404";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import {
@@ -14,7 +13,8 @@ import {
     ErrorMessageCom,
     PageNotExisted,
 } from "@/components/handelErrorMessage";
-import MinShower, { ItemType } from "@/components/common/itemsShower/min";
+import MinShower from "@/components/common/itemsShower/min";
+import JoinCommunity from "@/components/common/JoinCommunity";
 
 export interface PageParams {
     doc: CourseType;
@@ -63,16 +63,18 @@ export function Page({
             </section>
 
             {/* categories section */}
-            <section className="course-section spad tw-pb-20 tw-min-h-[20rem]">
+            <section className="course-section spad container">
                 <div className="course-wrap">
                     {lessons.length > 0 ? (
-                        <MinShower
-                            items={lessons.map((val) => ({
-                                desc: val.briefDesc,
-                                ...val,
-                                link: `/lessons?id=${val.id}`,
-                            }))}
-                        />
+                        <>
+                            <MinShower
+                                items={lessons.map((val) => ({
+                                    desc: val.briefDesc,
+                                    ...val,
+                                    link: `/lessons?id=${val.id}`,
+                                }))}
+                            />
+                        </>
                     ) : (
                         <p className="tw-text-lg tw-text-center tw-px-2">
                             There is no lessons so far
@@ -80,6 +82,7 @@ export function Page({
                     )}
                 </div>
             </section>
+            <JoinCommunity />
         </>
     );
 }

@@ -52,14 +52,8 @@ export function HeaderFooter({ children }: { children: React.ReactNode }) {
         </>
     );
 }
-export default function MainComponentsProvider({
-    children,
-}: {
-    children: React.ReactNode;
-}) {
-    useEffect(() => {
-        require("bootstrap/dist/js/bootstrap.min");
-    }, []);
+export function UserLoader({ children }: { children: React.ReactNode }) {
+
     const login = useLogIn();
     const { isLoading: LoadingUser, error: errorUser } = useLoadUserData({
         onSuccess(user) {
@@ -67,11 +61,18 @@ export default function MainComponentsProvider({
         },
     });
     if (errorUser && errorUser.state != ErrorStates.UnAuthorized)
-        return (
-            <HeaderFooter>
-                <ErrorShower err={errorUser} />;
-            </HeaderFooter>
-        );
+        return <ErrorShower err={errorUser} />;
     if (LoadingUser) return <Loader />;
-    return <HeaderFooter>{children}</HeaderFooter>;
+    return children;
+}
+export default function MainComponentsProvider({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
+    return (
+        <HeaderFooter>
+            <UserLoader>{children}</UserLoader>
+        </HeaderFooter>
+    );
 }

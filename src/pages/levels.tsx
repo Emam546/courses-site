@@ -111,7 +111,9 @@ export function Page({ courses, level }: PageParams) {
                                         <div className="price">
                                             Price:{" "}
                                             {data.price.num > 0
-                                                ? `${data.price.num}${data.price.currency.toLocaleUpperCase()}`
+                                                ? `${
+                                                      data.price.num
+                                                  }${data.price.currency.toLocaleUpperCase()}`
                                                 : "Free"}
                                         </div>
                                     </div>

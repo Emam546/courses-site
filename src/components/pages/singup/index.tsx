@@ -40,7 +40,8 @@ export default function SingUp({ onUser }: Props) {
     const { register, formState, handleSubmit, setError, setValue } =
         useForm<Form>();
     const { data: levels } = useGetLevels(
-        process.env.NEXT_PUBLIC_TEACHER_ID as string
+        process.env.NEXT_PUBLIC_TEACHER_ID as string,
+        undefined
     );
     register("phone", {
         required: "phone number is required",
@@ -124,7 +125,7 @@ export default function SingUp({ onUser }: Props) {
                                             value={doc.id}
                                             key={doc.id}
                                         >
-                                            {doc.data().name}
+                                            {doc.name}
                                         </option>
                                     );
                                 })}

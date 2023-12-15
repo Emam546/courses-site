@@ -2,9 +2,11 @@ import { ErrorMessage, ErrorStates } from "@/utils/wrapRequest";
 import Page404 from "./pages/404";
 import { PaymentCourse } from "./payment";
 import Link from "next/link";
+import { useLayoutEffect } from "react";
+import { useRouter } from "next/router";
 export function HidedDoc() {
     return (
-        <Page404>
+        <Page404 title="Page Unavailable">
             <h1 className="tw-text-3xl tw-font-semibold tw-text-gray-800">
                 Page Unavailable
             </h1>
@@ -41,7 +43,7 @@ export function PageNotExisted() {
 }
 export function UnknownError() {
     return (
-        <Page404>
+        <Page404 title="Error">
             <h1 className="text-3xl font-semibold text-gray-800">
                 Error - Unknown Error
             </h1>
@@ -56,9 +58,20 @@ export function UnknownError() {
         </Page404>
     );
 }
+export function RedirectLogin({ link }: { link: string }) {
+    const router = useRouter();
+    useLayoutEffect(() => {
+        router.push(link);
+    }, []);
+    return null;
+}
 export function ErrorMessageCom({ error }: { error: ErrorMessage | null }) {
     if (!error) return null;
     switch (error.state) {
+        case ErrorStates.UnAuthorized:
+            return <RedirectLogin link="/login" />;
+        case ErrorStates.TEACHER_BLOCK:
+            return <RedirectLogin link="/states/blocked" />;
         case ErrorStates.HidedDoc:
             return <HidedDoc />;
         case ErrorStates.UnPaidCourse:

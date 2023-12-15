@@ -15,8 +15,11 @@ export interface Props {
 export default function MinShower({ items }: Props) {
     return (
         <div className="row course-items-area">
-            {/* course */}
             {items.map((data, i) => {
+                const studentState =
+                    data.studentNum != undefined &&
+                    (data.price == undefined || data.price.num > 0);
+
                 return (
                     <div
                         key={data.id}
@@ -36,7 +39,9 @@ export default function MinShower({ items }: Props) {
                                         <div className="price">
                                             Price:{" "}
                                             {data.price.num > 0
-                                                ? `${data.price.num}${data.price.currency.toUpperCase()}`
+                                                ? `${
+                                                      data.price.num
+                                                  }${data.price.currency.toUpperCase()}`
                                                 : "Free"}
                                         </div>
                                     )}
@@ -45,7 +50,7 @@ export default function MinShower({ items }: Props) {
                                     <div className="course-text">
                                         <h5>{data.name}</h5>
                                         <p>{data.desc}</p>
-                                        {data.studentNum != undefined && (
+                                        {studentState && (
                                             <div className="students">
                                                 {data.studentNum} Students
                                             </div>

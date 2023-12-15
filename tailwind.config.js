@@ -1,6 +1,6 @@
-import type { Config } from "tailwindcss";
+/** @type {import('tailwindcss').Config} */
 
-const config: Config = {
+const config = {
     content: [
         "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
         "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -10,18 +10,21 @@ const config: Config = {
         extend: {
             colors: {
                 primary: {
-                    "50": "#eff6ff",
-                    "100": "#dbeafe",
-                    "200": "#bfdbfe",
-                    "300": "#93c5fd",
-                    "400": "#60a5fa",
-                    "500": "#3b82f6",
-                    "600": "#2563eb",
-                    "700": "#1d4ed8",
-                    "800": "#1e40af",
-                    "900": "#1e3a8a",
-                    "950": "#172554",
+                    50: "#eff6ff",
+                    100: "#dbeafe",
+                    200: "#bfdbfe",
+                    300: "#93c5fd",
+                    400: "#60a5fa",
+                    500: "#3b82f6",
+                    600: "#2563eb",
+                    700: "#1d4ed8",
+                    800: "#1e40af",
+                    900: "#1e3a8a",
+                    950: "#172554",
                 },
+
+                "media-brand": "rgb(var(--media-brand) / <alpha-value>)",
+                "media-focus": "rgb(var(--media-focus) / <alpha-value>)",
             },
         },
         fontFamily: {
@@ -61,7 +64,22 @@ const config: Config = {
             ],
         },
     },
-    plugins: [],
+
+    plugins: [
+        require("tailwindcss-animate"),
+        require("@vidstack/react/tailwind.cjs")({
+            prefix: "media",
+        }),
+        customVariants,
+    ],
     prefix: "tw-",
 };
+function customVariants({ addVariant, matchVariant }) {
+    // Strict version of `.group` to help with nesting.
+    matchVariant("parent-data", (value) => `.parent[data-${value}] > &`);
+
+    addVariant("hocus", ["&:hover", "&:focus-visible"]);
+    addVariant("group-hocus", [".group:hover &", ".group:focus-visible &"]);
+}
+
 export default config;
