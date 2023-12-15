@@ -8,11 +8,11 @@ export default function Header() {
     return (
         <header className="header-section">
             <div className="container">
-                <div className="tw-flex">
-                    <div className="tw-mr-20">
+                <div className="tw-flex tw-flex-wrap md:tw-gap-20">
+                    <div>
                         <div className="site-logo">
                             <img
-                                src="img/logo.png"
+                                src="/img/logo.png"
                                 alt="logo"
                             />
                         </div>
@@ -36,7 +36,7 @@ export default function Header() {
                                 onClick={() => {
                                     return router.push("/login");
                                 }}
-                                className="site-btn header-btn"
+                                className="site-btn"
                             >
                                 Login
                             </button>
