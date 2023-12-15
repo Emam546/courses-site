@@ -4,7 +4,6 @@ import Loader from "@/components/loader";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { NextPageWithLayout } from "../_app";
-import { ProviderUser } from "@/components/wrapper";
 import { useGetExam } from ".";
 import { ResultType } from "@/firebase/func/data/results";
 import { ExamType } from "@/firebase/func/data/exam";
@@ -28,7 +27,7 @@ function Page({ doc, exam }: { doc: ResultType; exam: ExamType }) {
     );
 }
 
-function SafeArea() {
+const SafeArea: NextPageWithLayout = function () {
     const router = useRouter();
     const { id } = router.query;
     const queryResult = useGetResult(id as string);
@@ -39,18 +38,12 @@ function SafeArea() {
         return <ErrorMessageCom error={queryResult.error || queryExam.error} />;
     if (queryResult.isLoading || queryExam.isLoading) return <Loader />;
     return (
-        <ProviderUser>
-            <Page
-                doc={queryResult.data.result}
-                exam={queryExam.data.exam}
-            />
-        </ProviderUser>
+        <Page
+            doc={queryResult.data.result}
+            exam={queryExam.data.exam}
+        />
     );
-}
-const FinalPage: NextPageWithLayout = () => {
-    return <SafeArea />;
 };
-FinalPage.getLayout = (child) => {
-    return <>{child}</>;
-};
-export default FinalPage;
+SafeArea.providerUser = true;
+
+export default SafeArea;

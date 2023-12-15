@@ -5,7 +5,7 @@ function Page() {
     const user = useAppSelector((state) => state.auth.user);
     return (
         <>
-            <Page404 state="Account Blocked">
+            <Page404 title="Account Blocked">
                 <h1>Account Blocked</h1>
                 <p>Dear {user?.displayname || "User"}</p>
                 <p>

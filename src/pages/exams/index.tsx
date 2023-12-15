@@ -14,7 +14,7 @@ import {
     ErrorMessageCom,
     PageNotExisted,
 } from "@/components/handelErrorMessage";
-import { ProviderUser } from "@/components/wrapper";
+import { NextPageWithLayout } from "../_app";
 
 function Page({
     doc,
@@ -95,7 +95,7 @@ export function useGetExam(examId?: string) {
         onError(err: ErrorMessage) {},
     });
 }
-export default function SafeArea() {
+const SafeArea: NextPageWithLayout = () => {
     const router = useRouter();
     const { id } = router.query;
     const queryExam = useGetExam(id as string);
@@ -114,12 +114,12 @@ export default function SafeArea() {
         return <Loader />;
 
     return (
-        <ProviderUser>
-            <Page
-                lesson={queryLesson.data.lesson}
-                doc={queryExam.data.exam}
-                course={queryCourse.data.course}
-            />
-        </ProviderUser>
+        <Page
+            lesson={queryLesson.data.lesson}
+            doc={queryExam.data.exam}
+            course={queryCourse.data.course}
+        />
     );
-}
+};
+SafeArea.providerUser = true;
+export default SafeArea;
