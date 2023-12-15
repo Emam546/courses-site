@@ -15,11 +15,14 @@ import { ErrorStates, isErrorMessage } from "@/utils/wrapRequest";
 export interface Props {
     onLogin?: (user: NonNullable<StateType["user"]>) => any;
 }
-export interface FormValues {
+interface FormValues {
     email: string;
+    userName: string;
     password: string;
     rememberMe: boolean;
 }
+const emailPattern =
+    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
 export default function LogIn({ onLogin }: Props) {
     const { register, formState, handleSubmit, setError } =
@@ -27,12 +30,21 @@ export default function LogIn({ onLogin }: Props) {
     async function submit(data: FormValues) {
         try {
             // await setRememberMeState(auth, data.rememberMe);
-            const res = await SingInStudentCall({
-                email: data.email,
-                password: data.password,
-                teacherId: process.env.NEXT_PUBLIC_TEACHER_ID as string,
-            });
-            onLogin?.(res.user);
+            if (emailPattern.test(data.email)) {
+                const res = await SingInStudentCall({
+                    email: data.email,
+                    password: data.password,
+                    teacherId: process.env.NEXT_PUBLIC_TEACHER_ID as string,
+                });
+                onLogin?.(res.user);
+            } else {
+                const res = await SingInStudentCall({
+                    userName: data.email,
+                    password: data.password,
+                    teacherId: process.env.NEXT_PUBLIC_TEACHER_ID as string,
+                });
+                onLogin?.(res.user);
+            }
         } catch (err: unknown) {
             if (hasOwnProperty(err, "errors") && isErrormessage(err.errors)) {
                 ObjectEntries(err.errors).forEach(([key, val]) => {
@@ -76,10 +88,13 @@ export default function LogIn({ onLogin }: Props) {
                             onSubmit={handleSubmit(submit)}
                         >
                             <NormalInput
-                                labelText={"User Name"}
-                                type="email"
+                                labelText={"User Name or Email"}
+                                type="text"
                                 id="email"
-                                err={formState.errors.email}
+                                err={
+                                    formState.errors.email ||
+                                    formState.errors.userName
+                                }
                                 {...register("email", {
                                     required: true,
                                 })}
