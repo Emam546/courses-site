@@ -39,7 +39,6 @@ function Page({ doc: initData, course, assistantTeachers }: Props) {
                             assistantTeachers,
                         }}
                         onData={async (data) => {
-                            console.log(data);
                             await updateDoc(getDocRef("Lessons", lesson.id), {
                                 ...data,
                             });

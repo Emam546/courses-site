@@ -22,7 +22,6 @@ export default function PrintUserPayments({ userId }: { userId: string }) {
                 const body = await Promise.all(
                     res.docs.map(async (doc) => {
                         const data = doc.data();
-                        console.log(data);
                         const courseDoc = await getDocCache(
                             "Courses",
                             data.courseId

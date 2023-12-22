@@ -52,7 +52,6 @@ export default function UserAddingInfoForm({
         <>
             <form
                 onSubmit={handleSubmit(async (data) => {
-                    console.log("submit");
                     await onData(data);
                     reset();
                 })}
