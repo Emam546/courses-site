@@ -1,4 +1,4 @@
-import PrimaryButton from "@/components/button";
+import PrimaryButton, { UploadFileButton } from "@/components/button";
 import { Grid2 } from "@/components/grid";
 import MainInput from "@/components/common/inputs/main";
 import { useForm } from "react-hook-form";
@@ -16,16 +16,21 @@ import { useDocumentQuery } from "@/hooks/fireStore";
 import { Timestamp } from "firebase/firestore";
 import { auth } from "@/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
+import { ChangeEvent, useEffect, useState } from "react";
 
 export type AdminDataType = {
     type: DataBase.Roles;
     blocked: boolean;
 };
 export type OwnerDataType = {
-    phone: string;
+    phone?: string;
     displayName: string;
+    photoUrl?: File;
 };
-type FormData = DataBase["Teacher"] & { blocked: boolean };
+type FormData = Omit<DataBase["Teacher"], "photoUrl" | "blocked"> & {
+    blocked: boolean;
+    photoUrl?: string | File;
+};
 
 function BlockedAt({ userId, at }: { userId: string | true; at: Timestamp }) {
     const [teacher] = useAuthState(auth);
@@ -47,17 +52,13 @@ function BlockedAt({ userId, at }: { userId: string | true; at: Timestamp }) {
         </p>
     );
 }
-export interface Props<Admin extends boolean, Owner extends boolean> {
+export interface Props {
     teacher: DataBase.WithIdType<DataBase["Teacher"]>;
-    onData: (
-        data: Admin extends true
-            ? AdminDataType
-            : Owner extends true
-            ? OwnerDataType
-            : never
-    ) => Promise<any> | any;
-    isAdmin?: Admin;
-    isOwner?: Owner;
+    onDataAdmin?: (data: AdminDataType) => any;
+    onDataOwner?: (data: OwnerDataType) => any;
+    onFinish: () => any;
+    isAdmin?: boolean;
+    isOwner?: boolean;
 }
 const Types: Record<DataBase.Roles, string> = {
     admin: "Admin",
@@ -83,39 +84,52 @@ export function TeacherImage({
             <img
                 src={src || "/images/profile/user-1.jpg"}
                 alt={alt}
-                className="tw-min-h-full tw-min-w-full"
+                className="tw-object-cover tw-min-w-full tw-min-h-full"
             />
         </div>
     );
 }
-export default function TeacherInfoForm<
-    Admin extends boolean,
-    Owner extends boolean
->({ teacher: teacher, onData, isAdmin, isOwner }: Props<Admin, Owner>) {
-    const { register, handleSubmit, formState, getValues, watch } =
+export default function TeacherInfoForm({
+    teacher: teacher,
+    onDataOwner,
+    onDataAdmin,
+    onFinish,
+    isAdmin,
+    isOwner,
+}: Props) {
+    const { register, handleSubmit, formState, getValues, setValue } =
         useForm<FormData>({
             defaultValues: {
                 ...teacher,
+                photoUrl: undefined,
                 blocked: new Boolean(teacher.blocked).valueOf(),
             },
         });
+    const [finalImage, setUserImage] = useState<string | undefined>(
+        teacher.photoUrl
+    );
 
     return (
         <>
             <form
                 onSubmit={handleSubmit(async (data) => {
-                    if (isAdmin == true)
-                        await onData({
+                    
+                    if (isAdmin)
+                        await onDataAdmin?.({
                             type: data.type,
                             blocked: data.blocked,
-                        } as any);
-                    if (isOwner == true)
-                        await onData({
+                        });
+                    if (isOwner)
+                        await onDataOwner?.({
                             phone: data.phone,
                             displayName: data.displayName,
-                        } as any);
+                            photoUrl:
+                                data.photoUrl instanceof Blob
+                                    ? data.photoUrl
+                                    : undefined,
+                        });
 
-                    alert("Document updated successfully");
+                    await onFinish?.();
                 })}
                 autoComplete="off"
             >
@@ -134,26 +148,47 @@ export default function TeacherInfoForm<
                         <div className="tw-flex tw-items-center tw-space-x-5">
                             <div className="tw-w-12">
                                 <TeacherImage
-                                    src={teacher.photoUrl}
+                                    src={finalImage}
                                     alt={teacher.displayName}
                                 />
                             </div>
                             <div>
                                 <div>
-                                    <PrimaryButton
-                                        type="button"
+                                    <UploadFileButton
+                                        id={"upload-user-image"}
                                         disabled={!isOwner}
+                                        {...register("photoUrl", {
+                                            onChange(
+                                                event: ChangeEvent<HTMLInputElement>
+                                            ) {
+                                                const file =
+                                                    event.currentTarget.files?.item(
+                                                        0
+                                                    );
+                                                if (!file) return;
+                                                const reader = new FileReader();
+
+                                                reader.addEventListener(
+                                                    "load",
+                                                    () =>
+                                                        setUserImage(
+                                                            reader.result?.toString() ||
+                                                                ""
+                                                        )
+                                                );
+                                                reader.readAsDataURL(file);
+                                                setValue("photoUrl", file);
+                                            },
+                                        })}
+                                        type="file"
+                                        accept="image/*"
                                     >
                                         <FontAwesomeIcon
                                             className="tw-text-white tw-mr-1"
                                             icon={faUpload}
                                         />
                                         Upload
-                                    </PrimaryButton>
-                                    {/* <input
-                                    type="file"
-                                    className="tw-invisible tw-appearance-none tw-w-full tw-h-full tw-z-10"
-                                /> */}
+                                    </UploadFileButton>
                                 </div>
                             </div>
                         </div>
@@ -168,7 +203,7 @@ export default function TeacherInfoForm<
                         id={"phone-input"}
                         title={"Phone"}
                         {...register("phone", { disabled: !isOwner })}
-                        err={formState.errors.contactPhone}
+                        err={formState.errors.phone}
                     />
                     <MainInput
                         id={"email-input"}
