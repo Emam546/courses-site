@@ -35,13 +35,11 @@ export function SearchTeacherForm({
     }, [searchParam]);
     return (
         <div>
-            <form
-                onSubmit={(e) => e.preventDefault()}
-                className="tw-flex tw-items-center tw-gap-y-2 tw-gap-x-2"
-            >
+            <div className="tw-flex tw-items-center tw-gap-y-2 tw-gap-x-2">
                 <div className="tw-flex-1">
                     <input
                         type="search"
+                        name="search-teacher"
                         className="form-control placeholder:tw-text-gray-200"
                         onChange={(e) => {
                             setSearchparams(e.currentTarget.value);
@@ -50,13 +48,13 @@ export function SearchTeacherForm({
                     />
                 </div>
                 <PrimaryButton
-                    type="reset"
+                    type="button"
                     onClick={() => setSearchparams("")}
                     className="tw-bg-fuchsia-500 hover:tw-bg-fuchsia-600 tw-border-none"
                 >
                     Clear
                 </PrimaryButton>
-            </form>
+            </div>
             <div className="tw-mt-2">
                 <ErrorShower
                     loading={loading && validState}
