@@ -103,11 +103,18 @@ export function UserProvider({
     useEffect(() => {
         const doc = queryUser.data;
         if (!doc) return;
+        const data = doc.data();
         dispatch(
             AuthActions.setUser({
-                ...doc.data(),
+                ...data,
                 id: doc.id,
-                createdAt: doc.data().createdAt.toDate().toString(),
+                blocked: data.blocked
+                    ? {
+                          at: data.blocked?.at.toDate().toString(),
+                          teacherId: data.blocked?.teacherId,
+                      }
+                    : null,
+                createdAt: data.createdAt.toDate().toString(),
             })
         );
     }, [queryUser.data]);
