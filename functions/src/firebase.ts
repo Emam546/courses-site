@@ -8,6 +8,7 @@ import {
   DocumentSnapshot,
 } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
+import { getStorage } from "firebase-admin/storage";
 
 import { document } from "firebase-functions/v1/firestore";
 import type { Change } from "firebase-functions/lib/common/change";
@@ -19,6 +20,7 @@ import {
 export const app = initializeApp();
 export const firestore = getFirestore(app);
 export const auth = getAuth(app);
+export const storage=getStorage(app);
 
 export function getCollectionReference<T extends keyof DataBase>(
   collectionPath: T,

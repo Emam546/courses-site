@@ -6,6 +6,7 @@ export {
   onTeacherDelete,
   registerTeacher,
   onTeacherUpdate,
+  onTeacherCreate,
 } from "./teacher/index";
 export * from "./auth";
 export * from "./student";

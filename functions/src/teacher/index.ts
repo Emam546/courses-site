@@ -1,11 +1,11 @@
 import "./validator";
-import { auth, getCollectionReference, getDocument } from "@/firebase";
-import { FieldValue } from "firebase-admin/firestore";
+import { auth, getCollectionReference, getDocument, storage } from "@/firebase";
 import { onCall } from "firebase-functions/v1/https";
 import { UserRecord } from "firebase-admin/auth";
 import logger from "firebase-functions/logger";
 import { ResponseData } from "@/types";
 import Validator from "validator-checker-js";
+
 export type RegisterResponseData = ResponseData<{ token: string }>;
 export interface RegisterRequestData {
   email: string;
@@ -17,6 +17,8 @@ const registerValidator = new Validator({
   password: ["string", "alpha_num", { min: 5 }, "required"],
   displayName: ["string", "required"],
 });
+// const api = "https://api.multiavatar.com/4645646";
+
 export const registerTeacher = onCall(async (data) => {
   try {
     const res = await registerValidator.asyncPasses(data);
@@ -28,6 +30,7 @@ export const registerTeacher = onCall(async (data) => {
       } as RegisterResponseData;
     const { email, password, displayName } = res.data;
     let userRecord: UserRecord;
+
     try {
       userRecord = await auth.getUserByEmail(email);
       if (userRecord.emailVerified)
@@ -47,16 +50,6 @@ export const registerTeacher = onCall(async (data) => {
         displayName,
       });
     }
-    // Create the user in Firebase Authentication
-
-    await auth.setCustomUserClaims(userRecord.uid, { type: "assistant" });
-    await getCollectionReference("Teacher").doc(userRecord.uid).set({
-      createdAt: FieldValue.serverTimestamp(),
-      blocked: null,
-      type: "assistant",
-      email: email,
-      displayName: displayName,
-    });
     const customToken = await auth.createCustomToken(userRecord.uid);
     return {
       success: true,
@@ -86,6 +79,14 @@ export const onTeacherDelete = teacher.onDelete(async (doc) => {
     .where("teacherId", "==", doc.id)
     .get();
   await Promise.all(res.docs.map((doc) => doc.ref.delete()));
+  await storage.bucket().deleteFiles({
+    prefix: `Teachers/${doc.id}/`,
+  });
+  try {
+    await auth.deleteUser(doc.id);
+  } catch (err) {
+    return;
+  }
 });
 export const onTeacherUpdate = teacher.onUpdate(async (doc) => {
   const newData = doc.after.data();
@@ -96,6 +97,9 @@ export const onTeacherUpdate = teacher.onUpdate(async (doc) => {
   });
   if (newData.type != doc.before.data().type)
     await auth.setCustomUserClaims(doc.after.id, { type: newData.type });
+});
+export const onTeacherCreate = teacher.onCreate(async (doc) => {
+  getCollectionReference("TeacherInfo").doc(doc.id).set({});
 });
 export async function deleteTeacher(user: UserRecord) {
   await getCollectionReference("Teacher").doc(user.uid).delete();
