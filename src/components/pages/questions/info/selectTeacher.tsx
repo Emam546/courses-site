@@ -34,33 +34,31 @@ export default function QuestionTeacherSelector({
                 <div>
                     {teachers.map((user) => {
                         return (
-                            <>
-                                <TeacherComp user={user}>
-                                    <StyledCheckedInput
-                                        type="checkbox"
-                                        {...register(`ids.${user.id}`, {
-                                            value: true,
-                                        })}
-                                        onChange={(e) => {
-                                            const ids = getValues("ids");
-                                            ids[user.id] =
-                                                e.currentTarget.checked;
-                                            onSelect(
-                                                ObjectEntries(ids)
-                                                    .filter(
-                                                        (
-                                                            val
-                                                        ): val is [
-                                                            string,
-                                                            true
-                                                        ] => val[1]
-                                                    )
-                                                    .map(([id]) => id)
-                                            );
-                                        }}
-                                    />
-                                </TeacherComp>
-                            </>
+                            <TeacherComp
+                                user={user}
+                                key={user.id}
+                            >
+                                <StyledCheckedInput
+                                    type="checkbox"
+                                    {...register(`ids.${user.id}`, {
+                                        value: true,
+                                    })}
+                                    onChange={(e) => {
+                                        const ids = getValues("ids");
+                                        ids[user.id] = e.currentTarget.checked;
+                                        onSelect(
+                                            ObjectEntries(ids)
+                                                .filter(
+                                                    (
+                                                        val
+                                                    ): val is [string, true] =>
+                                                        val[1]
+                                                )
+                                                .map(([id]) => id)
+                                        );
+                                    }}
+                                />
+                            </TeacherComp>
                         );
                     })}
                 </div>
