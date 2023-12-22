@@ -9,12 +9,14 @@ import {
     updateDoc,
     where,
 } from "firebase/firestore";
-import { auth, createCollection, getDocRef } from "@/firebase";
-import TeacherInfoForm from "@/components/pages/teachers/form";
+import { auth, createCollection, getDocRef, getStorageRef } from "@/firebase";
+import TeacherInfoForm, {
+    OwnerDataType,
+} from "@/components/pages/teachers/form";
 import ErrorShower from "@/components/common/error";
 import Head from "next/head";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useLayoutEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import LevelsInfoGetter from "@/components/pages/levels/info";
 import { useCollectionOnce } from "react-firebase-hooks/firestore";
@@ -31,8 +33,14 @@ import { AuthActions } from "@/store/auth";
 import { hasOwnProperty } from "@/utils";
 import Tooltip from "@mui/material/Tooltip";
 import { Timestamp } from "firebase/firestore";
+import { getDownloadURL, uploadBytes } from "firebase/storage";
+import StudentTeacherInfoForm, {
+    DataType,
+} from "@/components/pages/teachers/contact/form";
+import { useDocument } from "@/hooks/fireStore";
 export interface Props {
     doc: DataBase.WithIdType<DataBase["Teacher"]>;
+    teacherInfo: DataBase.WithIdType<DataBase["TeacherInfo"]>;
     levels: DataBase.WithIdType<DataBase["Levels"]>[];
 }
 function CopyUserId({ text, children }: { text: string; children: ReactNode }) {
@@ -40,49 +48,51 @@ function CopyUserId({ text, children }: { text: string; children: ReactNode }) {
     const [copyState, setCopyState] = useState(false);
     return (
         <Tooltip
-            title="Copy"
+            title={copiedState ? "Copied" : "Copy"}
             disableInteractive
+            disableFocusListener={copiedState}
+            disableTouchListener={copiedState}
+            open={copyState || copiedState}
             onOpen={() => {
                 if (!copiedState) setCopyState(true);
             }}
-            open={copyState}
             onClose={() => {
                 setCopyState(false);
+                setCopiedState(false);
             }}
             enterDelay={500}
+            color={copiedState ? "success" : undefined}
         >
-            <Tooltip
-                title="Copied"
-                open={copiedState}
-                disableFocusListener
-                disableInteractive
-                disableTouchListener
-                onClose={() => setCopiedState(false)}
-                color="success"
+            <button
+                type="button"
+                onClick={() => {
+                    setCopiedState(true);
+                    setCopyState(false);
+                    navigator.clipboard.writeText(text);
+                }}
+                className="tw-p-0 tw-m-0  tw-bg-inherit tw-border-none tw-text-gray-400 hover:tw-text-gray-300 focus:tw-text-gray-300"
             >
-                <button
-                    type="button"
-                    onClick={() => {
-                        setCopiedState(true);
-                        setCopyState(false);
-                        navigator.clipboard.writeText(text);
-                    }}
-                    className="tw-p-0 tw-m-0  tw-bg-inherit tw-border-none tw-text-gray-400 hover:tw-text-gray-300 focus:tw-text-gray-300"
-                >
-                    {children}
-                </button>
-            </Tooltip>
+                {children}
+            </button>
         </Tooltip>
     );
 }
-function Page({ doc: initData, levels }: Props) {
+function Page({ doc: initData, levels, teacherInfo }: Props) {
     const [teacher] = useAuthState(auth);
     const teacherDoc = useAppSelector((state) => state.auth.user!);
     const [doc, setDoc] = useState(initData);
     const isAdmin = teacherDoc?.type == "admin";
     const isOwner = teacher?.uid == doc.id;
     const dispatch = useAppDispatch();
-
+    const router = useRouter();
+    useLayoutEffect(() => {
+        if (router.query.id == undefined)
+            router.replace(router.asPath, {
+                query: {
+                    id: doc.id,
+                },
+            });
+    }, []);
     return (
         <>
             <Head>
@@ -95,67 +105,96 @@ function Page({ doc: initData, levels }: Props) {
                 </div>
                 <MainCard>
                     <TeacherInfoForm
-                        onData={async (data) => {
-                            let newData: DataBase.WithIdType<
-                                DataBase["Teacher"]
-                            > = {
+                        onDataAdmin={async (data) => {
+                            await updateDoc(getDocRef("Teacher", doc.id), {
+                                ...data,
+                                blocked: data.blocked
+                                    ? {
+                                          at: serverTimestamp(),
+                                          teacherId: teacher!.uid,
+                                      }
+                                    : null,
+                            });
+                            if (isOwner)
+                                dispatch(
+                                    AuthActions.setUser({
+                                        ...teacherDoc,
+                                        ...data,
+                                        blocked: data.blocked
+                                            ? {
+                                                  at: new Date().toString(),
+                                                  teacherId: teacher!.uid,
+                                              }
+                                            : null,
+                                    })
+                                );
+                            setDoc({
                                 ...doc,
+                                ...data,
+                                blocked: data.blocked
+                                    ? {
+                                          at: Timestamp.fromDate(new Date()),
+                                          teacherId: teacher!.uid,
+                                      }
+                                    : null,
+                            });
+                        }}
+                        onDataOwner={async (data) => {
+                            const newData: Omit<OwnerDataType, "photoUrl"> & {
+                                photoUrl?: string;
+                            } = {
+                                displayName: data.displayName,
+                                phone: data.phone,
                             };
-                            if (hasOwnProperty(data, "blocked")) {
-                                if (isOwner)
-                                    dispatch(
-                                        AuthActions.setUser({
-                                            ...teacherDoc,
-                                            ...data,
-                                            blocked: data.blocked
-                                                ? {
-                                                      at: new Date().toString(),
-                                                      teacherId: teacher!.uid,
-                                                  }
-                                                : null,
-                                        })
-                                    );
-                                await updateDoc(getDocRef("Teacher", doc.id), {
-                                    ...data,
-                                    blocked: data.blocked
-                                        ? {
-                                              at: serverTimestamp(),
-                                              teacherId: teacher!.uid,
-                                          }
-                                        : null,
-                                });
-                                setDoc({
-                                    ...doc,
-                                    ...data,
-                                    blocked: data.blocked
-                                        ? {
-                                              at: Timestamp.fromDate(
-                                                  new Date()
-                                              ),
-                                              teacherId: teacher!.uid,
-                                          }
-                                        : null,
-                                });
-                            } else {
-                                if (isOwner)
-                                    dispatch(
-                                        AuthActions.setUser({
-                                            ...teacherDoc,
-                                            ...data,
-                                        })
-                                    );
-                                await updateDoc(getDocRef("Teacher", doc.id), {
-                                    ...data,
-                                });
-                                setDoc({
-                                    ...doc,
-                                    ...data,
-                                });
+                            if (data.photoUrl) {
+                                const res = await uploadBytes(
+                                    getStorageRef(
+                                        "Teachers",
+                                        teacher!.uid,
+                                        "profile"
+                                    ),
+                                    data.photoUrl
+                                );
+                                newData.photoUrl = await getDownloadURL(
+                                    res.ref
+                                );
                             }
+
+                            await updateDoc(getDocRef("Teacher", doc.id), {
+                                ...newData,
+                            });
+                            dispatch(
+                                AuthActions.setUser({
+                                    ...teacherDoc,
+                                    ...newData,
+                                })
+                            );
+                            setDoc({
+                                ...doc,
+                                ...newData,
+                            });
+                        }}
+                        onFinish={() => {
+                            alert("Document updated successfully");
                         }}
                         teacher={doc}
                         isAdmin={isAdmin}
                         isOwner={isOwner}
+                    />
+                </MainCard>
+                <CardTitle>Students Info</CardTitle>
+                <MainCard>
+                    <StudentTeacherInfoForm
+                        isNotCreator={teacher?.uid != doc.id}
+                        defaultData={teacherInfo}
+                        onData={async (data) => {
+                            await updateDoc(
+                                getDocRef("TeacherInfo", doc.id),
+                                data
+                            );
+                            alert("document updated successfully");
+                        }}
+                        buttonName={"Update"}
                     />
                 </MainCard>
                 {levels.length > 0 && (
@@ -175,13 +214,13 @@ function Page({ doc: initData, levels }: Props) {
                     <IsAdminComp>
                         <IsCreatorComp user={doc}>
                             <GoToButton
-                                href={`/?=${doc.id}`}
+                                href={`/?teacherId=${doc.id}`}
                                 label={`Go To ${doc.displayName} DashBoard`}
                             />
                         </IsCreatorComp>
 
                         <GoToButton
-                            href={`/assistants?=${doc.id}`}
+                            href={`/assistant?teacherId=${doc.id}`}
                             label={`Go To ${doc.displayName} Assistant Board`}
                         />
                     </IsAdminComp>
@@ -189,12 +228,12 @@ function Page({ doc: initData, levels }: Props) {
                 <IsOwnerComp teacherId={doc.id}>
                     <IsCreatorComp>
                         <GoToButton
-                            href={`/?=${doc.id}`}
+                            href={`/?teacherId=${doc.id}`}
                             label={`Go To The DashBoard`}
                         />
                     </IsCreatorComp>
                     <GoToButton
-                        href={`/assistants?=${doc.id}`}
+                        href={`/assistant?teacherId=${doc.id}`}
                         label={`Go To The Assistant Board`}
                     />
                 </IsOwnerComp>
@@ -224,6 +263,10 @@ export default function SafeArea() {
     const [teacher] = useAuthState(auth);
     const teacherId = (router.query.id || teacher!.uid) as string;
     const [doc, loading2, error2] = useGetTeacher(teacherId);
+    const [teacherDoc, loading3, error3] = useDocument(
+        "TeacherInfo",
+        teacherId
+    );
     const [data, loading, error] = useCollectionOnce(
         query(
             createCollection("Levels"),
@@ -231,21 +274,20 @@ export default function SafeArea() {
             orderBy("order")
         )
     );
-    if (error || error2) return <ErrorShower error={error || error2} />;
-    if (loading || loading2) return <ErrorShower loading />;
+    if (error || error2 || error3)
+        return <ErrorShower error={error || error2} />;
+    if (loading || loading2 || loading3) return <ErrorShower loading />;
     if (!doc) return <Page404 message="The user is not Exist" />;
-    if (!data) return <ErrorShower loading={loading} />;
-    if (error || loading)
-        return (
-            <ErrorShower
-                loading={loading}
-                error={error}
-            />
-        );
-
+    if (!data) return <Page404 message="The user levels is not exist" />;
+    const teacherExist = teacherDoc.exists();
     return (
         <Page
             doc={doc}
+            teacherInfo={
+                teacherExist
+                    ? { id: teacherDoc.id, ...teacherDoc.data() }
+                    : { id: teacherDoc.id }
+            }
             levels={data.docs.map((doc) => ({ ...doc.data(), id: doc.id }))}
         />
     );
