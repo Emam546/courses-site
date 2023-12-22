@@ -1,15 +1,16 @@
 rules_version = '2';
-function isAuthUser(){
-    return request.auth!=null && request.auth.token.email_verified==true;
-}
-function isAdmin(){
-    return isAuthUser() && request.auth.token.type=="admin";
-}
-function isCreator(){
-    return isAuthUser() && (request.auth.token.type=="admin" || request.auth.token.type=="creator");
-}
+
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isAuthUser(){
+      return request.auth!=null && request.auth.token.email_verified==true;
+    }
+    function isAdmin(){
+        return isAuthUser() && request.auth.token.type=="admin";
+    }
+    function isCreator(){
+        return isAuthUser() && (request.auth.token.type=="admin" || request.auth.token.type=="creator");
+    }
     function hasTeacherId(){
       return isAuthUser() && request.resource.data.get("teacherId", request.auth.uid) == request.auth.uid;
     }
@@ -29,19 +30,19 @@ service cloud.firestore {
     //   return request.resource.data.get(key,{}) is map || request.resource.data.get(key,"")==null;
     // }
     function isStr(key){
-      return request.resource.data.get(key,"") is string || request.resource.data.get(key,"")==null;
+      return request.resource.data.get(key,"") is string || request.resource.data[key]==null;
     }
     function isList(key){
-      return request.resource.data.get(key,[]) is list || request.resource.data.get(key,"")==null;
+      return request.resource.data.get(key,[]) is list || request.resource.data[key]==null;
     }
     function isInt(key){
-      return request.resource.data.get(key,0) is int || request.resource.data.get(key,"")==null;
+      return request.resource.data.get(key,0) is int || request.resource.data[key]==null;
     }
     function isBool(key){
-      return request.resource.data.get(key,false) is bool || request.resource.data.get(key,"")==null;
+      return request.resource.data.get(key,false) is bool || request.resource.data[key]==null;
     }
     function istimeStamp(key){
-      return request.resource.data.get(key,request.time) is timestamp || request.resource.data.get(key,"")==null;
+      return request.resource.data.get(key,request.time) is timestamp || request.resource.data[key]==null;
     }
     function isEqualTime(key){
       return resource!=null || request.resource.data.get(key,request.time)==request.time;
@@ -192,13 +193,16 @@ service cloud.firestore {
       function AdminUpdate(){
         return isAdmin() && allowFields(["blocked","type"]);
       }
+      function ownsDoc(){
+        return isAuthUser() && id==request.auth.uid;
+      }
       function TeacherUpdate(){
-        return isAuthUser() && id==request.auth.uid && allowFields(["displayName","phone","photoUrl"]);
+        return ownsDoc() && allowFields(["displayName","phone","photoUrl"]);
       }
       allow read:if isAuthUser();
       allow create:if false;
       allow update:if (AdminUpdate() || TeacherUpdate()) && verfiedData();
-      allow delete:if isAdmin();
+      allow delete:if isAdmin() || ownsDoc();
     }
     match /TeacherInfo/{id}{
       function isOwnsDoc(){
