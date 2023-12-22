@@ -53,3 +53,17 @@ export function SuccessButton({
         />
     );
 }
+export function DangerButton({
+    className,
+    ...props
+}: React.DetailedHTMLProps<
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
+    HTMLButtonElement
+>) {
+    return (
+        <button
+            className={classNames("btn btn-danger", className)}
+            {...props}
+        />
+    );
+}

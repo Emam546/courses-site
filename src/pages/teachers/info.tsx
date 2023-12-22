@@ -24,6 +24,7 @@ import {
     IsAdminComp,
     IsCreatorComp,
     IsOwnerComp,
+    IsOwnerOrAdminComp,
     NotIsOwnerComp,
 } from "@/components/wrappers/wrapper";
 import { GoToButton } from "@/components/common/inputs/addButton";
@@ -38,6 +39,7 @@ import StudentTeacherInfoForm, {
     DataType,
 } from "@/components/pages/teachers/contact/form";
 import { useDocument } from "@/hooks/fireStore";
+import DeleteAccountForm from "@/components/pages/teachers/deleteAccount";
 export interface Props {
     doc: DataBase.WithIdType<DataBase["Teacher"]>;
     teacherInfo: DataBase.WithIdType<DataBase["TeacherInfo"]>;
@@ -208,6 +210,9 @@ function Page({ doc: initData, levels, teacherInfo }: Props) {
                         </MainCard>
                     </IsAdminComp>
                 )}
+                <IsOwnerOrAdminComp teacherId={doc.id}>
+                    <DeleteAccountForm teacherId={doc.id} />
+                </IsOwnerOrAdminComp>
             </BigCard>
             <div className="tw-py-3">
                 <NotIsOwnerComp teacherId={doc.id}>
