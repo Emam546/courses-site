@@ -1,16 +1,15 @@
 rules_version = '2';
-
+function isAuthUser(){
+    return request.auth!=null && request.auth.token.email_verified==true;
+}
+function isAdmin(){
+    return isAuthUser() && request.auth.token.type=="admin";
+}
+function isCreator(){
+    return isAuthUser() && (request.auth.token.type=="admin" || request.auth.token.type=="creator");
+}
 service cloud.firestore {
   match /databases/{database}/documents {
-    function isAuthUser(){
-        return request.auth!=null && request.auth.token.email_verified==true;
-    }
-    function isAdmin(){
-        return isAuthUser() && request.auth.token.type=="admin";
-    }
-    function isCreator(){
-        return isAuthUser() && (request.auth.token.type=="admin" || request.auth.token.type=="creator");
-    }
     function hasTeacherId(){
       return isAuthUser() && request.resource.data.get("teacherId", request.auth.uid) == request.auth.uid;
     }
@@ -27,22 +26,22 @@ service cloud.firestore {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields);
     }
     // function isMap(key){
-    //   return request.resource.data.get(key,{}) is map;
+    //   return request.resource.data.get(key,{}) is map || request.resource.data.get(key,"")==null;
     // }
     function isStr(key){
-      return request.resource.data.get(key,"") is string;
+      return request.resource.data.get(key,"") is string || request.resource.data.get(key,"")==null;
     }
     function isList(key){
-      return request.resource.data.get(key,[]) is list;
+      return request.resource.data.get(key,[]) is list || request.resource.data.get(key,"")==null;
     }
     function isInt(key){
-      return request.resource.data.get(key,0) is int;
+      return request.resource.data.get(key,0) is int || request.resource.data.get(key,"")==null;
     }
     function isBool(key){
-      return request.resource.data.get(key,false) is bool;
+      return request.resource.data.get(key,false) is bool || request.resource.data.get(key,"")==null;
     }
     function istimeStamp(key){
-      return request.resource.data.get(key,request.time) is timestamp;
+      return request.resource.data.get(key,request.time) is timestamp || request.resource.data.get(key,"")==null;
     }
     function isEqualTime(key){
       return resource!=null || request.resource.data.get(key,request.time)==request.time;
@@ -188,18 +187,27 @@ service cloud.firestore {
     match /Teacher/{id}{
       function verfiedData(){
         return isStr("displayName") && isStr("phone") &&
-        isStr('photoUrl') && isStr("contactPhone") && isStr("contactEmail") && isStr("type") && request.resource.data.type in ["admin","creator","assistant"];
+        isStr('photoUrl') && isStr("type") && request.resource.data.type in ["admin","creator","assistant"];
       }
       function AdminUpdate(){
-        return isAdmin()&& allowFields(["blocked","type"]);
+        return isAdmin() && allowFields(["blocked","type"]);
       }
       function TeacherUpdate(){
-        return isAuthUser() && id==request.auth.uid && allowFields(["displayName","phone","photoUrl","contactPhone","contactEmail"]);
+        return isAuthUser() && id==request.auth.uid && allowFields(["displayName","phone","photoUrl"]);
       }
       allow read:if isAuthUser();
       allow create:if false;
       allow update:if (AdminUpdate() || TeacherUpdate()) && verfiedData();
       allow delete:if isAdmin();
+    }
+    match /TeacherInfo/{id}{
+      function isOwnsDoc(){
+        return isAuthUser() && id==request.auth.uid;
+      }
+      allow read:if isAuthUser();
+      allow create:if false;
+      allow update:if isOwnsDoc();
+      allow delete:if false;
     }
     match /Results/{id}{
       allow read:if teacherOwnsDoc();

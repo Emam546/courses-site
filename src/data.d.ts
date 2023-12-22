@@ -128,12 +128,16 @@ declare global {
                 at: Timestamp;
             };
             createdAt: Timestamp;
-            contactPhone?: string;
-            contactEmail?: string;
             displayName: string;
             photoUrl?: string;
             email: string;
             phone?: string;
+        };
+        TeacherInfo: {
+            contactEmail?: string;
+            contactPhone?: string;
+            address?: string;
+            
         };
         Students: {
             teacherId: string;

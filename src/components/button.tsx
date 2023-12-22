@@ -15,6 +15,29 @@ export default function PrimaryButton({
         />
     );
 }
+export const UploadFileButton = React.forwardRef<
+    HTMLInputElement,
+    React.DetailedHTMLProps<
+        React.InputHTMLAttributes<HTMLInputElement>,
+        HTMLInputElement
+    >
+>(({ className, children, ...props }, ref) => {
+    return (
+        <>
+            <label
+                htmlFor={props.id}
+                className={classNames("btn btn-primary", className)}
+            >
+                {children}
+            </label>
+            <input
+                type="file"
+                className="tw-appearance-none tw-invisible tw-absolute"
+                {...props}
+            />
+        </>
+    );
+});
 
 export function SuccessButton({
     className,
