@@ -43,8 +43,8 @@ const FinalEditor = React.forwardRef<HTMLInputElement, Props>(
                     }
                     placeholder={placeholder}
                     toolbar={toolbar}
+                    handlePastedText={() => false}
                     {...props}
-                    stripPastedStyles={true}
                 />
             </div>
         );
