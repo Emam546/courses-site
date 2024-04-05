@@ -1,7 +1,7 @@
 import { faGripLinesVertical } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
-import React, { Dispatch, ReactNode, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function DraggableComp({
     onDragOver,
@@ -11,7 +11,7 @@ export default function DraggableComp({
 }: {
     parentDiv?: HTMLElement | null;
     onDragOver?: (ele: Window) => any;
-    onDrag?: (this: Window, ev: MouseEvent) => any;
+    onDrag?: (this: Window, ev: Event) => any;
     onDragStart?: (ele: Window) => any;
 }) {
     const [drag, setDrag] = useState(false);
@@ -21,16 +21,25 @@ export default function DraggableComp({
 
     useEffect(() => {
         if (drag) {
-            if (onDrag) window.addEventListener("mousemove", onDrag);
+            if (onDrag) {
+                window.addEventListener("mousemove", onDrag);
+                window.addEventListener("touchmove", onDrag);
+            }
             setDragStart(true);
             if (!dragStart && onDragStart) onDragStart(window);
         } else {
             if (dragStart && onDragOver) onDragOver(window);
             setDragStart(false);
-            if (onDrag) window.removeEventListener("mousemove", onDrag);
+            if (onDrag) {
+                window.removeEventListener("mousemove", onDrag);
+                window.removeEventListener("touchmove", onDrag);
+            }
         }
         return () => {
-            if (onDrag) window.removeEventListener("mousemove", onDrag);
+            if (onDrag) {
+                window.removeEventListener("mousemove", onDrag);
+                window.removeEventListener("touchmove", onDrag);
+            }
         };
     }, [drag]);
     useEffect(() => {
@@ -40,40 +49,59 @@ export default function DraggableComp({
             if (!parentDiv) return;
             parentDiv.style.width = parentWidth;
         }
-        function elementDrag(e: MouseEvent) {
+        function XYDragging(x: number, y: number) {
             if (!parentDiv) return;
             if (!drag) return;
-            e.preventDefault();
             const [posX, posY] = cord;
-            parentDiv.style.left = e.clientX - posX + "px";
-            parentDiv.style.top = e.clientY - posY + "px";
+            parentDiv.style.left = x - posX + "px";
+            parentDiv.style.top = y - posY + "px";
+        }
+        function elementDrag(e: MouseEvent) {
+            e.preventDefault();
+            XYDragging(e.clientX, e.clientY);
+        }
+        function elementDragTouch(e: TouchEvent) {
+            e.preventDefault();
+            XYDragging(e.touches[0].clientX, e.touches[0].clientY);
         }
         window.addEventListener("mouseup", DragOver);
         window.addEventListener("mousemove", elementDrag);
+        window.addEventListener("touchend", DragOver);
+        window.addEventListener("touchmove", elementDragTouch);
         return () => {
             window.removeEventListener("mouseup", DragOver);
             window.removeEventListener("mousemove", elementDrag);
+            window.removeEventListener("touchend", DragOver);
+            window.removeEventListener("touchmove", elementDragTouch);
         };
     }, [parentDiv, drag, cord, parentWidth]);
-
+    function StartDragging(x: number, y: number) {
+        if (!parentDiv) return;
+        const rect = parentDiv.getBoundingClientRect();
+        const posX = x - rect.left;
+        const posY = y - rect.top;
+        parentDiv.style.left = x - posX + "px";
+        parentDiv.style.top = y - posY + "px";
+        setWidth(parentDiv.style.width);
+        parentDiv.style.width = parentDiv.offsetWidth + "px";
+        setCord([posX, posY]);
+        setDrag(true);
+    }
     return (
         <div
-            className={classNames("absolute -left-4", {
-                "cursor-grab": !drag,
-                "cursor-grabbing": drag,
+            className={classNames("tw-absolute -tw-left-4 tw-touch-none", {
+                "tw-cursor-grab": !drag,
+                "tw-cursor-grabbing": drag,
             })}
+            onTouchStart={(e) => {
+                if (!parentDiv) return;
+                e.preventDefault();
+                StartDragging(e.touches[0].clientX, e.touches[0].clientY);
+            }}
             onMouseDown={(e) => {
                 if (!parentDiv) return;
                 e.preventDefault();
-                const rect = parentDiv.getBoundingClientRect();
-                const posX = e.clientX - rect.left;
-                const posY = e.clientY - rect.top;
-                parentDiv.style.left = e.clientX - posX + "px";
-                parentDiv.style.top = e.clientY - posY + "px";
-                setWidth(parentDiv.style.width);
-                parentDiv.style.width = parentDiv.offsetWidth + "px";
-                setCord([posX, posY]);
-                setDrag(true);
+                StartDragging(e.clientX, e.clientY);
             }}
         >
             <FontAwesomeIcon icon={faGripLinesVertical} />

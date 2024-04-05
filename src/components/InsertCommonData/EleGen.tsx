@@ -9,7 +9,7 @@ export interface PrimaryProps {
     onDelete?: (this: HTMLDivElement) => any;
     onDuplicate?: (this: HTMLDivElement) => any;
     onDragOver?: (ele: HTMLDivElement) => any;
-    onDrag?: (this: HTMLDivElement, ev: MouseEvent) => any;
+    onDrag?: (this: HTMLDivElement, ev: Event) => any;
     onDragStart?: (ele: HTMLDivElement) => any;
     noDragging?: boolean;
 }
