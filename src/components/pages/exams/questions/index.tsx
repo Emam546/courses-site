@@ -264,7 +264,7 @@ export default function QuestionsViewer({
     return (
         <Main
             endState={endState}
-            exam={{ ...exam, id: exam.id }}
+            exam={{ ...exam, id: exam.id } as unknown as DataBase.WithIdType<DataBase["Exams"]>}
             result={{ ...result, id: resultId }}
             onAnswer={async (id, answer) => {
                 const newArr = [...result.questions];

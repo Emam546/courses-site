@@ -1,5 +1,10 @@
 import { getQuestion } from "@/firebase/func/data/question";
-import { ResultType, getResult, endExam } from "@/firebase/func/data/results";
+import {
+    ResultType,
+    getResult,
+    endExam,
+    ResultsExamsType,
+} from "@/firebase/func/data/results";
 import queryClient from "@/queryClient";
 import { wrapRequest, ErrorMessage } from "@/utils/wrapRequest";
 import { useQuery, UseQueryOptions } from "@tanstack/react-query";
@@ -16,8 +21,7 @@ export function useGetResult(
     resultId?: string,
     options?: UseQueryOptions<{ result: ResultType }, ErrorMessage>
 ) {
-    async function getData() {
-        console.log("getData");
+    async function getData(): Promise<{ result: ResultType }> {
         const data = await wrapRequest(getResult(resultId!));
         const result = data.result;
         if (result.endAt) return data;
