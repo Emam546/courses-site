@@ -1,13 +1,15 @@
 import { httpsCallable } from "@firebase/functions";
 import { functions } from "..";
-import type { RegisterRequestData, RegisterResponseData } from "@func/teacher";
-import type {
-    RegisterRequestData as StudentRegisterRequestData,
-    RegisterResponseData as StudentRegisterResponseData,
-} from "@func/student";
+import {
+    StudentRegisterRequestData,
+    StudentRegisterResponseData,
+    TeacherRegisterRequestData,
+    TeacherRegisterResponseData,
+} from "./types";
+
 export const createTeacherCall = httpsCallable<
-    RegisterRequestData,
-    RegisterResponseData
+    TeacherRegisterRequestData,
+    TeacherRegisterResponseData
 >(functions, "registerTeacher");
 export const createStudentCall = httpsCallable<
     StudentRegisterRequestData,

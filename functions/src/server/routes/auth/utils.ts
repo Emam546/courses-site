@@ -1,11 +1,11 @@
 import { Response, Request } from "express";
 import { sign } from "@serv/utils/jwt";
-import EnvVars from "@/server/declarations/major/EnvVars";
+import EnvVars from "@serv/declarations/major/EnvVars";
 import { hasOwnProperty } from "@/utils";
 import { getCollection } from "@/firebase";
-import HttpStatusCodes from "@/server/declarations/major/HttpStatusCodes";
-import { ErrorMessages } from "@/server/declarations/major/Messages";
-import { RouteError } from "@/server/declarations/classes";
+import HttpStatusCodes from "@serv/declarations/major/HttpStatusCodes";
+import { ErrorMessages } from "@serv/declarations/major/Messages";
+import { RouteError } from "@serv/declarations/classes";
 
 export type UserDecodedData = DataBase.WithIdType<DataBase["Students"]> & {
   teacherBlockState: boolean;

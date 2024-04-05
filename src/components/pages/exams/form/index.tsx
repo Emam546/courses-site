@@ -48,9 +48,9 @@ export default function ExamInfoForm({
                 desc: defaultData?.desc,
                 hide: defaultData?.hide,
                 name: defaultData?.name,
-                num: defaultData?.num,
+                num: (defaultData as any)?.num,
                 random: defaultData?.random,
-                shuffle: defaultData?.shuffle,
+                shuffle: (defaultData as any)?.shuffle,
                 questionIds: defaultData?.questionIds,
             },
         });

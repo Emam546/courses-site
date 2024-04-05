@@ -1,5 +1,5 @@
 import { Send } from "express";
-import { UserDecodedData } from "./server/routes/auth/utils";
+import { UserDecodedData } from "@serv/routes/auth/utils";
 declare global {
   namespace Express {
     interface Request {

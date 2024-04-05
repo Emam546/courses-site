@@ -31,7 +31,9 @@
   "include": [
     "next-env.d.ts",
     "src",
-    "functions/src"
+    "functions/src/server/utils/validateUserName.ts",
+    "functions/src/server/utils/exam.ts",
+    "functions/src/utils/index.ts"
   ],
   "exclude": [
     "node_modules",
