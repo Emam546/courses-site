@@ -19,7 +19,7 @@ export default function ConnectedBar() {
         return (
             <div
                 className={classNames(
-                    "tw-fixed tw-py-1 tw-w-full tw-z-[10000] tw-bg-gray-400"
+                    "tw-fixed tw-py-1 tw-w-full tw-z-[10000] tw-bg-gray-400 tw-top-0"
                 )}
             >
                 <p className="tw-w-fit tw-m-0 tw-p-0 tw-text-xs tw-capitalize tw-mx-auto tw-text-gray-200 ">
@@ -31,7 +31,7 @@ export default function ConnectedBar() {
     return (
         <div
             className={classNames(
-                "tw-fixed tw-py-1 tw-w-full tw-z-[10000] tw-bg-green-500"
+                "tw-fixed tw-py-1 tw-w-full tw-z-[10000] tw-bg-green-500 tw-top-0"
             )}
         >
             <p className="tw-w-fit tw-m-0 tw-text-xs tw-capitalize tw-mx-auto tw-text-gray-100 ">
